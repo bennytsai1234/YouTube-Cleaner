@@ -1155,7 +1155,7 @@
                         e.stopImmediatePropagation();
                         window.open(targetLink.href, '_blank');
                     }
-                } catch (err) { }
+                } catch (err) { /* ignore */ }
             }, { capture: true });
         }
     }
@@ -1191,7 +1191,7 @@
             switch (c.trim()) {
                 case '1': this.showRuleMenu(); break;
                 case '2': this.toggle('ENABLE_LOW_VIEW_FILTER'); break;
-                case '3': const v = prompt(this.t('threshold_prompt')); if (v) this.update('LOW_VIEW_THRESHOLD', Number(v)); break;
+                case '3': { const v = prompt(this.t('threshold_prompt')); if (v) this.update('LOW_VIEW_THRESHOLD', Number(v)); break; }
                 case '4': this.showAdvancedMenu(); break;
                 case '5': this.toggle('OPEN_IN_NEW_TAB'); break;
                 case '6': this.toggle('OPEN_NOTIFICATIONS_IN_NEW_TAB'); break;
@@ -1291,7 +1291,7 @@
                 this.onRefresh(); this.showAdvancedMenu();
             } else if (c === '0') this.showMainMenu();
         }
-        manage(k, n) {
+        manage(k, _n) {
             const l = this.config.get(k);
             const c = prompt(`[${l.join(', ')}]\n1.${this.t('adv_add')} 2.${this.t('adv_remove')} 3.${this.t('adv_clear')} 0.${this.t('back')}`);
             if (c === '1') { const v = prompt(`${this.t('adv_add')}:`); if (v) this.config.set(k, [...l, ...v.split(',')]); }
