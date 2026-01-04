@@ -5,9 +5,7 @@
 The UI Cleaning capability handles static CSS-based element hiding on YouTube. It uses high-performance CSS rules (including modern `:has()` selectors) to remove unwanted UI elements such as ads, banners, and recommendation shelves before they are rendered, ensuring a clean viewing experience without visual flicker.
 
 ---
-
 ## Requirements
-
 ### Requirement: Static Ad Hiding
 
 The system SHALL use CSS rules to hide sponsored content, banners, and ad slots immediately upon page load.
@@ -27,12 +25,11 @@ The system SHALL use CSS rules to hide sponsored content, banners, and ad slots 
 ---
 
 ### Requirement: Component Toggle
-
 The system SHALL allow users to toggle visibility for specific UI components (Shorts shelf, Community posts, Breaking News).
 
 #### Scenario: Hide Shorts shelf
 - **WHEN** the "Shorts Section" rule is enabled
-- **THEN** `ytd-rich-shelf-renderer` containers containing Shorts are hidden via CSS `:has()` selector
+- **THEN** `ytd-rich-shelf-renderer` containers containing Shorts (detected by `is-shorts` attribute or text matching) are hidden via CSS `:has()` selector or JavaScript filtering
 
 #### Scenario: Hide community posts
 - **WHEN** the "Community Posts" rule is enabled
@@ -46,8 +43,6 @@ The system SHALL allow users to toggle visibility for specific UI components (Sh
 - **WHEN** user disables the "Shorts Section" rule
 - **AND** enables the "Shorts Items" rule
 - **THEN** Shorts are hidden only within video grids, not as section headers
-
----
 
 ### Requirement: Playlist Recommendation Hiding
 
@@ -86,3 +81,4 @@ The system SHALL hide YouTube Mix playlists.
 #### Scenario: Hide Mix playlists
 - **WHEN** "Mix Playlists" rule is enabled
 - **THEN** items with labels containing "合輯" or "Mix" are hidden
+
