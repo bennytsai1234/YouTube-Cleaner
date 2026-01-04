@@ -1,0 +1,38 @@
+name: Create Release
+
+on:
+  push:
+    tags:
+      - 'v*' # Trigger on tags like v1.0.0, v1.6.2, etc.
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    name: Create GitHub Release
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Extract Release Notes
+        id: extract_release_notes
+        # Simple extraction: gets the latest version block from README or uses git log
+        # For simplicity, we'll use the tag message or a placeholder first.
+        # A more robust solution would parse CHANGELOG.md or README.md
+        run: |
+            # Try to grab the first section from README changelog if it matches version
+            VERSION=${GITHUB_REF#refs/tags/}
+            echo "RELEASE_VERSION=$VERSION" >> $GITHUB_ENV
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v1
+        with:
+          files: youtube-homepage-cleaner.user.js
+          name: ${{ env.RELEASE_VERSION }}
+          generate_release_notes: true
+          draft: false
+          prerelease: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

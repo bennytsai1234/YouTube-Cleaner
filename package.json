@@ -1,0 +1,19 @@
+{
+  "name": "youtube-homepage-cleaner",
+  "version": "1.6.2",
+  "description": "Clean YouTube interface by hiding Shorts, suggestions, and clutter elements.",
+  "scripts": {
+    "lint": "eslint youtube-homepage-cleaner.user.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/bennytsai1234/YouTube-Cleaner.git"
+  },
+  "author": "Benny",
+  "license": "MIT",
+  "devDependencies": {
+    "eslint": "^8.56.0",
+    "eslint-plugin-userscripts": "^0.5.0",
+    "globals": "^13.24.0"
+  }
+}
