@@ -9,6 +9,7 @@ export class ConfigManager {
             OPEN_NOTIFICATIONS_IN_NEW_TAB: true,
             ENABLE_KEYWORD_FILTER: false,
             KEYWORD_BLACKLIST: [],
+            ENABLE_REGION_CONVERT: true,
             ENABLE_CHANNEL_FILTER: false,
             CHANNEL_BLACKLIST: [],
             ENABLE_DURATION_FILTER: false,

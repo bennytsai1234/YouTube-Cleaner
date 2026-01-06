@@ -32,6 +32,7 @@
                 OPEN_NOTIFICATIONS_IN_NEW_TAB: true,
                 ENABLE_KEYWORD_FILTER: false,
                 KEYWORD_BLACKLIST: [],
+                ENABLE_REGION_CONVERT: true,
                 ENABLE_CHANNEL_FILTER: false,
                 CHANNEL_BLACKLIST: [],
                 ENABLE_DURATION_FILTER: false,
@@ -380,6 +381,18 @@
             const a2 = container.querySelector(':scope a#thumbnail[aria-label]');
             if (a2?.ariaLabel) return a2.ariaLabel;
             return '';
+        },
+        toSimplified: (str) => {
+            if (!str) return '';
+            const t = '萬與醜專業叢東絲丟兩嚴喪個卐豐臨為麗舉乃久么義樂喬乖乘亂乾了予爭事二于虧雲互五井亞些亡交亥亦產亨畝享京亭亮親億仁僅仆仇今介仍仔他付仙儀仔代令以仰仲件任份仿企伊伍伐休會傳倫偽佇伯估伴伸伺似伽但佈位低住佐佑体何餘佛作你佩佯佳併使來例侍供依人侮侯侵便係促俄俊俎俗俘信修俱俾倍倒倔倘候倚借倡倣偺倦倨倩倪倫倭值偃假偉偏傑做停健側偵偶偷偽傀傅傍傑傖傘備傚催傭傲傳債傷傻傾僂僅僉像僑僕偽僥僨僱價儀儂億儈儉儐儒償優儲儷儺儻儼免兒兔黨兜兢入內全兩八公六共興兵其具典養兼冀冂円冉冊再冑冒冕冗冤冠塚冤冥冬冰冷准凉凋凌凍凝几凡凰凱凳凶凸凹出函刀刁刃分切刈刊刑划列初判別利刪刮到制刷刺刻剃則削剋剌前剛劍劑剝劇剩剪副割創劃劇劈劉劍劑力功加劣助努劫劬劭効勁勃勇勉勒動勗勘務勝勞募勢勤勳勵勸勻勾勿包匆匈匍匏匕化北匙匝匠匡匣匪匱匹區醫十千升午卉半卑卒卓協南博卜占卡卮卦卣印危即卵卷卸卹卻卿廠厄厚原厭厲去參又叉及友反叔取受敘叛叟叢口古句另叨叩只叫召叭叮可台叱史右叵叶司嘆含吝吻吸吹吾呀呂呆呈吳告呎周味呵呼命和咎詠咐咒咕咖佬供使來例侍供依人侮侯侵便係促俄俊俎俗俘信修俱俾倍倒倔倘候倚借倡倣偺倦倨倩倪倫倭值偃假偉偏傑做停健側偵偶偷偽傀傅傍傑傖傘備傚催傭傲傳債傷傻傾僂僅僉像僑僕偽僥僨僱價儀儂億儈儉儐儒償優儲儷儺儻儼免兒兔黨兜兢入內全兩八公六共興兵其具典養兼冀冂円冉冊再冑冒冕冗冤冠塚冤冥冬冰冷准凉凋凌凍凝几凡凰凱凳凶凸凹出函刀刁刃分切刈刊刑划列初判別利刪刮到制刷刺刻剃則削剋剌前剛劍劑剝劇剩剪副割創劃劇劈劉劍劑力功加劣助努劫劬劭効勁勃勇勉勒動勗勘務勝勞募勢勤勳勵勸勻勾勿包匆匈匍匏匕化北匙匝匠匡匣匪匱匹區醫十千升午卉半卑卒卓協南博卜占卡卮卦卣印危即卵卷卸卹卻卿廠厄厚原厭厲去參又叉及友反叔取受敘叛叟叢口古句另叨叩只叫召叭叮可台叱史右叵叶司嘆含吝吻吸吹吾呀呂呆呈吳告呎周味呵呼命和咎詠咐咒咕咖佬';
+            const s = '万与丑专业丛东丝丢两严丧个卍丰临为丽举乃久幺义乐乔乖乘乱干了予争事二于亏云互五井亚些亡交亥亦产亨亩享京亭亮亲亿仁仅仆仇今介仍仔他付仙仪仔代令以仰仲件任份仿企伊伍伐休会传伦伪伫伯估伴伸伺似伽但布位低住佐佑体何余佛作你佩佯佳并使来例侍供依人侮侯侵便系促俄俊俎俗俘信修俱俾倍倒倔倘候倚借倡仿咱倦倨倩倪伦倭值偃假伟偏杰做停健侧侦偶偷伪傀傅傍杰伧伞备效催佣傲传债伤傻倾偻仅佥像侨仆伪侥偾雇价仪侬亿侩俭傧儒偿优储俪傩傥俨免儿兔党兜兢入内全两八公六共兴兵其具典养兼冀冂円冉册再胄冒冕冗冤冠冢冤冥冬冰冷准凉凋凌冻凝几凡凰凯凳凶凸凹出函刀刁刃分切刈刊刑划列初判别利删刮到制刷刺刻剃则削克剌前刚剑剂剥剧剩剪副割创划剧劈刘剑剂力功加劣助努劫劬劭效劲勃勇勉勒动勖勘务胜劳募势勤勋励劝匀勾勿包匆匈匍匏匕化北匙匝匠匡匣匪匮匹区医十千升午卉半卑卒卓协南博卜占卡卮卦卣印危即卵卷卸恤却卿厂厄厚原厌厉去参又叉及友反叔取受叙叛叟丛口古句另叨叩只叫召叭叮可台叱史右叵叶司叹含吝吻吸吹吾呀吕呆呈吴告尺周味呵呼命和咎咏咐咒咕咖佬';
+            let res = '';
+            for (let i = 0; i < str.length; i++) {
+                const char = str[i];
+                const idx = t.indexOf(char);
+                res += idx !== -1 ? s[idx] : char;
+            }
+            return res;
         }
     };
 
@@ -538,10 +551,20 @@
             if (element.tagName.includes('VIDEO') || element.tagName.includes('LOCKUP') || element.tagName.includes('RICH-ITEM')) {
                 const item = new LazyVideoData(element);
                 if (this.config.get('ENABLE_KEYWORD_FILTER') && item.title) {
-                    if (this.config.get('KEYWORD_BLACKLIST').some(k => item.title.toLowerCase().includes(k.toLowerCase()))) return this._hide(element, 'keyword_blacklist');
+                    const convert = this.config.get('ENABLE_REGION_CONVERT');
+                    const title = convert ? Utils.toSimplified(item.title) : item.title;
+                    if (this.config.get('KEYWORD_BLACKLIST').some(k => {
+                        const key = convert ? Utils.toSimplified(k) : k;
+                        return title.toLowerCase().includes(key.toLowerCase());
+                    })) return this._hide(element, 'keyword_blacklist');
                 }
                 if (this.config.get('ENABLE_CHANNEL_FILTER') && item.channel) {
-                    if (this.config.get('CHANNEL_BLACKLIST').some(k => item.channel.toLowerCase().includes(k.toLowerCase()))) return this._hide(element, 'channel_blacklist');
+                    const convert = this.config.get('ENABLE_REGION_CONVERT');
+                    const channel = convert ? Utils.toSimplified(item.channel) : item.channel;
+                    if (this.config.get('CHANNEL_BLACKLIST').some(k => {
+                        const key = convert ? Utils.toSimplified(k) : k;
+                        return channel.toLowerCase().includes(key.toLowerCase());
+                    })) return this._hide(element, 'channel_blacklist');
                 }
                 if (this.config.get('RULE_ENABLES').members_only && item.isMembers) {
                     return this._hide(element, 'members_only_js');
@@ -677,7 +700,8 @@
                 adv_max: '最長(分):',
                 adv_add: '新增',
                 adv_remove: '刪除',
-                adv_clear: '清空'
+                adv_clear: '清空',
+                adv_region_convert: '繁簡通用過濾'
             },
             'zh-CN': {
                 title: 'YouTube 净化大师',
@@ -720,7 +744,8 @@
                 adv_max: '最长(分):',
                 adv_add: '新增',
                 adv_remove: '删除',
-                adv_clear: '清空'
+                adv_clear: '清空',
+                adv_region_convert: '繁简通用过滤'
             },
             'en': {
                 title: 'YouTube Cleaner',
@@ -763,7 +788,8 @@
                 adv_max: 'Max (min):',
                 adv_add: 'Add',
                 adv_remove: 'Remove',
-                adv_clear: 'Clear'
+                adv_clear: 'Clear',
+                adv_region_convert: 'Region Agnostic Filter'
             },
             'ja': {
                 title: 'YouTube クリーナー',
@@ -806,7 +832,8 @@
                 adv_max: '最長(分):',
                 adv_add: '追加',
                 adv_remove: '削除',
-                adv_clear: 'クリア'
+                adv_clear: 'クリア',
+                adv_region_convert: '地域非依存フィルタ'
             }
         },
         ruleNames: {
@@ -1055,11 +1082,12 @@
                 `4. ${this.t('adv_channel_list')}\n` +
                 `5. ${i('ENABLE_DURATION_FILTER')} ${this.t('adv_duration_filter')}\n` +
                 `6. ${this.t('adv_duration_set')}\n` +
+                `7. ${i('ENABLE_REGION_CONVERT')} ${this.t('adv_region_convert')}\n` +
                 `0. ${this.t('back')}`
             );
-            if (c === '1' || c === '3' || c === '5') this.toggle(c === '1' ? 'ENABLE_KEYWORD_FILTER' : c === '3' ? 'ENABLE_CHANNEL_FILTER' : 'ENABLE_DURATION_FILTER', true);
-            else if (c === '2') this.manage('KEYWORD_BLACKLIST', this.t('adv_keyword_filter'));
-            else if (c === '4') this.manage('CHANNEL_BLACKLIST', this.t('adv_channel_filter'));
+            if (c === '1' || c === '3' || c === '5' || c === '7') this.toggle(c === '1' ? 'ENABLE_KEYWORD_FILTER' : c === '3' ? 'ENABLE_CHANNEL_FILTER' : c === '5' ? 'ENABLE_DURATION_FILTER' : 'ENABLE_REGION_CONVERT', true);
+            else if (c === '2') this.manage('KEYWORD_BLACKLIST');
+            else if (c === '4') this.manage('CHANNEL_BLACKLIST');
             else if (c === '6') {
                 const min = prompt(this.t('adv_min')); const max = prompt(this.t('adv_max'));
                 if (min) this.config.set('DURATION_MIN', min * 60);
@@ -1067,7 +1095,7 @@
                 this.onRefresh(); this.showAdvancedMenu();
             } else if (c === '0') this.showMainMenu();
         }
-        manage(k, _n) {
+        manage(k) {
             const l = this.config.get(k);
             const c = prompt(`[${l.join(', ')}]\n1.${this.t('adv_add')} 2.${this.t('adv_remove')} 3.${this.t('adv_clear')} 0.${this.t('back')}`);
             if (c === '1') { const v = prompt(`${this.t('adv_add')}:`); if (v) this.config.set(k, [...l, ...v.split(',')]); }

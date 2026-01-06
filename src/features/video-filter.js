@@ -130,10 +130,20 @@ export class VideoFilter {
             // Advanced Filters
             // Advanced Filters
             if (this.config.get('ENABLE_KEYWORD_FILTER') && item.title) {
-                if (this.config.get('KEYWORD_BLACKLIST').some(k => item.title.toLowerCase().includes(k.toLowerCase()))) return this._hide(element, 'keyword_blacklist');
+                const convert = this.config.get('ENABLE_REGION_CONVERT');
+                const title = convert ? Utils.toSimplified(item.title) : item.title;
+                if (this.config.get('KEYWORD_BLACKLIST').some(k => {
+                    const key = convert ? Utils.toSimplified(k) : k;
+                    return title.toLowerCase().includes(key.toLowerCase());
+                })) return this._hide(element, 'keyword_blacklist');
             }
             if (this.config.get('ENABLE_CHANNEL_FILTER') && item.channel) {
-                if (this.config.get('CHANNEL_BLACKLIST').some(k => item.channel.toLowerCase().includes(k.toLowerCase()))) return this._hide(element, 'channel_blacklist');
+                const convert = this.config.get('ENABLE_REGION_CONVERT');
+                const channel = convert ? Utils.toSimplified(item.channel) : item.channel;
+                if (this.config.get('CHANNEL_BLACKLIST').some(k => {
+                    const key = convert ? Utils.toSimplified(k) : k;
+                    return channel.toLowerCase().includes(key.toLowerCase());
+                })) return this._hide(element, 'channel_blacklist');
             }
 
             // 強化會員過濾 (JS補刀)：若開啟成員過濾且偵測到是會員影片，直接隱藏

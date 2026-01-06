@@ -45,7 +45,8 @@ export const I18N = {
             adv_max: '最長(分):',
             adv_add: '新增',
             adv_remove: '刪除',
-            adv_clear: '清空'
+            adv_clear: '清空',
+            adv_region_convert: '繁簡通用過濾'
         },
         'zh-CN': {
             title: 'YouTube 净化大师',
@@ -88,7 +89,8 @@ export const I18N = {
             adv_max: '最长(分):',
             adv_add: '新增',
             adv_remove: '删除',
-            adv_clear: '清空'
+            adv_clear: '清空',
+            adv_region_convert: '繁简通用过滤'
         },
         'en': {
             title: 'YouTube Cleaner',
@@ -131,7 +133,8 @@ export const I18N = {
             adv_max: 'Max (min):',
             adv_add: 'Add',
             adv_remove: 'Remove',
-            adv_clear: 'Clear'
+            adv_clear: 'Clear',
+            adv_region_convert: 'Region Agnostic Filter'
         },
         'ja': {
             title: 'YouTube クリーナー',
@@ -174,7 +177,8 @@ export const I18N = {
             adv_max: '最長(分):',
             adv_add: '追加',
             adv_remove: '削除',
-            adv_clear: 'クリア'
+            adv_clear: 'クリア',
+            adv_region_convert: '地域非依存フィルタ'
         }
     },
 

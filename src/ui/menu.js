@@ -120,9 +120,10 @@ export class UIManager {
             `4. ${this.t('adv_channel_list')}\n` +
             `5. ${i('ENABLE_DURATION_FILTER')} ${this.t('adv_duration_filter')}\n` +
             `6. ${this.t('adv_duration_set')}\n` +
+            `7. ${i('ENABLE_REGION_CONVERT')} ${this.t('adv_region_convert')}\n` +
             `0. ${this.t('back')}`
         );
-        if (c === '1' || c === '3' || c === '5') this.toggle(c === '1' ? 'ENABLE_KEYWORD_FILTER' : c === '3' ? 'ENABLE_CHANNEL_FILTER' : 'ENABLE_DURATION_FILTER', true);
+        if (c === '1' || c === '3' || c === '5' || c === '7') this.toggle(c === '1' ? 'ENABLE_KEYWORD_FILTER' : c === '3' ? 'ENABLE_CHANNEL_FILTER' : c === '5' ? 'ENABLE_DURATION_FILTER' : 'ENABLE_REGION_CONVERT', true);
         else if (c === '2') this.manage('KEYWORD_BLACKLIST');
         else if (c === '4') this.manage('CHANNEL_BLACKLIST');
         else if (c === '6') {
