@@ -1,0 +1,27 @@
+{
+  "name": "YouTube Cleaner - Remove Shorts, Recommendations & Clutter",
+  "name:zh-TW": "YouTube Cleaner - 隱藏 Shorts、推薦與雜訊",
+  "name:zh-CN": "YouTube Cleaner - 隐藏 Shorts、推荐与杂讯",
+  "name:ja": "YouTube Cleaner - Shorts・おすすめ・雑音を非表示",
+  "namespace": "http://tampermonkey.net/",
+  "description": "Clean YouTube interface by hiding Shorts, suggestions, and clutter elements. 20+ custom rules.",
+  "description:zh-TW": "淨化 YouTube 介面，隱藏 Shorts、推薦內容與雜訊元素。20+ 過濾規則，完全可自訂。",
+  "description:zh-CN": "净化 YouTube 界面，隐藏 Shorts、推荐内容与杂讯元素。20+ 过滤规则，完全可自定义。",
+  "description:ja": "YouTube インターフェースをクリーンアップ。Shorts、おすすめ、雑音を非表示にします。",
+  "author": "Benny & AI Collaborators",
+  "match": "https://www.youtube.com/*",
+  "exclude": "https://www.youtube.com/embed/*",
+  "grant": [
+    "GM_info",
+    "GM_addStyle",
+    "GM_setValue",
+    "GM_getValue",
+    "GM_registerMenuCommand",
+    "GM_unregisterMenuCommand"
+  ],
+  "run-at": "document-start",
+  "license": "MIT",
+  "icon": "https://www.google.com/s2/favicons?sz=64&domain=youtube.com",
+  "downloadURL": "https://raw.githubusercontent.com/bennytsai1234/youtube-homepage-cleaner/main/youtube-homepage-cleaner.user.js",
+  "updateURL": "https://raw.githubusercontent.com/bennytsai1234/youtube-homepage-cleaner/main/youtube-homepage-cleaner.user.js"
+}
