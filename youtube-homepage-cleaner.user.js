@@ -1148,6 +1148,11 @@
                 this.adGuard.checkAndClean();
             });
             this.filter.processPage();
+            if (window.ChineseConv) {
+                Logger.info('✅ 成功載入「大字典」級別繁簡轉換庫 (chinese-conv)');
+            } else {
+                Logger.info('⚠️ 使用「輕量級」內置繁簡映射表');
+            }
             Logger.info(`🚀 YouTube 淨化大師 v1.6.5 啟動`);
         }
         refresh() {
