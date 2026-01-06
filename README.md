@@ -11,7 +11,7 @@
 [![GitHub Stars](https://img.shields.io/github/stars/bennytsai1234/youtube-homepage-cleaner?style=for-the-badge&logo=github&color=gold)](https://github.com/bennytsai1234/youtube-homepage-cleaner/stargazers)
 [![GitHub Forks](https://img.shields.io/github/forks/bennytsai1234/youtube-homepage-cleaner?style=for-the-badge&logo=github&color=blue)](https://github.com/bennytsai1234/youtube-homepage-cleaner/network/members)
 [![License](https://img.shields.io/github/license/bennytsai1234/youtube-homepage-cleaner?style=for-the-badge&color=green)](LICENSE)
-[![Version](https://img.shields.io/badge/version-v1.6.4-orange?style=for-the-badge)](https://github.com/bennytsai1234/youtube-homepage-cleaner/releases)
+[![Version](https://img.shields.io/badge/version-v1.6.5-orange?style=for-the-badge)](https://github.com/bennytsai1234/youtube-homepage-cleaner/releases)
 
 [✨ **功能特色**](#-主要功能與特色) · [📖 **更新日誌**](#-版本紀錄) · [🐛 **問題回報**](https://github.com/bennytsai1234/youtube-homepage-cleaner/issues)
 
@@ -125,8 +125,11 @@
 
 ## 📋 版本紀錄
 
+### v1.6.5 (2026-01-06)
+- 🧠 **邏輯優化**: 修正了「稍後觀看」列表會被過濾的問題。現在播放清單內的影片**不會**被隱藏，但依然支援「強制新分頁開啟」。
+
 ### v1.6.4 (2026-01-06)
-- ✨ **播放清單影片支援**: 為「稍後觀看」與播放清單內的影片項目 (`ytd-playlist-video-renderer`) 新增強制新分頁開啟與過濾功能支援
+- ✨ **播放清單影片支援**: 為「稍後觀看」與播放清單內的影片項目 (`ytd-playlist-video-renderer`) 新增強制新分頁開啟支援
 
 ### v1.6.3 (2026-01-05)
 - 🤖 **CI/CD 整合**: 導入 GitHub Actions 自動化檢查與發布流程

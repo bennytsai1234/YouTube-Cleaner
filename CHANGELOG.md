@@ -18,10 +18,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.6.5] - 2026-01-06
+
+### Changed
+- **Playlist Logic Refinement**: 
+    - Disabled **filtering** for `ytd-playlist-video-renderer` (items in Watch Later/Playlists). Your personal lists will no longer be hidden by view count or keyword filters.
+    - Kept **interaction** support: "Open in New Tab" still works for these items.
+
+---
+
 ## [1.6.4] - 2026-01-06
 
 ### Added
-- **Playlist Video Support**: Added "Force New Tab" and filtering support for `ytd-playlist-video-renderer` (items in playlists/Watch Later).
+- **Playlist Video Support**: Added "Force New Tab" support for `ytd-playlist-video-renderer`. (Note: Filtering support was added but reverted in v1.6.5 due to UX concerns).
 
 ---
 
@@ -105,7 +114,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
-[Unreleased]: https://github.com/bennytsai1234/youtube-homepage-cleaner/compare/v1.6.4...HEAD
+[Unreleased]: https://github.com/bennytsai1234/youtube-homepage-cleaner/compare/v1.6.5...HEAD
+[1.6.5]: https://github.com/bennytsai1234/youtube-homepage-cleaner/compare/v1.6.4...v1.6.5
 [1.6.4]: https://github.com/bennytsai1234/youtube-homepage-cleaner/compare/v1.6.2...v1.6.4
 [1.6.2]: https://github.com/bennytsai1234/youtube-homepage-cleaner/compare/v1.6.1...v1.6.2
 [1.6.1]: https://github.com/bennytsai1234/youtube-homepage-cleaner/compare/v1.6.0...v1.6.1
