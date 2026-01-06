@@ -1,7 +1,8 @@
 # documentation Specification
 
 ## Purpose
-TBD - created by archiving change improve-branding-and-readme. Update Purpose after archive.
+
+The Documentation capability defines requirements for project documentation, branding, and user-facing materials. It ensures consistent messaging, visual identity, and engagement elements across all documentation channels (GitHub, Greasy Fork, etc.).
 ## Requirements
 ### Requirement: Visual Branding
 The project documentation SHALL include a visual representation of the script's functionality to immediately communicate value to new users.

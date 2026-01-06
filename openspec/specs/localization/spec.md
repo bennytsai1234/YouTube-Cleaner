@@ -1,25 +1,30 @@
-# Spec: Default Language and Version
+# localization Specification
 
-## MODIFIED Requirements
+## Purpose
 
-#### Requirement: Version 1.6.2
-The userscript MUST identify itself as version `1.6.2`.
+The Localization capability handles language detection and preference management for the userscript's interface. It ensures users see UI text in their preferred language while providing sensible defaults.
 
-#### Requirement: Smart Logic with Chinese Fallback
-The userscript MUST detect supported languages (`en`, `ja`, `zh-CN`) and switch to them.
-The userscript MUST default to Traditional Chinese (`zh-TW`) for any unknown/unsupported system languages.
+---
 
-##### Scenario: Detected English
-Given a user with system language set to English (`en-US`)
-When the script runs
-Then the interface language should be English (`en`)
+## Requirements
 
-##### Scenario: Detected Japanese
-Given a user with system language set to Japanese (`ja-JP`)
-When the script runs
-Then the interface language should be Japanese (`ja`)
+### Requirement: Smart Language Detection with Chinese Fallback
 
-##### Scenario: Unsupported Language (Fallback)
-Given a user with system language set to French (`fr-FR`)
-When the script runs
-Then the interface language should be Traditional Chinese (`zh-TW`)
+The userscript SHALL detect supported languages (`en`, `ja`, `zh-CN`, `zh-TW`) and activate the appropriate localization.
+The userscript SHALL default to Traditional Chinese (`zh-TW`) for any unknown or unsupported system languages.
+
+#### Scenario: Detected English
+- **WHEN** user's system language is English (`en-US`)
+- **THEN** the interface language is set to English (`en`)
+
+#### Scenario: Detected Japanese
+- **WHEN** user's system language is Japanese (`ja-JP`)
+- **THEN** the interface language is set to Japanese (`ja`)
+
+#### Scenario: Detected Simplified Chinese
+- **WHEN** user's system language is Simplified Chinese (`zh-CN`)
+- **THEN** the interface language is set to Simplified Chinese (`zh-CN`)
+
+#### Scenario: Unsupported Language (Fallback)
+- **WHEN** user's system language is unsupported (e.g., `fr-FR`)
+- **THEN** the interface language defaults to Traditional Chinese (`zh-TW`)

@@ -1,7 +1,8 @@
 # notification-control Specification
 
 ## Purpose
-TBD - created by archiving change add-notification-new-tab-option. Update Purpose after archive.
+
+The Notification Control capability allows users to customize how notification interactions behave within YouTube. Its primary feature is optionally opening notification links in new browser tabs, preserving the current browsing context.
 ## Requirements
 ### Requirement: Open Notifications in New Tab
 The system SHALL allow users to configure notification clicks to open in a new tab instead of navigating in the current page.
