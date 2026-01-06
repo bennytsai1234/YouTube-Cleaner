@@ -57,7 +57,7 @@ class App {
         this.filter.processPage();
         
         // 檢測簡繁轉換庫載入狀態
-        if (window.ChineseConv) {
+        if (window.chineseConv) {
             Logger.info('✅ 成功載入「大字典」級別繁簡轉換庫 (chinese-conv)');
         } else {
             Logger.info('⚠️ 使用「輕量級」內置繁簡映射表');
