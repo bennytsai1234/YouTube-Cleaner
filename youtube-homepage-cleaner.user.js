@@ -4,7 +4,7 @@
 // @name:zh-CN   YouTube Cleaner - 隐藏 Shorts、推荐与杂讯
 // @name:ja      YouTube Cleaner - Shorts・おすすめ・雑音を非表示
 // @namespace    http://tampermonkey.net/
-// @version      1.6.3
+// @version      1.6.4
 // @description  Clean YouTube interface by hiding Shorts, suggestions, and clutter elements. 20+ custom rules.
 // @description:zh-TW  淨化 YouTube 介面，隱藏 Shorts、推薦內容與雜訊元素。20+ 過濾規則，完全可自訂。
 // @description:zh-CN  净化 YouTube 界面，隐藏 Shorts、推荐内容与杂讯元素。20+ 过滤规则，完全可自定义。
@@ -54,7 +54,8 @@
             'ytd-grid-video-renderer',
             'yt-lockup-view-model',
             'ytd-compact-radio-renderer',   // 播放頁自動播放清單
-            'ytd-playlist-panel-video-renderer'  // 播放清單面板
+            'ytd-playlist-panel-video-renderer',  // 播放清單面板
+            'ytd-playlist-video-renderer'   // 播放清單內影片
         ],
         SECTION_CONTAINERS: [
             'ytd-rich-section-renderer',
@@ -98,7 +99,7 @@
         CLICKABLE: [
             'ytd-rich-item-renderer', 'ytd-video-renderer', 'ytd-compact-video-renderer',
             'yt-lockup-view-model', 'ytd-playlist-renderer', 'ytd-compact-playlist-renderer',
-            'ytd-video-owner-renderer', 'ytd-grid-video-renderer'
+            'ytd-video-owner-renderer', 'ytd-grid-video-renderer', 'ytd-playlist-video-renderer'
         ],
 
         // 內嵌預覽
@@ -1171,7 +1172,7 @@
             const statsInfo = FilterStats.session.total > 0 ? ` (${FilterStats.session.total})` : '';
             const langName = I18N.availableLanguages[I18N.lang];
             const choice = prompt(
-                `【 ${this.t('title')} v1.6.0 】\n\n` +
+                `【 ${this.t('title')} v1.6.4 】\n\n` +
                 `1. ${this.t('menu_rules')}\n` +
                 `2. ${i('ENABLE_LOW_VIEW_FILTER')} ${this.t('menu_low_view')}\n` +
                 `3. ${this.t('menu_threshold')} (${this.config.get('LOW_VIEW_THRESHOLD')})\n` +
@@ -1230,7 +1231,7 @@
         }
         exportSettings() {
             const exportData = {
-                version: '1.6.0',
+                version: '1.6.4',
                 timestamp: new Date().toISOString(),
                 settings: this.config.state,
                 language: I18N.lang
@@ -1351,7 +1352,7 @@
             });
 
             this.filter.processPage();
-            Logger.info(`🚀 YouTube 淨化大師 v1.6.0 啟動`);
+            Logger.info(`🚀 YouTube 淨化大師 v1.6.4 啟動`);
         }
 
         refresh() {

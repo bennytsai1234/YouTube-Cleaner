@@ -18,6 +18,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.6.4] - 2026-01-06
+
+### Added
+- **Playlist Video Support**: Added "Force New Tab" and filtering support for `ytd-playlist-video-renderer` (items in playlists/Watch Later).
+
+---
+
 ## [1.6.2] - 2026-01-04
 
 ### Changed
@@ -98,7 +105,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
-[Unreleased]: https://github.com/bennytsai1234/youtube-homepage-cleaner/compare/v1.6.2...HEAD
+[Unreleased]: https://github.com/bennytsai1234/youtube-homepage-cleaner/compare/v1.6.4...HEAD
+[1.6.4]: https://github.com/bennytsai1234/youtube-homepage-cleaner/compare/v1.6.2...v1.6.4
 [1.6.2]: https://github.com/bennytsai1234/youtube-homepage-cleaner/compare/v1.6.1...v1.6.2
 [1.6.1]: https://github.com/bennytsai1234/youtube-homepage-cleaner/compare/v1.6.0...v1.6.1
 [1.6.0]: https://github.com/bennytsai1234/youtube-homepage-cleaner/compare/v1.5.7...v1.6.0
