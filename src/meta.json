@@ -11,6 +11,9 @@
   "author": "Benny & AI Collaborators",
   "match": "https://www.youtube.com/*",
   "exclude": "https://www.youtube.com/embed/*",
+  "require": [
+    "https://cdn.jsdelivr.net/npm/chinese-conv@1.0.1/dist/chinese-conv.min.js"
+  ],
   "grant": [
     "GM_info",
     "GM_addStyle",
