@@ -11,7 +11,7 @@
 [![GitHub Stars](https://img.shields.io/github/stars/bennytsai1234/youtube-homepage-cleaner?style=for-the-badge&logo=github&color=gold)](https://github.com/bennytsai1234/youtube-homepage-cleaner/stargazers)
 [![GitHub Forks](https://img.shields.io/github/forks/bennytsai1234/youtube-homepage-cleaner?style=for-the-badge&logo=github&color=blue)](https://github.com/bennytsai1234/youtube-homepage-cleaner/network/members)
 [![License](https://img.shields.io/github/license/bennytsai1234/youtube-homepage-cleaner?style=for-the-badge&color=green)](LICENSE)
-[![Version](https://img.shields.io/badge/version-v1.6.0-orange?style=for-the-badge)](https://github.com/bennytsai1234/youtube-homepage-cleaner/releases)
+[![Version](https://img.shields.io/badge/version-v1.6.4-orange?style=for-the-badge)](https://github.com/bennytsai1234/youtube-homepage-cleaner/releases)
 
 [✨ **功能特色**](#-主要功能與特色) · [📖 **更新日誌**](#-版本紀錄) · [🐛 **問題回報**](https://github.com/bennytsai1234/youtube-homepage-cleaner/issues)
 
@@ -59,7 +59,7 @@
 ### 🖱️ 瀏覽體驗優化
 改善 YouTube 的瀏覽行為：
 
-- 🚀 **新分頁開啟**: 可強制影片、Shorts 與播放清單連結在新分頁開啟，避免打斷當前觀看進度 (支援範圍：首頁、搜尋結果、相關影片)。
+- 🚀 **新分頁開啟**: 可強制影片、Shorts、播放清單連結以及**播放清單內影片 (Playlist items)** 在新分頁開啟，避免打斷當前觀看進度 (支援範圍：首頁、搜尋結果、相關影片、播放清單頁面)。
 - 🛡️ **彈窗處理**: 自動偵測並關閉 YouTube 的反廣告攔截警告彈窗，並恢復頁面捲動功能 (非暴力阻擋，僅處理介面阻礙)。
 - 🌐 **多語言支援**: 介面支援繁體中文、简体中文、English、日本語 (自動偵測)。
 
@@ -125,15 +125,19 @@
 
 ## 📋 版本紀錄
 
+### v1.6.4 (2026-01-06)
+- ✨ **播放清單影片支援**: 為「稍後觀看」與播放清單內的影片項目 (`ytd-playlist-video-renderer`) 新增強制新分頁開啟與過濾功能支援
+
 ### v1.6.3 (2026-01-05)
 - 🤖 **CI/CD 整合**: 導入 GitHub Actions 自動化檢查與發布流程
 - 🧹 **代碼品質**: 修復了 ESLint 回報的語法問題與潛在 Bug
 
 ### v1.6.2 (2026-01-05)
 - ⚡ **效能優化**: 改用原生 `is-shorts` 屬性來過濾 Shorts 區塊，減少對文字內容的依賴
-- 🔧 **規格更新**: 同步更新了 UI Cleaning 的相關規格文檔
 
 ### v1.6.1 (2025-12-29)
+- 🔔 **通知新分頁**: 強制通知選單中的連結在新分頁開啟，避免中斷當前播放內容
+- 🔧 **i18n 強化**: 更新所有語言的通知相關字串
 
 <details>
 <summary><b>📦 v1.6.0 重大更新</b></summary>
