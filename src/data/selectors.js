@@ -33,7 +33,7 @@ export const SELECTORS = {
         // 頻道名稱
         CHANNEL: 'ytd-channel-name, .ytd-channel-name, a[href^="/@"]',
         // 標題文字
-        TITLE: '#video-title, #title, .yt-lockup-metadata-view-model__title, h3'
+        TITLE: '#video-title, #title, .yt-lockup-metadata-view-model__title, .yt-lockup-metadata-view-model__heading-reset, h3'
     },
 
     // 會員/廣告標記

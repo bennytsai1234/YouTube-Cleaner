@@ -18,10 +18,26 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.6.6] - 2026-01-07
+
+### Added
+- **Enhanced Keyword Filtering**:
+    - Full support for Traditional/Simplified Chinese character interoperability.
+    - Keywords like "预告" will now correctly block videos with "預告" in the title.
+    - Implemented Zero-Allocation regex-based filtering for maximum performance.
+- **Rich Grid Support**: Fixed keyword filtering for the new YouTube `Rich Grid` layout where titles were previously undetected.
+
+### Changed
+- **Performance**:
+    - Upgraded filtering engine to use pre-compiled regex matching.
+    - Removed expensive runtime string conversions during scrolling.
+
+---
+
 ## [1.6.5] - 2026-01-06
 
 ### Changed
-- **Playlist Logic Refinement**: 
+- **Playlist Logic Refinement**:
     - Disabled **filtering** for `ytd-playlist-video-renderer` (items in Watch Later/Playlists). Your personal lists will no longer be hidden by view count or keyword filters.
     - Kept **interaction** support: "Open in New Tab" still works for these items.
 

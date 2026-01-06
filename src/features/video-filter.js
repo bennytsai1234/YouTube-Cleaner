@@ -17,7 +17,15 @@ class LazyVideoData {
     }
 
     get title() {
-        if (this._title === null) this._title = this.el.querySelector(SELECTORS.METADATA.TITLE)?.textContent?.trim() || '';
+        if (this._title === null) {
+             const el = this.el.querySelector(SELECTORS.METADATA.TITLE);
+             // 優先讀取 title 屬性 (針對被截斷或隱藏的標題)
+             if (el?.title) {
+                 this._title = el.title.trim();
+             } else {
+                 this._title = el?.textContent?.trim() || '';
+             }
+        }
         return this._title;
     }
     get channel() {
@@ -131,19 +139,32 @@ export class VideoFilter {
             // Advanced Filters
             if (this.config.get('ENABLE_KEYWORD_FILTER') && item.title) {
                 const convert = this.config.get('ENABLE_REGION_CONVERT');
-                const title = convert ? Utils.toSimplified(item.title) : item.title;
-                if (this.config.get('KEYWORD_BLACKLIST').some(k => {
-                    const key = convert ? Utils.toSimplified(k) : k;
-                    return title.toLowerCase().includes(key.toLowerCase());
-                })) return this._hide(element, 'keyword_blacklist');
+                // Regex-based check (Zero Allocation)
+                if (convert && this.config.get('compiledKeywords')) {
+                    if (this.config.get('compiledKeywords').some(rx => rx.test(item.title))) {
+                        return this._hide(element, 'keyword_blacklist');
+                    }
+                } else {
+                    // Fallback to simple includes (for regex gen fail or disabled convert)
+                    const title = item.title.toLowerCase();
+                    if (this.config.get('KEYWORD_BLACKLIST').some(k => title.includes(k.toLowerCase()))) {
+                         return this._hide(element, 'keyword_blacklist');
+                    }
+                }
             }
             if (this.config.get('ENABLE_CHANNEL_FILTER') && item.channel) {
                 const convert = this.config.get('ENABLE_REGION_CONVERT');
-                const channel = convert ? Utils.toSimplified(item.channel) : item.channel;
-                if (this.config.get('CHANNEL_BLACKLIST').some(k => {
-                    const key = convert ? Utils.toSimplified(k) : k;
-                    return channel.toLowerCase().includes(key.toLowerCase());
-                })) return this._hide(element, 'channel_blacklist');
+                // Regex-based check
+                if (convert && this.config.get('compiledChannels')) {
+                     if (this.config.get('compiledChannels').some(rx => rx.test(item.channel))) {
+                        return this._hide(element, 'channel_blacklist');
+                    }
+                } else {
+                    const channel = item.channel.toLowerCase();
+                    if (this.config.get('CHANNEL_BLACKLIST').some(k => channel.includes(k.toLowerCase()))) {
+                        return this._hide(element, 'channel_blacklist');
+                    }
+                }
             }
 
             // 強化會員過濾 (JS補刀)：若開啟成員過濾且偵測到是會員影片，直接隱藏
