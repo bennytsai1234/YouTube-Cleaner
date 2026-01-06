@@ -1,9 +1,11 @@
 {
   "name": "youtube-homepage-cleaner",
   "version": "1.6.5",
+  "type": "module",
   "description": "Clean YouTube interface by hiding Shorts, suggestions, and clutter elements.",
   "scripts": {
     "build": "rollup -c",
+    "dev": "rollup -c -w",
     "lint": "eslint src"
   },
   "repository": {

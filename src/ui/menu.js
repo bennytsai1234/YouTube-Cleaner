@@ -123,8 +123,8 @@ export class UIManager {
             `0. ${this.t('back')}`
         );
         if (c === '1' || c === '3' || c === '5') this.toggle(c === '1' ? 'ENABLE_KEYWORD_FILTER' : c === '3' ? 'ENABLE_CHANNEL_FILTER' : 'ENABLE_DURATION_FILTER', true);
-        else if (c === '2') this.manage('KEYWORD_BLACKLIST', this.t('adv_keyword_filter'));
-        else if (c === '4') this.manage('CHANNEL_BLACKLIST', this.t('adv_channel_filter'));
+        else if (c === '2') this.manage('KEYWORD_BLACKLIST');
+        else if (c === '4') this.manage('CHANNEL_BLACKLIST');
         else if (c === '6') {
             const min = prompt(this.t('adv_min')); const max = prompt(this.t('adv_max'));
             if (min) this.config.set('DURATION_MIN', min * 60);
@@ -132,7 +132,7 @@ export class UIManager {
             this.onRefresh(); this.showAdvancedMenu();
         } else if (c === '0') this.showMainMenu();
     }
-    manage(k, _n) {
+    manage(k) {
         const l = this.config.get(k);
         const c = prompt(`[${l.join(', ')}]\n1.${this.t('adv_add')} 2.${this.t('adv_remove')} 3.${this.t('adv_clear')} 0.${this.t('back')}`);
         if (c === '1') { const v = prompt(`${this.t('adv_add')}:`); if (v) this.config.set(k, [...l, ...v.split(',')]); }
