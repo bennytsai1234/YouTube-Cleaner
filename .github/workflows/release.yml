@@ -16,6 +16,18 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build UserScript
+        run: npm run build
+
       - name: Extract Release Notes
         id: extract_release_notes
         # Simple extraction: gets the latest version block from README or uses git log
