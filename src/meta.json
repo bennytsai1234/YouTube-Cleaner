@@ -25,6 +25,6 @@
   "run-at": "document-start",
   "license": "MIT",
   "icon": "https://www.google.com/s2/favicons?sz=64&domain=youtube.com",
-  "downloadURL": "https://raw.githubusercontent.com/bennytsai1234/youtube-homepage-cleaner/main/youtube-homepage-cleaner.user.js",
-  "updateURL": "https://raw.githubusercontent.com/bennytsai1234/youtube-homepage-cleaner/main/youtube-homepage-cleaner.user.js"
+  "downloadURL": "https://raw.githubusercontent.com/bennytsai1234/YouTube-Cleaner/main/youtube-homepage-cleaner.user.js",
+  "updateURL": "https://raw.githubusercontent.com/bennytsai1234/YouTube-Cleaner/main/youtube-homepage-cleaner.user.js"
 }
