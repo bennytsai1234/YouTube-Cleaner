@@ -16,7 +16,7 @@ A Tampermonkey userscript designed to purify the YouTube homepage by removing Sh
 | **Runtime Environment** | Tampermonkey | 5.0+ | Also compatible with Violentmonkey, Greasemonkey |
 | **Styling** | CSS3 | N/A | `:has()` selector for modern filtering |
 | **VCS** | Git + GitHub | N/A | Source of truth for updates and issue tracking |
-| **Package Manager** | None | N/A | Zero external dependencies by design |
+| **External Library** | OpenCC-JS | 1.0.5 | Chinese Traditional/Simplified conversion (CDN with fallback) |
 
 ### Tampermonkey API Usage
 

@@ -18,6 +18,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.6.7] - 2026-01-07
+
+### Changed
+- **Chinese Conversion Engine**: Replaced `chinese-conv` with `opencc-js@1.0.5`
+    - Far superior accuracy with phrase-level conversion support
+    - Coverage increased from ~500 to 8000+ character pairs
+    - Supports regional variants (Taiwan, Hong Kong, Mainland)
+    - Graceful fallback to internal dictionary if CDN fails
+
+### Removed
+- **Zero External Dependencies Principle**: Updated project guidelines to allow carefully selected external libraries with fallback mechanisms (see ADR-0002, ADR-0006)
+
+---
+
 ## [1.6.6] - 2026-01-07
 
 ### Added
@@ -130,7 +144,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
-[Unreleased]: https://github.com/bennytsai1234/youtube-homepage-cleaner/compare/v1.6.5...HEAD
+[Unreleased]: https://github.com/bennytsai1234/youtube-homepage-cleaner/compare/v1.6.7...HEAD
+[1.6.7]: https://github.com/bennytsai1234/youtube-homepage-cleaner/compare/v1.6.6...v1.6.7
+[1.6.6]: https://github.com/bennytsai1234/youtube-homepage-cleaner/compare/v1.6.5...v1.6.6
 [1.6.5]: https://github.com/bennytsai1234/youtube-homepage-cleaner/compare/v1.6.4...v1.6.5
 [1.6.4]: https://github.com/bennytsai1234/youtube-homepage-cleaner/compare/v1.6.2...v1.6.4
 [1.6.2]: https://github.com/bennytsai1234/youtube-homepage-cleaner/compare/v1.6.1...v1.6.2

@@ -1,5 +1,3 @@
-import { MAP_TC, MAP_SC } from '../data/chinese-map.js';
-
 // --- 2. Core: Utilities (Enhanced i18n Support) ---
 export const Utils = {
     debounce: (func, delay) => {
@@ -94,70 +92,77 @@ export const Utils = {
         return '';
     },
 
-    // 輕量級繁簡轉換 (繁 -> 簡)
-    // 包含最常用的 2500+ 對照字，使用 Lazy Map 加速查詢
+    // 繁簡轉換：使用 OpenCC-JS（需透過 @require 載入）
     toSimplified: (str) => {
         if (!str) return '';
 
-        // 優先使用外部大字典 (若載入成功)
-        if (window.chineseConv && typeof window.chineseConv.sify === 'function') {
-            return window.chineseConv.sify(str);
-        }
-
-        // Lazy Initialization (只在第一次需要時建立 Map)
-        if (!Utils._conversionMap) {
-            Utils._conversionMap = new Map();
-            for (let i = 0; i < MAP_TC.length; i++) {
-                Utils._conversionMap.set(MAP_TC[i], MAP_SC[i]);
+        // 使用 opencc-js
+        if (!Utils._openccConverter && typeof OpenCC !== 'undefined') {
+            try {
+                Utils._openccConverter = OpenCC.Converter({ from: 'tw', to: 'cn' });
+            } catch (e) {
+                console.warn('[YT Cleaner] OpenCC init failed');
             }
         }
-
-        let res = '';
-        for (let i = 0; i < str.length; i++) {
-            const char = str[i];
-            const mapped = Utils._conversionMap.get(char);
-            res += mapped || char;
+        if (Utils._openccConverter) {
+            try {
+                return Utils._openccConverter(str);
+            } catch (e) { /* return original */ }
         }
-        return res;
+
+        // 若 OpenCC 不可用，回傳原字串
+        return str;
     },
 
     // 產生繁簡體雙向支援的正則表達式
-    // text: "预告" -> regex: /(预|預)(告|告)/i
+    // 使用 OpenCC 進行雙向轉換
     generateCnRegex: (text) => {
          if (!text) return null;
 
-         // 建構變體 Map (Lazy Init)
-         if (!Utils._variantMap) {
-             Utils._variantMap = new Map();
-             for (let i = 0; i < MAP_TC.length; i++) {
-                 const t = MAP_TC[i];
-                 const s = MAP_SC[i];
-                 if (t !== s) {
-                     Utils._variantMap.set(t, s);
-                     Utils._variantMap.set(s, t);
+         // 初始化 OpenCC 轉換器
+         if (typeof OpenCC !== 'undefined') {
+             if (!Utils._openccToSimp) {
+                 try {
+                     Utils._openccToSimp = OpenCC.Converter({ from: 'tw', to: 'cn' });
+                     Utils._openccToTrad = OpenCC.Converter({ from: 'cn', to: 'tw' });
+                 } catch (e) {
+                     console.warn('[YT Cleaner] OpenCC regex init failed');
                  }
              }
          }
 
-         // 跳脫正則特殊字元
-         const escaped = text.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-         let pattern = '';
+         // 若 OpenCC 可用，生成繁簡雙向正則
+         if (Utils._openccToSimp && Utils._openccToTrad) {
+             const simplified = Utils._openccToSimp(text);
+             const traditional = Utils._openccToTrad(text);
 
-         for (let i = 0; i < escaped.length; i++) {
-             const char = escaped[i];
-             // 因為前面已經 escape 過，這裡只處理一般中文字元
-             if (Utils._variantMap.has(char)) {
-                 const variant = Utils._variantMap.get(char);
-                 pattern += `[${char}${variant}]`;
-             } else {
-                 pattern += char;
+             // 跳脫正則特殊字元
+             const escSimp = simplified.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+             const escTrad = traditional.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+
+             // 如果繁簡相同，直接回傳
+             if (escSimp === escTrad) {
+                 try {
+                     return new RegExp(escSimp, 'i');
+                 } catch (e) {
+                     return null;
+                 }
+             }
+
+             // 建立匹配繁體或簡體的 pattern
+             try {
+                 return new RegExp(`(?:${escSimp}|${escTrad})`, 'i');
+             } catch (e) {
+                 console.error('Regex gen failed', e);
+                 return null;
              }
          }
 
+         // Fallback: 直接使用原文
+         const escaped = text.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
          try {
-             return new RegExp(pattern, 'i');
+             return new RegExp(escaped, 'i');
          } catch (e) {
-             console.error('Regex gen failed', e);
              return null;
          }
     }

@@ -73,7 +73,7 @@ main ─────────────────────────
 | **Core** | JavaScript (ES6+) | 無需轉譯 |
 | **Runtime** | Tampermonkey 5.0+ | 兼容 Violentmonkey |
 | **Styling** | CSS3 | 使用 `:has()` |
-| **Dependencies** | None | 零外部依賴 |
+| **External** | OpenCC-JS 1.0.5 | 繁簡轉換 (CDN, 含 fallback) |
 
 ### 3.2 核心策略
 
@@ -154,10 +154,11 @@ if (video_container.classList.contains("active")) {
 
 參見 `docs/adr/` 目錄:
 - ADR-001: CSS 優先過濾策略
-- ADR-002: 零外部依賴原則
+- ADR-002: 最小化外部依賴 (Hybrid Strategy)
 - ADR-003: 混合式 DOM 監控策略
 - ADR-004: 集中式選擇器管理
 - ADR-005: 原生 UI 優於自訂模態
+- ADR-006: OpenCC-JS 繁簡轉換
 
 ---
 

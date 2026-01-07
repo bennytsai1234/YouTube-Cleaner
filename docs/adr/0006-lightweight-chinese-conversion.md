@@ -1,32 +1,63 @@
-# 6. Lightweight Chinese Region Conversion
+# 6. OpenCC-JS for Chinese Conversion
 
-Date: 2026-01-06
+Date: 2026-01-07 (Updated)
 
 ## Status
 
-Accepted
+Superseded by this revision.
 
 ## Context
 
-Users want to filter keywords (e.g., "Genshin Impact") regardless of whether they are written in Traditional ("原神") or Simplified ("原神") Chinese.
-Importing a full-fledged conversion library (like OpenCC) would bloat the userscript size significantly (MBs), violating our "Lightweight" and "No External Dependencies" principles (ADR-0002).
+Users want to filter keywords (e.g., "原神") regardless of whether they are written in Traditional or Simplified Chinese.
+
+Previously, we used a lightweight internal mapping table (~500 characters). While this worked for common cases, it had limitations:
+
+1.  **Limited Coverage**: Rare but important characters were missed.
+2.  **Maintenance Burden**: The mapping table required manual curation.
+3.  **No Phrase Conversion**: Character-level conversion can be inaccurate (e.g., "頭髮" vs "頭發").
 
 ## Decision
 
-We implement a **Lightweight Mapping Strategy**:
+We adopt **OpenCC-JS** (`opencc-js@1.0.5`) as the primary Chinese conversion library.
 
-1.  **Embedded Mapping Table**: We include a compact string containing the ~500 most frequent character pairs that differ between Traditional and Simplified Chinese.
-2.  **One-way Normalization**: We convert both the `target text` (video title) and the `filter keyword` to **Simplified Chinese** before comparison.
-3.  **Opt-out**: Provide a toggle (`ENABLE_REGION_CONVERT`) in the Advanced Menu for users who need strict matching.
+### Implementation Details
+
+1.  **External Resource via `@require`**:
+    ```javascript
+    // @require https://cdn.jsdelivr.net/npm/opencc-js@1.0.5/dist/umd/full.js
+    ```
+
+2.  **Graceful Degradation**:
+    *   If OpenCC-JS loads successfully, use `OpenCC.Converter({ from: 'tw', to: 'cn' })`.
+    *   If the CDN fails or the library doesn't load, fall back to the internal lightweight mapping table.
+
+3.  **Lazy Initialization**: The converter is created only on the first call to `Utils.toSimplified()`.
+
+### Why OpenCC-JS?
+
+| Feature | OpenCC-JS | Internal Map |
+|---------|-----------|--------------|
+| Character Coverage | 8000+ | ~500 |
+| Phrase Conversion | ✅ Yes | ❌ No |
+| Regional Variants | ✅ tw, hk, cn | ❌ Limited |
+| Maintained | ✅ Active (2024+) | ❌ Manual |
+| Zero Dependencies | ❌ External | ✅ Yes |
 
 ## Consequences
 
 ### Positive
-*   **Zero Dependencies**: No external libraries required.
-*   **Tiny Footprint**: The mapping string adds < 2KB to the script size.
-*   **High Coverage**: Covers >90% of common keywords used in video titles.
-*   **Performance**: Simple string lookup is extremely fast (O(n)).
+
+*   **Superior Accuracy**: OpenCC handles phrase-level conversions correctly.
+*   **Comprehensive Coverage**: All common and rare Traditional/Simplified characters are converted.
+*   **Low Maintenance**: We don't need to manually update the mapping table.
+*   **Resilience**: The script still works (with reduced accuracy) even if the CDN is down.
 
 ### Negative
-*   **Edge Cases**: Rare characters might not be converted, leading to potential filter misses (acceptable trade-off for size).
-*   **Maintenance**: The mapping string is manually curated; might need updates if users report missing common characters.
+
+*   **External Dependency**: Relies on jsDelivr CDN availability.
+*   **Slightly Larger Footprint**: OpenCC full.js is ~300KB (gzipped ~80KB), but it's cached by the browser.
+*   **Privacy Consideration**: Users can remove the `@require` line if they prefer; the fallback will be used.
+
+## Related ADRs
+
+*   ADR-0002: Minimize External Dependencies (Hybrid Strategy allows this approach)
