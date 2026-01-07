@@ -55,15 +55,15 @@ class App {
         });
 
         this.filter.processPage();
-        
-        // 檢測簡繁轉換庫載入狀態
-        if (window.chineseConv) {
-            Logger.info('✅ 成功載入「大字典」級別繁簡轉換庫 (chinese-conv)');
+
+        // 檢測 OpenCC-JS 載入狀態
+        if (typeof OpenCC !== 'undefined') {
+            Logger.info('✅ 成功載入 OpenCC-JS 繁簡轉換庫');
         } else {
-            Logger.info('⚠️ 使用「輕量級」內置繁簡映射表');
+            Logger.info('⚠️ OpenCC-JS 未載入，繁簡過濾功能受限');
         }
 
-        Logger.info(`🚀 YouTube 淨化大師 v1.6.5 啟動`);
+        Logger.info(`🚀 YouTube 淨化大師 v${GM_info.script.version} 啟動`);
     }
 
     refresh() {

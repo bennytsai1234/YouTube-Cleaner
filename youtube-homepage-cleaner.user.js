@@ -11,7 +11,7 @@
 // @icon        https://www.google.com/s2/favicons?sz=64&domain=youtube.com
 // @downloadURL https://raw.githubusercontent.com/bennytsai1234/YouTube-Cleaner/main/youtube-homepage-cleaner.user.js
 // @updateURL   https://raw.githubusercontent.com/bennytsai1234/YouTube-Cleaner/main/youtube-homepage-cleaner.user.js
-// @version     1.6.7
+// @version     1.6.8
 // @grant       GM_info
 // @grant       GM_addStyle
 // @grant       GM_setValue
@@ -84,10 +84,8 @@
             if (a2?.ariaLabel) return a2.ariaLabel;
             return '';
         },
-        // 繁簡轉換：使用 OpenCC-JS（透過 @require 載入）
         toSimplified: (str) => {
             if (!str) return '';
-            // 使用 opencc-js
             if (!Utils._openccConverter && typeof OpenCC !== 'undefined') {
                 try {
                     Utils._openccConverter = OpenCC.Converter({ from: 'tw', to: 'cn' });
@@ -98,16 +96,12 @@
             if (Utils._openccConverter) {
                 try {
                     return Utils._openccConverter(str);
-                } catch (e) { /* return original */ }
+                } catch (e) {  }
             }
-            // 若 OpenCC 不可用，回傳原字串
             return str;
         },
-        // 產生繁簡體雙向支援的正則表達式（使用 OpenCC）
         generateCnRegex: (text) => {
              if (!text) return null;
-
-             // 初始化 OpenCC 轉換器
              if (typeof OpenCC !== 'undefined') {
                  if (!Utils._openccToSimp) {
                      try {
@@ -118,17 +112,11 @@
                      }
                  }
              }
-
-             // 若 OpenCC 可用，生成繁簡雙向正則
              if (Utils._openccToSimp && Utils._openccToTrad) {
                  const simplified = Utils._openccToSimp(text);
                  const traditional = Utils._openccToTrad(text);
-
-                 // 跳脫正則特殊字元
                  const escSimp = simplified.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
                  const escTrad = traditional.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-
-                 // 如果繁簡相同，直接回傳
                  if (escSimp === escTrad) {
                      try {
                          return new RegExp(escSimp, 'i');
@@ -136,8 +124,6 @@
                          return null;
                      }
                  }
-
-                 // 建立匹配繁體或簡體的 pattern
                  try {
                      return new RegExp(`(?:${escSimp}|${escTrad})`, 'i');
                  } catch (e) {
@@ -145,8 +131,6 @@
                      return null;
                  }
              }
-
-             // Fallback: 直接使用原文
              const escaped = text.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
              try {
                  return new RegExp(escaped, 'i');
