@@ -96,13 +96,6 @@ export class AdBlockGuard {
         }
     }
 
-    /*
-    unlockScroll() {
-        // User requested removal of scroll manipulation
-        // This function used to force overflow:auto to fix adblock popup locking
-    }
-    */
-
     resumeVideo() {
         // 只有剛偵測到彈窗時才強制播放，避免過度積極
         if (Date.now() - this.lastTrigger > 3000) {
