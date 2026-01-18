@@ -11,7 +11,7 @@
 // @icon        https://www.google.com/s2/favicons?sz=64&domain=youtube.com
 // @downloadURL https://raw.githubusercontent.com/bennytsai1234/YouTube-Cleaner/main/youtube-homepage-cleaner.user.js
 // @updateURL   https://raw.githubusercontent.com/bennytsai1234/YouTube-Cleaner/main/youtube-homepage-cleaner.user.js
-// @version     1.7.1
+// @version     1.7.2
 // @grant       GM_info
 // @grant       GM_addStyle
 // @grant       GM_setValue
@@ -551,6 +551,10 @@
             this.customRules = new CustomRuleManager(config);
         }
         processMutations(mutations) {
+            if (mutations.length > 100) {
+                this.processPage();
+                return;
+            }
             const candidates = new Set();
             for (const mutation of mutations) {
                 for (const node of mutation.addedNodes) {
@@ -1203,7 +1207,15 @@
             this.adGuard.start();
             this.enhancer.init();
             GM_registerMenuCommand('⚙️ 淨化大師設定', () => this.ui.showMainMenu());
-            const obs = new MutationObserver((mutations) => this.filter.processMutations(mutations));
+            let mutationQueue = [];
+            const processQueue = Utils.debounce(() => {
+                this.filter.processMutations(mutationQueue);
+                mutationQueue = [];
+            }, 50);
+            const obs = new MutationObserver((mutations) => {
+                mutationQueue.push(...mutations);
+                processQueue();
+            });
             obs.observe(document.body, { childList: true, subtree: true });
             window.addEventListener('yt-navigate-finish', () => {
                 this.patchYouTubeConfig();

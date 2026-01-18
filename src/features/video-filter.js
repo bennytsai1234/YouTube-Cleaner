@@ -93,6 +93,12 @@ export class VideoFilter {
 
     // 優化：針對 MutationObserver 的增量處理
     processMutations(mutations) {
+        // 效能防護：如果變更量過大 (例如切換分類 Chip)，直接進行全頁掃描比遍歷 Mutation 更快且不卡頓
+        if (mutations.length > 100) {
+            this.processPage();
+            return;
+        }
+
         const candidates = new Set();
         for (const mutation of mutations) {
             for (const node of mutation.addedNodes) {

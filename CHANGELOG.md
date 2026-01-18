@@ -18,6 +18,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.7.2] - 2026-01-18
+
+### Fixed
+- **Freeze/Crash on Chip Click**: Fixed a critical issue where clicking category chips (e.g. "Music", "Live") caused the page to freeze.
+    - Implemented **Mutation Queue + Debounce (50ms)** to handle high-frequency DOM updates safely.
+    - Added **Performance Guard**: Automatically switches to efficient Full Scan mode if mutation count exceeds 100, avoiding expensive loop iterations.
+
+---
+
 ## [1.7.1] - 2026-01-18
 
 ### Fixed

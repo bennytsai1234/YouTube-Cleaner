@@ -45,8 +45,17 @@ class App {
         this.enhancer.init();
         GM_registerMenuCommand('⚙️ 淨化大師設定', () => this.ui.showMainMenu());
 
-        // 優化：使用 processMutations 處理增量更新，不再每次都全頁掃描
-        const obs = new MutationObserver((mutations) => this.filter.processMutations(mutations));
+        // 優化：使用 Debounce + Queue 處理高頻 Mutation (防止 Chip 切換時卡死)
+        let mutationQueue = [];
+        const processQueue = Utils.debounce(() => {
+            this.filter.processMutations(mutationQueue);
+            mutationQueue = [];
+        }, 50); // 50ms 延遲足夠收集一批變更
+
+        const obs = new MutationObserver((mutations) => {
+            mutationQueue.push(...mutations);
+            processQueue();
+        });
         obs.observe(document.body, { childList: true, subtree: true });
 
         window.addEventListener('yt-navigate-finish', () => {
