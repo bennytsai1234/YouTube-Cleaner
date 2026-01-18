@@ -11,7 +11,7 @@
 // @icon        https://www.google.com/s2/favicons?sz=64&domain=youtube.com
 // @downloadURL https://raw.githubusercontent.com/bennytsai1234/YouTube-Cleaner/main/youtube-homepage-cleaner.user.js
 // @updateURL   https://raw.githubusercontent.com/bennytsai1234/YouTube-Cleaner/main/youtube-homepage-cleaner.user.js
-// @version     1.7.3
+// @version     1.7.4
 // @grant       GM_info
 // @grant       GM_addStyle
 // @grant       GM_setValue
@@ -256,7 +256,8 @@
                 clarify_box: ['ytd-info-panel-container-renderer'],
                 inline_survey: ['ytd-rich-section-renderer:has(ytd-inline-survey-renderer)'],
                 playables_block: ['ytd-rich-section-renderer:has(ytd-rich-shelf-renderer[is-playables])', 'ytd-game-card-renderer'],
-                shorts_block: ['ytd-rich-section-renderer:has(ytd-rich-shelf-renderer[is-shorts])']
+                shorts_block: ['ytd-rich-section-renderer:has(ytd-rich-shelf-renderer[is-shorts])'],
+                posts_block: ['ytd-rich-section-renderer:has(ytd-post-renderer)', 'ytd-rich-section-renderer:has(ytd-backstage-post-renderer)']
             };
             for (const [key, selectors] of Object.entries(map)) {
                 if (enables[key]) rules.push(`${selectors.join(', ')} { display: none !important; }`);
@@ -776,7 +777,7 @@
             element.dataset.ypChecked = 'true';
         }
         _hide(element, reason) {
-            const container = element.closest('ytd-rich-item-renderer, ytd-grid-video-renderer, ytd-compact-video-renderer') || element;
+            const container = element.closest('ytd-rich-section-renderer, ytd-rich-item-renderer, ytd-grid-video-renderer, ytd-compact-video-renderer') || element;
             container.style.display = 'none';
             container.dataset.ypHidden = reason;
             if (container !== element) {
@@ -1174,7 +1175,7 @@
             const statsInfo = FilterStats.session.total > 0 ? ` (${FilterStats.session.total})` : '';
             const langName = I18N.availableLanguages[I18N.lang];
             const choice = prompt(
-                `【 ${this.t('title')} v1.6.5 】\n\n` +
+                `【 ${this.t('title')} v${GM_info.script.version} 】\n\n` +
                 `1. ${this.t('menu_rules')}\n` +
                 `2. ${i('ENABLE_LOW_VIEW_FILTER')} ${this.t('menu_low_view')}\n` +
                 `3. ${this.t('menu_threshold')} (${this.config.get('LOW_VIEW_THRESHOLD')})\n` +

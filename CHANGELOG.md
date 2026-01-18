@@ -18,6 +18,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.7.4] - 2026-01-19
+
+### Fixed
+- **Layout Gap Persistence with Shorts/Posts**: Fixed an issue where filtering out Shorts or Posts would leave visible gaps in the video grid.
+    - The `_hide()` method now correctly targets `ytd-rich-section-renderer` containers (parent of Shorts/Posts shelves) in addition to individual video items.
+    - Added CSS rules for `posts_block` to hide sections containing `ytd-post-renderer` and `ytd-backstage-post-renderer`.
+    - This ensures filtered section elements are fully removed from the Flexbox flow, allowing remaining videos to correctly fill the space.
+
+### Changed
+- **Dynamic Version Display**: The settings menu now displays the version number dynamically using `GM_info.script.version` instead of hardcoded strings.
+
+---
+
 ## [1.7.3] - 2026-01-18
 
 ### Fixed
