@@ -11,7 +11,7 @@
 // @icon        https://www.google.com/s2/favicons?sz=64&domain=youtube.com
 // @downloadURL https://raw.githubusercontent.com/bennytsai1234/YouTube-Cleaner/main/youtube-homepage-cleaner.user.js
 // @updateURL   https://raw.githubusercontent.com/bennytsai1234/YouTube-Cleaner/main/youtube-homepage-cleaner.user.js
-// @version     1.7.4
+// @version     1.7.5
 // @grant       GM_info
 // @grant       GM_addStyle
 // @grant       GM_setValue
@@ -256,8 +256,7 @@
                 clarify_box: ['ytd-info-panel-container-renderer'],
                 inline_survey: ['ytd-rich-section-renderer:has(ytd-inline-survey-renderer)'],
                 playables_block: ['ytd-rich-section-renderer:has(ytd-rich-shelf-renderer[is-playables])', 'ytd-game-card-renderer'],
-                shorts_block: ['ytd-rich-section-renderer:has(ytd-rich-shelf-renderer[is-shorts])'],
-                posts_block: ['ytd-rich-section-renderer:has(ytd-post-renderer)', 'ytd-rich-section-renderer:has(ytd-backstage-post-renderer)']
+                shorts_block: ['ytd-rich-section-renderer:has(ytd-rich-shelf-renderer[is-shorts])']
             };
             for (const [key, selectors] of Object.entries(map)) {
                 if (enables[key]) rules.push(`${selectors.join(', ')} { display: none !important; }`);
@@ -587,97 +586,6 @@
             }, { timeout: 1000 });
         }
         processMutations(mutations) {
-            let addedCount = 0;
-            for (const mutation of mutations) {
-                for (const node of mutation.addedNodes) {
-                    if (node.nodeType !== 1) continue;
-                    if (node.matches && node.matches(SELECTORS.allContainers)) {
-                        if (!node.dataset.ypChecked) {
-                            this.pendingElements.add(node);
-                            addedCount++;
-                        }
-                    }
-                    if (node.querySelectorAll) {
-                        const children = node.querySelectorAll(SELECTORS.allContainers);
-                        for (const child of children) {
-                            if (!child.dataset.ypChecked) {
-                                this.pendingElements.add(child);
-                                addedCount++;
-                            }
-                        }
-                    }
-                }
-            }
-            if (addedCount > 0) this._startProcessor();
-        }
-        processPage() {
-            const elements = document.querySelectorAll(SELECTORS.allContainers);
-            let addedCount = 0;
-            for (const el of elements) {
-                if (!el.dataset.ypChecked) {
-                    this.pendingElements.add(el);
-                    addedCount++;
-                }
-            }
-            if (addedCount > 0) this._startProcessor();
-        }
-        processElement(element) {
-            if (element.dataset.ypChecked) return;
-            if (element.offsetParent === null) return;
-            const text = element.innerText || '';
-            const textRule = this.customRules.check(element, text);
-            if (textRule) return this._hide(element, textRule);
-            const tag = element.tagName;
-            if (tag.includes('VIDEO') || tag.includes('LOCKUP') || tag.includes('RICH-ITEM')) {
-                const item = new LazyVideoData(element);
-                if (this.config.get('ENABLE_KEYWORD_FILTER') && item.title) {
-                    const convert = this.config.get('ENABLE_REGION_CONVERT');
-                    if (convert && this.config.get('compiledKeywords')) {
-                        if (this.config.get('compiledKeywords').some(rx => rx.test(item.title))) {
-                            return this._hide(element, 'keyword_blacklist');
-                        }
-                    } else {
-                        const title = item.title.toLowerCase();
-                        if (this.config.get('KEYWORD_BLACKLIST').some(k => title.includes(k.toLowerCase()))) {
-                             return this._hide(element, 'keyword_blacklist');
-                        }
-                    }
-                }
-                if (this.config.get('ENABLE_CHANNEL_FILTER') && item.channel) {
-                    const convert = this.config.get('ENABLE_REGION_CONVERT');
-                    if (convert && this.config.get('compiledChannels')) {
-                         if (this.config.get('compiledChannels').some(rx => rx.test(item.channel))) {
-                            return this._hide(element, 'channel_blacklist');
-                        }
-                    } else {
-                        const channel = item.channel.toLowerCase();
-                        if (this.config.get('CHANNEL_BLACKLIST').some(k => channel.includes(k.toLowerCase()))) {
-                            return this._hide(element, 'channel_blacklist');
-                        }
-                    }
-                }
-                if (this.config.get('RULE_ENABLES').members_only && item.isMembers) {
-                    return this._hide(element, 'members_only_js');
-                }
-                if (this.config.get('ENABLE_LOW_VIEW_FILTER') && !item.isShorts) {
-                    const th = this.config.get('LOW_VIEW_THRESHOLD');
-                    const grace = this.config.get('GRACE_PERIOD_HOURS') * 60;
-                    if (item.isLive && item.liveViewers !== null && item.liveViewers < th) {
-                        return this._hide(element, 'low_viewer_live');
-                    }
-                    if (!item.isLive && item.viewCount !== null && item.timeAgo !== null && item.timeAgo > grace && item.viewCount < th) {
-                        return this._hide(element, 'low_view');
-                    }
-                }
-                if (this.config.get('ENABLE_DURATION_FILTER') && !item.isShorts && item.duration !== null) {
-                    const min = this.config.get('DURATION_MIN');
-                    const max = this.config.get('DURATION_MAX');
-                    if ((min > 0 && item.duration < min) || (max > 0 && item.duration > max)) return this._hide(element, 'duration_filter');
-                }
-            }
-            element.dataset.ypChecked = 'true';
-        }
-        processMutations(mutations) {
             if (mutations.length > 100) {
                 this.processPage();
                 return;
@@ -777,7 +685,7 @@
             element.dataset.ypChecked = 'true';
         }
         _hide(element, reason) {
-            const container = element.closest('ytd-rich-section-renderer, ytd-rich-item-renderer, ytd-grid-video-renderer, ytd-compact-video-renderer') || element;
+            const container = element.closest('ytd-rich-item-renderer, ytd-grid-video-renderer, ytd-compact-video-renderer') || element;
             container.style.display = 'none';
             container.dataset.ypHidden = reason;
             if (container !== element) {
@@ -1175,7 +1083,7 @@
             const statsInfo = FilterStats.session.total > 0 ? ` (${FilterStats.session.total})` : '';
             const langName = I18N.availableLanguages[I18N.lang];
             const choice = prompt(
-                `【 ${this.t('title')} v${GM_info.script.version} 】\n\n` +
+                `【 ${this.t('title')} v1.6.5 】\n\n` +
                 `1. ${this.t('menu_rules')}\n` +
                 `2. ${i('ENABLE_LOW_VIEW_FILTER')} ${this.t('menu_low_view')}\n` +
                 `3. ${this.t('menu_threshold')} (${this.config.get('LOW_VIEW_THRESHOLD')})\n` +

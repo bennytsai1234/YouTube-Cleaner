@@ -1,3 +1,4 @@
+/* global OpenCC */
 // --- 2. Core: Utilities (Enhanced i18n Support) ---
 export const Utils = {
     debounce: (func, delay) => {

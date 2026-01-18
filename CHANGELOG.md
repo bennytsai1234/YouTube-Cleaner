@@ -18,6 +18,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.7.5] - 2026-01-19
+
+### Fixed
+- **Code Quality & Linting**: Fixed multiple code quality issues reported by ESLint.
+    - Removed duplicate method definitions in `VideoFilter` class to prevent potential behavior ambiguity.
+    - Added missing global declaration for `OpenCC` in utility module.
+    - Removed unused imports to keep bundle size optimized.
+- **Stability**: Enhanced robust error handling in `processMutations` to ensure filter continuity.
+
+---
+
 ## [1.7.4] - 2026-01-19
 
 ### Fixed

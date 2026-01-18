@@ -5,7 +5,6 @@ import { VideoFilter } from './features/video-filter.js';
 import { InteractionEnhancer } from './features/interaction.js';
 import { UIManager } from './ui/menu.js';
 import { Logger } from './core/logger.js';
-import { Utils } from './core/utils.js';
 
 // --- 10. App Entry ---
 class App {
