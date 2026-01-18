@@ -18,6 +18,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.6.9] - 2026-01-18
+
+### Changed
+- **Scroll Behavior**: Disabled `AdBlockGuard`'s scroll unlocking mechanism. This prevents potential scroll glitches or locking issues reported by users when the adblock popup is detected.
+
+---
+
 ## [1.6.8] - 2026-01-07
 
 ### Fixed

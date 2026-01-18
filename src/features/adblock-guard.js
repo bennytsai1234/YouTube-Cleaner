@@ -92,43 +92,16 @@ export class AdBlockGuard {
                     b.remove();
                 }
             });
-            this.unlockScroll();
             this.resumeVideo();
         }
     }
 
+    /*
     unlockScroll() {
-        const css = (el, props) => {
-            if (!el) return;
-            for (const [key, val] of Object.entries(props)) {
-                el.style.setProperty(key, val, 'important');
-            }
-        };
-
-        const allowScrollProps = {
-            'overflow-y': 'auto',
-            'overflow-x': 'hidden',
-            'position': 'static',
-            'pointer-events': 'auto',
-            'top': 'auto',
-            'display': 'block'
-        };
-
-        css(document.body, allowScrollProps);
-        css(document.documentElement, allowScrollProps);
-
-        const ytdApp = document.querySelector('ytd-app');
-        if (ytdApp) {
-            css(ytdApp, allowScrollProps);
-            ytdApp.removeAttribute('aria-hidden');
-        }
-
-        // 移除播放器模糊效果
-        const watchPage = document.querySelector('ytd-watch-flexy');
-        if (watchPage) {
-            watchPage.style.removeProperty('filter');
-        }
+        // User requested removal of scroll manipulation
+        // This function used to force overflow:auto to fix adblock popup locking
     }
+    */
 
     resumeVideo() {
         // 只有剛偵測到彈窗時才強制播放，避免過度積極

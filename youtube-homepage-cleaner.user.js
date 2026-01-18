@@ -11,7 +11,7 @@
 // @icon        https://www.google.com/s2/favicons?sz=64&domain=youtube.com
 // @downloadURL https://raw.githubusercontent.com/bennytsai1234/YouTube-Cleaner/main/youtube-homepage-cleaner.user.js
 // @updateURL   https://raw.githubusercontent.com/bennytsai1234/YouTube-Cleaner/main/youtube-homepage-cleaner.user.js
-// @version     1.6.8
+// @version     1.6.9
 // @grant       GM_info
 // @grant       GM_addStyle
 // @grant       GM_setValue
@@ -358,35 +358,7 @@
                         b.remove();
                     }
                 });
-                this.unlockScroll();
                 this.resumeVideo();
-            }
-        }
-        unlockScroll() {
-            const css = (el, props) => {
-                if (!el) return;
-                for (const [key, val] of Object.entries(props)) {
-                    el.style.setProperty(key, val, 'important');
-                }
-            };
-            const allowScrollProps = {
-                'overflow-y': 'auto',
-                'overflow-x': 'hidden',
-                'position': 'static',
-                'pointer-events': 'auto',
-                'top': 'auto',
-                'display': 'block'
-            };
-            css(document.body, allowScrollProps);
-            css(document.documentElement, allowScrollProps);
-            const ytdApp = document.querySelector('ytd-app');
-            if (ytdApp) {
-                css(ytdApp, allowScrollProps);
-                ytdApp.removeAttribute('aria-hidden');
-            }
-            const watchPage = document.querySelector('ytd-watch-flexy');
-            if (watchPage) {
-                watchPage.style.removeProperty('filter');
             }
         }
         resumeVideo() {
