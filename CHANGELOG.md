@@ -18,10 +18,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
-## [1.6.9] - 2026-01-18
+## [1.7.0] - 2026-01-18
 
 ### Changed
-- **Scroll Behavior**: Disabled `AdBlockGuard`'s scroll unlocking mechanism. This prevents potential scroll glitches or locking issues reported by users when the adblock popup is detected.
+- **Performance Optimization**: Replaced full-page scanning with **Incremental Mutation Processing**.
+    - Now uses `MutationObserver` records to check only *added nodes*.
+    - Significantly reduces CPU usage during infinite scrolling on Home/Shorts.
+    - Combined with `requestIdleCallback` for buttery smooth performance.
+- **Scroll Behavior**: Disabled `AdBlockGuard`'s scroll unlocking mechanism.
 
 ---
 

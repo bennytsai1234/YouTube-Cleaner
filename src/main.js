@@ -45,7 +45,8 @@ class App {
         this.enhancer.init();
         GM_registerMenuCommand('⚙️ 淨化大師設定', () => this.ui.showMainMenu());
 
-        const obs = new MutationObserver(Utils.debounce(() => this.filter.processPage(), 100));
+        // 優化：使用 processMutations 處理增量更新，不再每次都全頁掃描
+        const obs = new MutationObserver((mutations) => this.filter.processMutations(mutations));
         obs.observe(document.body, { childList: true, subtree: true });
 
         window.addEventListener('yt-navigate-finish', () => {

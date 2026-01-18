@@ -90,7 +90,33 @@ export class VideoFilter {
         this.config = config;
         this.customRules = new CustomRuleManager(config);
     }
-    // 使用 requestIdleCallback 分批處理以優化效能
+
+    // 優化：針對 MutationObserver 的增量處理
+    processMutations(mutations) {
+        const candidates = new Set();
+        for (const mutation of mutations) {
+            for (const node of mutation.addedNodes) {
+                if (node.nodeType !== 1) continue;
+
+                // 檢查節點本身
+                if (node.matches && node.matches(SELECTORS.allContainers)) {
+                    candidates.add(node);
+                }
+
+                // 檢查子節點 (只在容器內搜尋，範圍更小)
+                if (node.querySelectorAll) {
+                    const children = node.querySelectorAll(SELECTORS.allContainers);
+                    for (const child of children) candidates.add(child);
+                }
+            }
+        }
+
+        if (candidates.size > 0) {
+            this._processBatch(Array.from(candidates), 0);
+        }
+    }
+
+    // 全頁掃描 (初始化或重設時使用)
     processPage() {
         const elements = Array.from(document.querySelectorAll(SELECTORS.allContainers));
         const unprocessed = elements.filter(el => !el.dataset.ypChecked);
@@ -135,7 +161,6 @@ export class VideoFilter {
         if (element.tagName.includes('VIDEO') || element.tagName.includes('LOCKUP') || element.tagName.includes('RICH-ITEM')) {
             const item = new LazyVideoData(element);
 
-            // Advanced Filters
             // Advanced Filters
             if (this.config.get('ENABLE_KEYWORD_FILTER') && item.title) {
                 const convert = this.config.get('ENABLE_REGION_CONVERT');
