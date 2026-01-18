@@ -11,7 +11,7 @@
 // @icon        https://www.google.com/s2/favicons?sz=64&domain=youtube.com
 // @downloadURL https://raw.githubusercontent.com/bennytsai1234/YouTube-Cleaner/main/youtube-homepage-cleaner.user.js
 // @updateURL   https://raw.githubusercontent.com/bennytsai1234/YouTube-Cleaner/main/youtube-homepage-cleaner.user.js
-// @version     1.7.2
+// @version     1.7.3
 // @grant       GM_info
 // @grant       GM_addStyle
 // @grant       GM_setValue
@@ -549,6 +549,132 @@
         constructor(config) {
             this.config = config;
             this.customRules = new CustomRuleManager(config);
+            this.pendingElements = new Set();
+            this.isProcessing = false;
+        }
+        _startProcessor() {
+            if (this.isProcessing || this.pendingElements.size === 0) return;
+            this.isProcessing = true;
+            this._processNextBatch();
+        }
+        _processNextBatch() {
+            if (this.pendingElements.size === 0) {
+                this.isProcessing = false;
+                return;
+            }
+            requestIdleCallback((deadline) => {
+                const iterator = this.pendingElements.values();
+                let count = 0;
+                const batchSize = 20;
+                while (count < batchSize && (deadline.timeRemaining() > 0 || deadline.didTimeout)) {
+                    const { value, done } = iterator.next();
+                    if (done) break;
+                    const el = value;
+                    this.pendingElements.delete(el);
+                    try {
+                        this.processElement(el);
+                    } catch (e) {
+                        Logger.error('Filter error', e);
+                    }
+                    count++;
+                }
+                if (this.pendingElements.size > 0) {
+                    this._processNextBatch();
+                } else {
+                    this.isProcessing = false;
+                }
+            }, { timeout: 1000 });
+        }
+        processMutations(mutations) {
+            let addedCount = 0;
+            for (const mutation of mutations) {
+                for (const node of mutation.addedNodes) {
+                    if (node.nodeType !== 1) continue;
+                    if (node.matches && node.matches(SELECTORS.allContainers)) {
+                        if (!node.dataset.ypChecked) {
+                            this.pendingElements.add(node);
+                            addedCount++;
+                        }
+                    }
+                    if (node.querySelectorAll) {
+                        const children = node.querySelectorAll(SELECTORS.allContainers);
+                        for (const child of children) {
+                            if (!child.dataset.ypChecked) {
+                                this.pendingElements.add(child);
+                                addedCount++;
+                            }
+                        }
+                    }
+                }
+            }
+            if (addedCount > 0) this._startProcessor();
+        }
+        processPage() {
+            const elements = document.querySelectorAll(SELECTORS.allContainers);
+            let addedCount = 0;
+            for (const el of elements) {
+                if (!el.dataset.ypChecked) {
+                    this.pendingElements.add(el);
+                    addedCount++;
+                }
+            }
+            if (addedCount > 0) this._startProcessor();
+        }
+        processElement(element) {
+            if (element.dataset.ypChecked) return;
+            if (element.offsetParent === null) return;
+            const text = element.innerText || '';
+            const textRule = this.customRules.check(element, text);
+            if (textRule) return this._hide(element, textRule);
+            const tag = element.tagName;
+            if (tag.includes('VIDEO') || tag.includes('LOCKUP') || tag.includes('RICH-ITEM')) {
+                const item = new LazyVideoData(element);
+                if (this.config.get('ENABLE_KEYWORD_FILTER') && item.title) {
+                    const convert = this.config.get('ENABLE_REGION_CONVERT');
+                    if (convert && this.config.get('compiledKeywords')) {
+                        if (this.config.get('compiledKeywords').some(rx => rx.test(item.title))) {
+                            return this._hide(element, 'keyword_blacklist');
+                        }
+                    } else {
+                        const title = item.title.toLowerCase();
+                        if (this.config.get('KEYWORD_BLACKLIST').some(k => title.includes(k.toLowerCase()))) {
+                             return this._hide(element, 'keyword_blacklist');
+                        }
+                    }
+                }
+                if (this.config.get('ENABLE_CHANNEL_FILTER') && item.channel) {
+                    const convert = this.config.get('ENABLE_REGION_CONVERT');
+                    if (convert && this.config.get('compiledChannels')) {
+                         if (this.config.get('compiledChannels').some(rx => rx.test(item.channel))) {
+                            return this._hide(element, 'channel_blacklist');
+                        }
+                    } else {
+                        const channel = item.channel.toLowerCase();
+                        if (this.config.get('CHANNEL_BLACKLIST').some(k => channel.includes(k.toLowerCase()))) {
+                            return this._hide(element, 'channel_blacklist');
+                        }
+                    }
+                }
+                if (this.config.get('RULE_ENABLES').members_only && item.isMembers) {
+                    return this._hide(element, 'members_only_js');
+                }
+                if (this.config.get('ENABLE_LOW_VIEW_FILTER') && !item.isShorts) {
+                    const th = this.config.get('LOW_VIEW_THRESHOLD');
+                    const grace = this.config.get('GRACE_PERIOD_HOURS') * 60;
+                    if (item.isLive && item.liveViewers !== null && item.liveViewers < th) {
+                        return this._hide(element, 'low_viewer_live');
+                    }
+                    if (!item.isLive && item.viewCount !== null && item.timeAgo !== null && item.timeAgo > grace && item.viewCount < th) {
+                        return this._hide(element, 'low_view');
+                    }
+                }
+                if (this.config.get('ENABLE_DURATION_FILTER') && !item.isShorts && item.duration !== null) {
+                    const min = this.config.get('DURATION_MIN');
+                    const max = this.config.get('DURATION_MAX');
+                    if ((min > 0 && item.duration < min) || (max > 0 && item.duration > max)) return this._hide(element, 'duration_filter');
+                }
+            }
+            element.dataset.ypChecked = 'true';
         }
         processMutations(mutations) {
             if (mutations.length > 100) {
@@ -1207,15 +1333,7 @@
             this.adGuard.start();
             this.enhancer.init();
             GM_registerMenuCommand('⚙️ 淨化大師設定', () => this.ui.showMainMenu());
-            let mutationQueue = [];
-            const processQueue = Utils.debounce(() => {
-                this.filter.processMutations(mutationQueue);
-                mutationQueue = [];
-            }, 50);
-            const obs = new MutationObserver((mutations) => {
-                mutationQueue.push(...mutations);
-                processQueue();
-            });
+            const obs = new MutationObserver((mutations) => this.filter.processMutations(mutations));
             obs.observe(document.body, { childList: true, subtree: true });
             window.addEventListener('yt-navigate-finish', () => {
                 this.patchYouTubeConfig();

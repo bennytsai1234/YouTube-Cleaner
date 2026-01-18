@@ -89,6 +89,168 @@ export class VideoFilter {
     constructor(config) {
         this.config = config;
         this.customRules = new CustomRuleManager(config);
+        this.pendingElements = new Set(); // 待處理元素隊列 (自動去重)
+        this.isProcessing = false;        // 循環狀態鎖
+    }
+
+    // 啟動或恢復處理循環
+    _startProcessor() {
+        if (this.isProcessing || this.pendingElements.size === 0) return;
+        this.isProcessing = true;
+        this._processNextBatch();
+    }
+
+    _processNextBatch() {
+        if (this.pendingElements.size === 0) {
+            this.isProcessing = false;
+            return;
+        }
+
+        requestIdleCallback((deadline) => {
+            const iterator = this.pendingElements.values();
+            let count = 0;
+            const batchSize = 20;
+
+            while (count < batchSize && (deadline.timeRemaining() > 0 || deadline.didTimeout)) {
+                const { value, done } = iterator.next();
+                if (done) break;
+
+                const el = value;
+                this.pendingElements.delete(el);
+                
+                try {
+                    this.processElement(el);
+                } catch (e) {
+                    Logger.error('Filter error', e);
+                }
+                count++;
+            }
+
+            // 繼續處理剩餘任務
+            if (this.pendingElements.size > 0) {
+                this._processNextBatch();
+            } else {
+                this.isProcessing = false;
+            }
+        }, { timeout: 1000 });
+    }
+
+    // 優化：針對 MutationObserver 的增量處理
+    processMutations(mutations) {
+        let addedCount = 0;
+        for (const mutation of mutations) {
+            for (const node of mutation.addedNodes) {
+                if (node.nodeType !== 1) continue;
+
+                // 檢查節點本身
+                if (node.matches && node.matches(SELECTORS.allContainers)) {
+                    if (!node.dataset.ypChecked) {
+                        this.pendingElements.add(node);
+                        addedCount++;
+                    }
+                }
+
+                // 檢查子節點
+                if (node.querySelectorAll) {
+                    const children = node.querySelectorAll(SELECTORS.allContainers);
+                    for (const child of children) {
+                        if (!child.dataset.ypChecked) {
+                            this.pendingElements.add(child);
+                            addedCount++;
+                        }
+                    }
+                }
+            }
+        }
+
+        if (addedCount > 0) this._startProcessor();
+    }
+
+    // 全頁掃描 (初始化或重設時使用)
+    processPage() {
+        const elements = document.querySelectorAll(SELECTORS.allContainers);
+        let addedCount = 0;
+        for (const el of elements) {
+            if (!el.dataset.ypChecked) {
+                this.pendingElements.add(el);
+                addedCount++;
+            }
+        }
+        if (addedCount > 0) this._startProcessor();
+    }
+
+    processElement(element) {
+        if (element.dataset.ypChecked) return;
+        if (element.offsetParent === null) return;
+
+        // 7.2 Custom Text Rules Check (Extensible)
+        const text = element.innerText || '';
+        const textRule = this.customRules.check(element, text);
+        if (textRule) return this._hide(element, textRule);
+
+        // 7.3 Base Logic
+        const tag = element.tagName;
+        if (tag.includes('VIDEO') || tag.includes('LOCKUP') || tag.includes('RICH-ITEM')) {
+            const item = new LazyVideoData(element);
+
+            // Advanced Filters
+            if (this.config.get('ENABLE_KEYWORD_FILTER') && item.title) {
+                const convert = this.config.get('ENABLE_REGION_CONVERT');
+                // Regex-based check (Zero Allocation)
+                if (convert && this.config.get('compiledKeywords')) {
+                    if (this.config.get('compiledKeywords').some(rx => rx.test(item.title))) {
+                        return this._hide(element, 'keyword_blacklist');
+                    }
+                } else {
+                    // Fallback to simple includes (for regex gen fail or disabled convert)
+                    const title = item.title.toLowerCase();
+                    if (this.config.get('KEYWORD_BLACKLIST').some(k => title.includes(k.toLowerCase()))) {
+                         return this._hide(element, 'keyword_blacklist');
+                    }
+                }
+            }
+            if (this.config.get('ENABLE_CHANNEL_FILTER') && item.channel) {
+                const convert = this.config.get('ENABLE_REGION_CONVERT');
+                // Regex-based check
+                if (convert && this.config.get('compiledChannels')) {
+                     if (this.config.get('compiledChannels').some(rx => rx.test(item.channel))) {
+                        return this._hide(element, 'channel_blacklist');
+                    }
+                } else {
+                    const channel = item.channel.toLowerCase();
+                    if (this.config.get('CHANNEL_BLACKLIST').some(k => channel.includes(k.toLowerCase()))) {
+                        return this._hide(element, 'channel_blacklist');
+                    }
+                }
+            }
+
+            // 強化會員過濾 (JS補刀)：若開啟成員過濾且偵測到是會員影片，直接隱藏
+            if (this.config.get('RULE_ENABLES').members_only && item.isMembers) {
+                return this._hide(element, 'members_only_js');
+            }
+
+            if (this.config.get('ENABLE_LOW_VIEW_FILTER') && !item.isShorts) {
+                const th = this.config.get('LOW_VIEW_THRESHOLD');
+                const grace = this.config.get('GRACE_PERIOD_HOURS') * 60;
+
+                // 直播觀看數過濾 (不受豁免期限制)
+                if (item.isLive && item.liveViewers !== null && item.liveViewers < th) {
+                    return this._hide(element, 'low_viewer_live');
+                }
+
+                // 一般影片觀看數過濾 (受豁免期限制)
+                if (!item.isLive && item.viewCount !== null && item.timeAgo !== null && item.timeAgo > grace && item.viewCount < th) {
+                    return this._hide(element, 'low_view');
+                }
+            }
+
+            if (this.config.get('ENABLE_DURATION_FILTER') && !item.isShorts && item.duration !== null) {
+                const min = this.config.get('DURATION_MIN');
+                const max = this.config.get('DURATION_MAX');
+                if ((min > 0 && item.duration < min) || (max > 0 && item.duration > max)) return this._hide(element, 'duration_filter');
+            }
+        }
+        element.dataset.ypChecked = 'true';
     }
 
     // 優化：針對 MutationObserver 的增量處理

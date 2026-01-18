@@ -18,6 +18,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.7.3] - 2026-01-18
+
+### Fixed
+- **State Machine Scheduler**: Completely refactored the filtering engine to use a **Single Task Queue** and a **State Machine**.
+    - Prevents "Race Conditions" and CPU spikes caused by multiple concurrent filtering loops (especially when clicking the "New to you" chip).
+    - Ensures only one idle-time processing cycle exists globally.
+    - Added comprehensive `try-catch` blocks to prevent individual element errors from crashing the entire script.
+
+---
+
 ## [1.7.2] - 2026-01-18
 
 ### Fixed
