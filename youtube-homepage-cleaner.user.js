@@ -651,6 +651,11 @@
             FilterStats.record(reason);
             Logger.info(`Hidden [${reason}]`, element);
         }
+        clearCache() {
+            document.querySelectorAll('[data-yp-checked]').forEach(el => {
+                delete el.dataset.ypChecked;
+            });
+        }
         reset() {
             document.querySelectorAll('[data-yp-hidden]').forEach(el => {
                 el.style.display = '';
@@ -1198,6 +1203,7 @@
             obs.observe(document.body, { childList: true, subtree: true });
             window.addEventListener('yt-navigate-finish', () => {
                 this.patchYouTubeConfig();
+                this.filter.clearCache();
                 this.filter.processPage();
                 this.adGuard.checkAndClean();
             });

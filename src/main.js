@@ -51,6 +51,7 @@ class App {
 
         window.addEventListener('yt-navigate-finish', () => {
             this.patchYouTubeConfig(); // 每次導航後重新 patch
+            this.filter.clearCache(); // 清除快取，防止 DOM 重用導致過濾失效
             this.filter.processPage();
             this.adGuard.checkAndClean();
         });

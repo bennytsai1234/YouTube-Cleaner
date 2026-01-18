@@ -228,6 +228,13 @@ export class VideoFilter {
         Logger.info(`Hidden [${reason}]`, element);
     }
 
+    // 清除所有檢查標記 (用於頁面導航後，防止 DOM 重用導致的過濾失效)
+    clearCache() {
+        document.querySelectorAll('[data-yp-checked]').forEach(el => {
+            delete el.dataset.ypChecked;
+        });
+    }
+
     reset() {
         document.querySelectorAll('[data-yp-hidden]').forEach(el => {
             el.style.display = '';
