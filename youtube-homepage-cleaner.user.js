@@ -11,7 +11,7 @@
 // @icon        https://www.google.com/s2/favicons?sz=64&domain=youtube.com
 // @downloadURL https://raw.githubusercontent.com/bennytsai1234/YouTube-Cleaner/main/youtube-homepage-cleaner.user.js
 // @updateURL   https://raw.githubusercontent.com/bennytsai1234/YouTube-Cleaner/main/youtube-homepage-cleaner.user.js
-// @version     1.7.0
+// @version     1.7.1
 // @grant       GM_info
 // @grant       GM_addStyle
 // @grant       GM_setValue
@@ -646,10 +646,14 @@
             element.dataset.ypChecked = 'true';
         }
         _hide(element, reason) {
-            element.style.display = 'none';
-            element.dataset.ypHidden = reason;
+            const container = element.closest('ytd-rich-item-renderer, ytd-grid-video-renderer, ytd-compact-video-renderer') || element;
+            container.style.display = 'none';
+            container.dataset.ypHidden = reason;
+            if (container !== element) {
+                element.dataset.ypHidden = reason;
+            }
             FilterStats.record(reason);
-            Logger.info(`Hidden [${reason}]`, element);
+            Logger.info(`Hidden [${reason}]`, container);
         }
         clearCache() {
             document.querySelectorAll('[data-yp-checked]').forEach(el => {

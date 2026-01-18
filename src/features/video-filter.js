@@ -222,10 +222,19 @@ export class VideoFilter {
     }
 
     _hide(element, reason) {
-        element.style.display = 'none';
-        element.dataset.ypHidden = reason;
+        // 優化：嘗試向上尋找 Grid Item 容器，確保隱藏整個格子而不留白
+        const container = element.closest('ytd-rich-item-renderer, ytd-grid-video-renderer, ytd-compact-video-renderer') || element;
+        
+        container.style.display = 'none';
+        container.dataset.ypHidden = reason;
+        
+        // 如果隱藏的是容器，也要標記原始元素，避免重複處理
+        if (container !== element) {
+            element.dataset.ypHidden = reason;
+        }
+
         FilterStats.record(reason);  // 記錄統計
-        Logger.info(`Hidden [${reason}]`, element);
+        Logger.info(`Hidden [${reason}]`, container);
     }
 
     // 清除所有檢查標記 (用於頁面導航後，防止 DOM 重用導致的過濾失效)

@@ -18,6 +18,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.7.1] - 2026-01-18
+
+### Fixed
+- **Layout Gap (Ghost Element)**: Fixed an issue where hiding a video would leave an empty, clickable whitespace.
+    - Now correctly identifies and hides the parent Grid Item container (`ytd-rich-item-renderer`, etc.) instead of just the inner content.
+    - Ensures YouTube's layout engine correctly reflows the grid.
+
+---
+
 ## [1.7.0] - 2026-01-18
 
 ### Changed
