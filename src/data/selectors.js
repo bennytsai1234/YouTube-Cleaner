@@ -13,8 +13,7 @@ export const SELECTORS = {
         'ytd-rich-section-renderer',
         'ytd-rich-shelf-renderer',
         'ytd-reel-shelf-renderer',
-        'grid-shelf-view-model',
-        'ytd-watch-next-secondary-results-renderer'  // 播放頁推薦區塊
+        'grid-shelf-view-model'
     ],
 
     // Metadata 選擇器 (新舊版相容)
