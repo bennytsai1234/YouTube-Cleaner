@@ -10,10 +10,25 @@ const TIME_UNITS = {
     YEAR: 525600
 };
 
-const UNIT_MAP = {
+const MULTIPLIERS = {
     'k': 1e3, 'm': 1e6, 'b': 1e9,
     '千': 1e3, '萬': 1e4, '億': 1e8,
     '万': 1e4, '亿': 1e8
+};
+
+// Pre-compiled regexes
+const RX_NUMERIC = /([\d.]+)\s*([kmb千萬万億亿])?/i;
+const RX_TIME_AGO_CHECK = /(ago|前|hour|minute|day|week|month|year|秒|分|時|天|週|月|年)/i;
+const RX_TIME_AGO_PARSE = /(\d+)\s*(second|minute|min|hour|hr|day|week|month|year|秒|分|小時|時|天|日|週|周|月|年)/i;
+const RX_ZERO_TIME = /second|秒/i;
+
+const TIME_UNIT_KEYS = {
+    'minute': TIME_UNITS.MINUTE, 'min': TIME_UNITS.MINUTE, '分': TIME_UNITS.MINUTE,
+    'hour': TIME_UNITS.HOUR, 'hr': TIME_UNITS.HOUR, '時': TIME_UNITS.HOUR, '小時': TIME_UNITS.HOUR,
+    'day': TIME_UNITS.DAY, '天': TIME_UNITS.DAY, '日': TIME_UNITS.DAY,
+    'week': TIME_UNITS.WEEK, '週': TIME_UNITS.WEEK, '周': TIME_UNITS.WEEK,
+    'month': TIME_UNITS.MONTH, '月': TIME_UNITS.MONTH,
+    'year': TIME_UNITS.YEAR, '年': TIME_UNITS.YEAR
 };
 
 // --- 工具函式 ---
@@ -29,17 +44,20 @@ export const Utils = {
 
     parseNumeric: (text, type = 'any') => {
         if (!text) return null;
-        const clean = text.replace(/,/g, '').toLowerCase().trim();
 
-        // 排除時間字串
-        if (type === 'view' && /(ago|前|hour|minute|day|week|month|year|秒|分|時|天|週|月|年)/.test(clean)) return null;
+        // Fast fail for view type if it looks like a date
+        if (type === 'view' && RX_TIME_AGO_CHECK.test(text)) return null;
 
-        const match = clean.match(/([\d.]+)\s*([kmb千萬万億亿])?/i);
+        const clean = text.replace(/,/g, '').trim();
+        const match = clean.match(RX_NUMERIC);
         if (!match) return null;
 
         let num = parseFloat(match[1]);
         const unit = match[2]?.toLowerCase();
-        if (unit && UNIT_MAP[unit]) num *= UNIT_MAP[unit];
+
+        if (unit && MULTIPLIERS[unit]) {
+            num *= MULTIPLIERS[unit];
+        }
 
         return Math.floor(num);
     },
@@ -55,19 +73,28 @@ export const Utils = {
 
     parseTimeAgo: (text) => {
         if (!text) return null;
-        const raw = text.toLowerCase();
-        if (/second|秒/.test(raw)) return 0;
 
-        const match = raw.match(/(\d+)/);
+        // 0 seconds check
+        if (RX_ZERO_TIME.test(text)) return 0;
+
+        const match = text.match(RX_TIME_AGO_PARSE);
         if (!match) return null;
-        const val = parseInt(match[1], 10);
 
-        if (/minute|分/.test(raw)) return val * TIME_UNITS.MINUTE;
-        if (/hour|小時|時/.test(raw)) return val * TIME_UNITS.HOUR;
-        if (/day|天|日/.test(raw)) return val * TIME_UNITS.DAY;
-        if (/week|週|周/.test(raw)) return val * TIME_UNITS.WEEK;
-        if (/month|月/.test(raw)) return val * TIME_UNITS.MONTH;
-        if (/year|年/.test(raw)) return val * TIME_UNITS.YEAR;
+        const val = parseInt(match[1], 10);
+        const unitStr = match[2].toLowerCase();
+
+        // Find multiplier
+        // Simple iteration or lookup. Since we have mixed keys (minute, 分), lookup is best.
+        // We need to normalize or check partial matches if we want to be robust,
+        // but the regex captures specific known units.
+
+        // Check exact match first
+        if (TIME_UNIT_KEYS[unitStr]) return val * TIME_UNIT_KEYS[unitStr];
+
+        // Fallback for partial matches (e.g. "minutes" -> "minute")
+        for (const [key, multiplier] of Object.entries(TIME_UNIT_KEYS)) {
+            if (unitStr.includes(key)) return val * multiplier;
+        }
 
         return null;
     },
@@ -111,9 +138,9 @@ export const Utils = {
             const escTrad = escape(trad);
 
             try {
-                return escSimp === escTrad
-                    ? new RegExp(escSimp, 'i')
-                    : new RegExp(`(?:${escSimp}|${escTrad})`, 'i');
+                // If compiled logic is same, return simple regex
+                if (escSimp === escTrad) return new RegExp(escSimp, 'i');
+                return new RegExp(`(?:${escSimp}|${escTrad})`, 'i');
             } catch (e) {
                 return null;
             }

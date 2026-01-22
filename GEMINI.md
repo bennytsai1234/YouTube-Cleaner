@@ -103,3 +103,18 @@ main   ← 穩定版本
 |------|------|
 | Windows Git 中文亂碼 | `git config core.quotepath false` |
 | 指令沒有輸出 | 用 Shell Session + `send_command_input` |
+
+---
+
+## 專案推薦 Skills
+
+此專案已配置以下 Skills 以協助開發 (位於全域 Skills 目錄)：
+
+- **核心開發**: `modern-javascript-patterns`, `browser-extension-builder`, `web-performance-optimization`
+- **代碼品質**: `code-review-checklist`, `eslint-optimization` (或 `javascript-mastery`)
+- **測試驗證**: `webapp-testing`, `playwright-skill`
+- **專案發布**: `changelog-automation`, `crafting-effective-readmes`, `git-advanced-workflows`
+- **本地化**: `humanizer-zh`, `i18n-localization`
+
+**使用方式**:
+當進行相關任務時，請優先參考上述 Skills 的 `SKILL.md` (e.g. `view_file .../skills/modern-javascript-patterns/SKILL.md`)。

@@ -1,20 +1,27 @@
+// 頂層容器 (用於過濾)
+const VIDEO_CONTAINERS = [
+    'ytd-rich-item-renderer',
+    'ytd-video-renderer',
+    'ytd-compact-video-renderer',  // 播放頁側邊欄
+    'ytd-grid-video-renderer',
+    'yt-lockup-view-model',
+    'ytd-compact-radio-renderer',   // 播放頁自動播放清單
+    'ytd-playlist-panel-video-renderer'  // 播放清單面板
+];
+
+const SECTION_CONTAINERS = [
+    'ytd-rich-section-renderer',
+    'ytd-rich-shelf-renderer',
+    'ytd-reel-shelf-renderer',
+    'grid-shelf-view-model'
+];
+
+const ALL_CONTAINERS_STR = [...VIDEO_CONTAINERS, ...SECTION_CONTAINERS].join(', ');
+const VIDEO_CONTAINERS_STR = VIDEO_CONTAINERS.join(', ');
+
 export const SELECTORS = {
-    // 頂層容器 (用於過濾)
-    VIDEO_CONTAINERS: [
-        'ytd-rich-item-renderer',
-        'ytd-video-renderer',
-        'ytd-compact-video-renderer',  // 播放頁側邊欄
-        'ytd-grid-video-renderer',
-        'yt-lockup-view-model',
-        'ytd-compact-radio-renderer',   // 播放頁自動播放清單
-        'ytd-playlist-panel-video-renderer'  // 播放清單面板
-    ],
-    SECTION_CONTAINERS: [
-        'ytd-rich-section-renderer',
-        'ytd-rich-shelf-renderer',
-        'ytd-reel-shelf-renderer',
-        'grid-shelf-view-model'
-    ],
+    VIDEO_CONTAINERS,
+    SECTION_CONTAINERS,
 
     // Metadata 選擇器 (新舊版相容)
     METADATA: {
@@ -70,11 +77,7 @@ export const SELECTORS = {
         'a#video-title-link', 'a#video-title', 'a.yt-simple-endpoint#video-title', 'a.yt-lockup-view-model-wiz__title'
     ],
 
-    // 生成組合選擇器
-    get allContainers() {
-        return [...this.VIDEO_CONTAINERS, ...this.SECTION_CONTAINERS].join(', ');
-    },
-    get videoContainersStr() {
-        return this.VIDEO_CONTAINERS.join(', ');
-    }
+    // 生成組合選擇器 (Properties)
+    allContainers: ALL_CONTAINERS_STR,
+    videoContainersStr: VIDEO_CONTAINERS_STR
 };

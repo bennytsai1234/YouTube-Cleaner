@@ -5,7 +5,7 @@ import { FilterStats } from '../core/stats.js';
 import { CustomRuleManager } from './custom-rules.js';
 
 // --- 常數定義 ---
-const BATCH_SIZE = 20;
+const BATCH_SIZE = 50;
 const IDLE_TIMEOUT = 500;
 const MUTATION_THRESHOLD = 100;  // 超過此數量直接全頁掃描
 
