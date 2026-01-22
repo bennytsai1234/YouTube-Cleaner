@@ -11,7 +11,7 @@
 // @icon        https://www.google.com/s2/favicons?sz=64&domain=youtube.com
 // @downloadURL https://raw.githubusercontent.com/bennytsai1234/YouTube-Cleaner/main/youtube-homepage-cleaner.user.js
 // @updateURL   https://raw.githubusercontent.com/bennytsai1234/YouTube-Cleaner/main/youtube-homepage-cleaner.user.js
-// @version     1.7.6
+// @version     1.7.7
 // @grant       GM_info
 // @grant       GM_addStyle
 // @grant       GM_setValue
@@ -259,12 +259,6 @@
                     containers.forEach(c => rules.push(`${c}:has(${selector}) { display: none !important; }`));
                 }
             });
-            if (enables.recommended_playlists) {
-                rules.push(`
-                ytd-browse[page-subtype="home"] ytd-rich-item-renderer:has(a[href^="/playlist?list="]),
-                ytd-browse[page-subtype="home"] ytd-rich-item-renderer:has([content-id^="PL"]) { display: none !important; }
-            `);
-            }
             GM_addStyle(rules.join('\n'));
             Logger.info('Static CSS rules injected');
         }
@@ -524,6 +518,9 @@
             return this.el.querySelector(SELECTORS.BADGES.MEMBERS) ||
                 /會員專屬|Members only/.test(this.el.innerText);
         }
+        get isPlaylist() {
+            return !!this.el.querySelector('a[href^="/playlist?list="], [content-id^="PL"]');
+        }
     }
     class VideoFilter {
         constructor(config) {
@@ -580,6 +577,7 @@
                 }
                 if (this._checkViewFilter(item, element)) return;
                 if (this._checkDurationFilter(item, element)) return;
+                if (this._checkPlaylistFilter(item, element)) return;
             }
             element.dataset.ypChecked = 'true';
         }
@@ -642,9 +640,14 @@
             }
             return false;
         }
+        _checkPlaylistFilter(item, element) {
+            if (!this.config.get('RULE_ENABLES').recommended_playlists || !item.isPlaylist) return false;
+            this._hide(element, 'recommended_playlists');
+            return true;
+        }
         _hide(element, reason) {
-            const container = element.closest('ytd-rich-item-renderer, ytd-grid-video-renderer, ytd-compact-video-renderer') || element;
-            container.style.display = 'none';
+            const container = element.closest('ytd-rich-item-renderer, ytd-grid-video-renderer, ytd-compact-video-renderer, ytd-playlist-renderer') || element;
+            container.style.cssText = 'display: none !important; visibility: hidden !important;';
             container.dataset.ypHidden = reason;
             if (container !== element) element.dataset.ypHidden = reason;
             FilterStats.record(reason);
@@ -677,6 +680,7 @@
         }
         init() {
             document.addEventListener('click', (e) => {
+                if (e.target.closest('[data-yp-hidden]')) return;
                 if (this.config.get('OPEN_NOTIFICATIONS_IN_NEW_TAB')) {
                     const notification = e.target.closest('ytd-notification-renderer');
                     if (notification) {

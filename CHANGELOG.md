@@ -18,6 +18,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.7.7] - 2026-01-22
+
+### Fixed
+- **Interaction Safety**: Prevented clicks on hidden elements by adding a `data-yp-hidden` check in `InteractionEnhancer`.
+- **Hiding Logic Consistency**: Unified playlist hiding logic into `VideoFilter` (JavaScript) instead of pure CSS.
+- **Style Robustness**: Enforced `display: none !important` and `visibility: hidden !important` to prevent YouTube from overriding hidden states.
+
+---
+
 ## [1.7.5] - 2026-01-19
 
 ### Fixed
