@@ -84,6 +84,9 @@ class LazyVideoData {
         return this.el.querySelector(SELECTORS.BADGES.MEMBERS) ||
             /會員專屬|Members only/.test(this.el.innerText);
     }
+    get isPlaylist() {
+        return !!this.el.querySelector('a[href^="/playlist?list="], [content-id^="PL"]');
+    }
 }
 
 // --- 影片過濾器 ---
@@ -163,6 +166,9 @@ export class VideoFilter {
 
             // 長度過濾
             if (this._checkDurationFilter(item, element)) return;
+
+            // 專輯過濾
+            if (this._checkPlaylistFilter(item, element)) return;
         }
 
         element.dataset.ypChecked = 'true';
@@ -238,9 +244,15 @@ export class VideoFilter {
         return false;
     }
 
+    _checkPlaylistFilter(item, element) {
+        if (!this.config.get('RULE_ENABLES').recommended_playlists || !item.isPlaylist) return false;
+        this._hide(element, 'recommended_playlists');
+        return true;
+    }
+
     _hide(element, reason) {
-        const container = element.closest('ytd-rich-item-renderer, ytd-grid-video-renderer, ytd-compact-video-renderer') || element;
-        container.style.display = 'none';
+        const container = element.closest('ytd-rich-item-renderer, ytd-grid-video-renderer, ytd-compact-video-renderer, ytd-playlist-renderer') || element;
+        container.style.cssText = 'display: none !important; visibility: hidden !important;';
         container.dataset.ypHidden = reason;
         if (container !== element) element.dataset.ypHidden = reason;
         FilterStats.record(reason);

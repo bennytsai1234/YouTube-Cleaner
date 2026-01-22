@@ -17,6 +17,9 @@ export class InteractionEnhancer {
 
     init() {
         document.addEventListener('click', (e) => {
+            // 0. 檢查是否點擊到被過濾隱藏的元素
+            if (e.target.closest('[data-yp-hidden]')) return;
+
             // 1. 通知新分頁開啟邏輯 (優先處理)
             if (this.config.get('OPEN_NOTIFICATIONS_IN_NEW_TAB')) {
                 const notification = e.target.closest('ytd-notification-renderer');

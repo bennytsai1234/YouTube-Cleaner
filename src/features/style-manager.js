@@ -74,14 +74,8 @@ export class StyleManager {
             }
         });
 
-        // 5.5 首頁推薦播放清單 (不影響頻道頁面)
-        if (enables.recommended_playlists) {
-            rules.push(`
-                ytd-browse[page-subtype="home"] ytd-rich-item-renderer:has(a[href^="/playlist?list="]),
-                ytd-browse[page-subtype="home"] ytd-rich-item-renderer:has([content-id^="PL"]) { display: none !important; }
-            `);
-        }
-
+        // 5.5 首頁推薦播放清單 (已移至 JavaScript 處理)
+        
         GM_addStyle(rules.join('\n'));
         Logger.info('Static CSS rules injected');
     }
