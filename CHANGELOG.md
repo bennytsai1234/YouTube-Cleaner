@@ -18,6 +18,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.8.1] - 2026-01-23
+
+### Changed
+- **Performance Optimization**: Deep optimization of `Utils` class including pre-compiled regexes and optimized numeric parsing to reduce GC pressure.
+- **Selector Caching**: Static caching of complex selector strings to improve MutationObserver performance.
+
+### Added
+- **Test Coverage**: Added comprehensive JSDOM-based unit tests for `CustomRuleManager` and `LazyVideoData` to ensure stability.
+
+---
+
 ## [1.8.0] - 2026-01-22
 
 ### Added
