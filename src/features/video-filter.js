@@ -141,6 +141,11 @@ export class VideoFilter {
     processElement(element) {
         if (element.dataset.ypChecked || element.offsetParent === null) return;
 
+        // 0. 強制執行原生 hidden 屬性的隱藏 (修復幽靈空白與誤觸問題)
+        if (element.hidden || element.hasAttribute('hidden')) {
+            return this._hide(element, 'native_hidden');
+        }
+
         // 文字規則檢查
         const textRule = this.customRules.check(element, element.innerText);
         if (textRule) return this._hide(element, textRule);

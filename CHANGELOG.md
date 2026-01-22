@@ -18,6 +18,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.7.8] - 2026-01-22
+
+### Fixed
+- **Ghost Element Clickable**: Fixed an issue where elements hidden by YouTube (using the `hidden` attribute) remained clickable and occupied space.
+    - The script now strictly enforces `display: none !important` on any container marked with the native `hidden` attribute.
+    - Prevents "empty" slots that redirect to videos when clicked.
+
+---
+
 ## [1.7.7] - 2026-01-22
 
 ### Fixed
