@@ -4,6 +4,9 @@
  */
 
 import { Utils } from '../src/core/utils.js';
+import { CustomRuleManager } from '../src/features/custom-rules.js';
+import { LazyVideoData } from '../src/features/video-filter.js';
+import { JSDOM } from 'jsdom';
 
 // ==================== 測試工具 ====================
 const TestRunner = {
@@ -137,6 +140,75 @@ TestRunner.suite('Utils.parseLiveViewers', () => {
 
     // 非直播文字
     TestRunner.assertEqual('非直播返回 null', Utils.parseLiveViewers('1.5K views'), null);
+    // 非直播文字
+    TestRunner.assertEqual('非直播返回 null', Utils.parseLiveViewers('1.5K views'), null);
+});
+
+// ==================== Custom Rules 測試 ====================
+TestRunner.suite('CustomRuleManager', () => {
+    const config = {
+        get: (key) => {
+            if (key === 'RULE_ENABLES') {
+                return {
+                    news_block: true,
+                    shorts_block: true,
+                    fundraiser_block: false // Disabled rule
+                };
+            }
+            return null;
+        }
+    };
+    const manager = new CustomRuleManager(config);
+
+    // 測試文字匹配
+    TestRunner.assertEqual('匹配新聞關鍵字', manager.check({}, 'Breaking News Today'), 'news_block');
+    TestRunner.assertEqual('匹配 Shorts 關鍵字', manager.check({}, 'Shorts'), 'shorts_block');
+
+    // 測試停用的規則
+    TestRunner.assertEqual('忽略停用的規則', manager.check({}, 'Fundraiser Event'), null);
+
+    // 測試無匹配
+    TestRunner.assertEqual('無匹配返回 null', manager.check({}, 'Regular Video Title'), null);
+});
+
+// ==================== LazyVideoData 測試 (DOM Mock) ====================
+TestRunner.suite('LazyVideoData', () => {
+    // Setup JSDOM environment
+    const dom = new JSDOM(`
+        <div id="video-root">
+            <a id="video-title">Test Video Title</a>
+            <div id="metadata-line">
+                <span class="inline-metadata-item">1.5M views</span>
+                <span class="inline-metadata-item">2 days ago</span>
+            </div>
+            <ytd-channel-name>Test Channel</ytd-channel-name>
+            <span class="ytd-thumbnail-overlay-time-status-renderer">10:30</span>
+            <a href="/shorts/123456">Shorts Link</a>
+        </div>
+    `);
+
+    global.window = dom.window;
+    global.document = dom.window.document;
+    global.HTMLElement = dom.window.HTMLElement;
+    global.Element = dom.window.Element;
+    global.Node = dom.window.Node;
+
+    const el = document.getElementById('video-root');
+    const video = new LazyVideoData(el);
+
+    // Metadata extraction
+    TestRunner.assertEqual('提取標題', video.title, 'Test Video Title');
+    TestRunner.assertEqual('提取頻道', video.channel, 'Test Channel');
+
+    // Parsing
+    TestRunner.assertEqual('提取觀看數', video.viewCount, 1500000);
+    // Note: 2 days ago = 2 * 1440 * 1 = 2880 mins
+    TestRunner.assertEqual('提取發布時間 (分)', video.timeAgo, 2880);
+    TestRunner.assertEqual('提取時長 (秒)', video.duration, 630);
+
+    // Flags
+    TestRunner.assert('偵測 Shorts', video.isShorts);
+    TestRunner.assert('偵測非直播', !video.isLive);
 });
 
 TestRunner.suite('Utils.generateCnRegex - 繁簡轉換', () => {

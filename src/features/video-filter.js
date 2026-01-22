@@ -10,7 +10,7 @@ const IDLE_TIMEOUT = 500;
 const MUTATION_THRESHOLD = 100;  // 超過此數量直接全頁掃描
 
 // --- 延遲載入影片資料 ---
-class LazyVideoData {
+export class LazyVideoData {
     constructor(element) {
         this.el = element;
         this._title = null;
