@@ -1,300 +1,118 @@
-# Project Context
+# 專案規範
 
-## 📌 Purpose
+## 這個專案是什麼？
 
-A Tampermonkey userscript designed to purify the YouTube homepage by removing Shorts, commercials, low-view videos, and other clutter elements. The goal is to restore a clean, focused viewing experience while bypassing anti-adblock detection mechanisms.
+一個 Tampermonkey 腳本，用來清理 YouTube 首頁，隱藏 Shorts、廣告、低觀看影片等干擾內容。
 
-**Target Audience**: YouTube power users who want a distraction-free viewing experience without algorithm-driven recommendations and intrusive elements.
-
----
-
-## 🛠️ Tech Stack
-
-| Category | Technology | Version | Notes |
-|----------|------------|---------|-------|
-| **Core Language** | JavaScript | ES6+ (ES2020) | No transpilation needed for modern browsers |
-| **Runtime Environment** | Tampermonkey | 5.0+ | Also compatible with Violentmonkey, Greasemonkey |
-| **Styling** | CSS3 | N/A | `:has()` selector for modern filtering |
-| **VCS** | Git + GitHub | N/A | Source of truth for updates and issue tracking |
-| **External Library** | OpenCC-JS | 1.0.5 | Chinese Traditional/Simplified conversion (CDN with fallback) |
-
-### Tampermonkey API Usage
-
-| API | Purpose | Security Implication |
-|-----|---------|---------------------|
-| `GM_addStyle` | Inject CSS rules | Low - UI only |
-| `GM_getValue` / `GM_setValue` | Persist user settings | Low - Local storage |
-| `GM_registerMenuCommand` | Create settings menu | None |
-| `GM_unregisterMenuCommand` | Dynamic menu updates | None |
-| `GM_info` | Script metadata access | None |
+**目標用戶**: 想要乾淨 YouTube 體驗的人
 
 ---
 
-## 📐 Architecture Overview
+## 技術棧
 
-```
-┌─────────────────────────────────────────────────────────────────┐
-│                        Entry Point (App)                        │
-├─────────────────────────────────────────────────────────────────┤
-│  ┌──────────────┐  ┌──────────────┐  ┌──────────────────────┐   │
-│  │ ConfigManager│  │    I18N      │  │      Logger          │   │
-│  │ (State)      │  │ (Localization│  │  (Debug Output)      │   │
-│  └──────────────┘  └──────────────┘  └──────────────────────┘   │
-├─────────────────────────────────────────────────────────────────┤
-│  ┌──────────────┐  ┌──────────────┐  ┌──────────────────────┐   │
-│  │ StyleManager │  │ VideoFilter  │  │  CustomRuleManager   │   │
-│  │ (CSS Rules)  │  │ (Dynamic JS) │  │  (Text Matching)     │   │
-│  └──────────────┘  └──────────────┘  └──────────────────────┘   │
-├─────────────────────────────────────────────────────────────────┤
-│  ┌──────────────┐  ┌──────────────┐  ┌──────────────────────┐   │
-│  │ AdBlockGuard │  │ Interaction  │  │     UIManager        │   │
-│  │ (Anti-popup) │  │ Enhancer     │  │  (Tampermonkey Menu) │   │
-│  └──────────────┘  └──────────────┘  └──────────────────────┘   │
-└─────────────────────────────────────────────────────────────────┘
-```
+| 技術 | 用途 |
+|------|------|
+| JavaScript (ES6+) | 主程式語言 |
+| Tampermonkey 5.0+ | 腳本執行環境 |
+| CSS3 (`:has()`) | 隱藏元素 |
+| OpenCC-JS | 繁簡轉換 |
 
-### Module Responsibilities
+### 使用的 API
 
-| Module | Responsibility | Coupling |
-|--------|---------------|----------|
-| `ConfigManager` | Centralized state management, persistence | Low |
-| `I18N` | Language detection, string localization | Low |
-| `Utils` | Stateless helpers (parsing, debouncing) | None |
-| `Logger` | Conditional console output | None |
-| `FilterStats` | Filtering statistics tracking | Low |
-| `StyleManager` | CSS rule injection | Medium (uses Config) |
-| `VideoFilter` | Dynamic DOM filtering with MutationObserver | Medium |
-| `CustomRuleManager` | Text-based rule matching engine | Low |
-| `AdBlockGuard` | Anti-adblock popup detection and removal | Low |
-| `InteractionEnhancer` | New tab opening behavior | Low |
-| `UIManager` | Tampermonkey menu interface | High (orchestrator) |
+| API | 用途 |
+|-----|------|
+| `GM_addStyle` | 注入 CSS |
+| `GM_getValue` / `GM_setValue` | 儲存設定 |
+| `GM_registerMenuCommand` | 建立選單 |
+| `GM_info` | 取得腳本資訊 |
+
+**不使用網路請求**，所有資料都在本地。
 
 ---
 
-## 📜 Project Conventions
+## 程式碼規範
 
-### Code Style
+### 命名方式
 
-| Rule | Convention | Example |
-|------|------------|---------|
-| **Semicolons** | Always | `const x = 1;` |
-| **Variables** | camelCase | `videoContainer` |
-| **Constants** | UPPER_SNAKE_CASE | `SELECTORS`, `RULE_ENABLES` |
-| **Classes** | PascalCase | `ConfigManager`, `StyleManager` |
-| **Private fields** | Underscore prefix | `_load()`, `_lang` |
-| **String quotes** | Single quotes for code | `'use strict'` |
-| **Indentation** | 4 spaces | - |
+| 類型 | 格式 | 範例 |
+|------|------|------|
+| 變數 | camelCase | `videoContainer` |
+| 常數 | UPPER_SNAKE_CASE | `MAX_RETRY` |
+| 類別 | PascalCase | `VideoFilter` |
 
-### Documentation Standards
+### 格式
+- 分號: 必須
+- 引號: 單引號
+- 縮排: 4 空格
 
-| Type | Format | Required |
-|------|--------|----------|
-| **AI Responses** | Traditional Chinese (繁體中文) | ✅ Always |
-| **Code Comments** | Traditional Chinese (for complex logic) | 🔶 Preferred |
-| **Public Documentation** | Bilingual (Chinese + English) | ✅ README |
-| **Commit Messages** | English (Conventional Commits) | ✅ Always |
-| **JSDoc** | English | 🔶 For public APIs |
+---
 
-### Architecture Patterns
+## 過濾策略
 
-#### 1. Hybrid Filtering Strategy
 ```
-Priority Order:
-1. CSS Rules (highest performance, static)
-   └─ `:has()` selectors for container-based hiding
-2. MutationObserver (dynamic content)
-   └─ Debounced callbacks (50-200ms)
-3. Text Matching (fallback)
-   └─ Regex patterns for shelf/section titles
-```
-
-#### 2. Centralized Selector Management
-All DOM selectors are defined in a single `SELECTORS` object at the top of the script. This pattern:
-- Eases maintenance when YouTube updates its DOM
-- Provides a single source of truth
-- Enables quick A/B test adaptation
-
-#### 3. Defensive DOM Querying
-```javascript
-// GOOD: Handle potential null
-const element = container.querySelector(':scope a#video-title-link');
-if (element?.ariaLabel) { /* safe access */ }
-
-// BAD: Assume element exists
-container.querySelector('a').textContent; // May throw
+優先順序:
+1. CSS 規則 (最快)
+2. MutationObserver (動態內容)
+3. 文字比對 (備援)
 ```
 
 ---
 
-## 🌐 Domain Context
+## 效能目標
 
-### YouTube DOM Characteristics
-
-| Aspect | Description | Implication |
-|--------|-------------|-------------|
-| **Polymer Components** | Custom elements like `ytd-*` | Use shadow DOM-aware selectors |
-| **SPA Navigation** | History API, no full page loads | Listen for `yt-navigate-finish` |
-| **A/B Testing** | Multiple DOM structures coexist | Support both old and new layouts |
-| **Lazy Loading** | Content loads on scroll | MutationObserver is essential |
-| **Obfuscated Classes** | Random class names in some elements | Prefer semantic selectors |
-
-### Key Events to Monitor
-
-| Event | Trigger | Use Case |
-|-------|---------|----------|
-| `yt-navigate-finish` | SPA navigation complete | Re-apply filters |
-| `yt-page-data-updated` | Page data refreshed | Update filter state |
-| `DOMContentLoaded` | Initial page load | First filter pass |
+| 指標 | 目標 |
+|------|------|
+| 初始執行 | < 50ms |
+| 過濾 100 個影片 | < 100ms |
+| 記憶體 | < 5MB |
 
 ---
 
-## ⚡ Performance Guidelines
+## Git 規範
 
-### MUST Follow
-
-| Rule | Rationale |
-|------|-----------|
-| Use CSS `:has()` over JS when possible | 10-100x faster for static hiding |
-| Debounce MutationObserver callbacks | Prevent UI jank during rapid updates |
-| Limit `querySelectorAll` scope | Avoid full document scans |
-| Use `requestIdleCallback` for non-critical work | Don't block main thread |
-
-### SHOULD Follow
-
-| Rule | Rationale |
-|------|-----------|
-| Batch DOM reads/writes | Minimize reflows |
-| Cache selector results when appropriate | Reduce repeated queries |
-| Profile with DevTools before/after changes | Verify performance impact |
-
-### Performance Targets
-
-| Metric | Target | Measurement |
-|--------|--------|-------------|
-| Initial script execution | < 50ms | `console.time()` |
-| Filter pass (100 videos) | < 100ms | DevTools Performance |
-| Memory overhead | < 5MB | DevTools Memory |
-
----
-
-## 🔒 Security & Privacy
-
-### Data Handling
-
-| Data Type | Storage | Transmission | Retention |
-|-----------|---------|--------------|-----------|
-| User preferences | Local (`GM_setValue`) | Never | Until cleared |
-| Filter statistics | Memory only | Never | Session only |
-| Browsing activity | Never collected | Never | N/A |
-
-### Permission Minimization
-
-The script requests ONLY the following Tampermonkey grants:
-- `GM_addStyle` - Required for CSS injection
-- `GM_getValue` / `GM_setValue` - Required for settings persistence
-- `GM_registerMenuCommand` - Required for settings UI
-- `GM_info` - Required for version display
-
-**No network permissions** (`GM_xmlhttpRequest`) are requested.
-
----
-
-## 🔄 Git Workflow
-
-### Branch Strategy
-
+### 分支
 ```
-main ─────────────────────────────────────── Stable releases
-  │
-  └─── beta ──────────────────────────────── Development/Testing
-         │
-         ├─── feature/add-xyz ────────────── Feature branches
-         └─── fix/issue-123 ──────────────── Bug fix branches
+main   ← 穩定版
+  └── beta ← 開發中
+        └── feature/xxx
 ```
 
-### Commit Convention (Conventional Commits)
-
-| Type | Description | Example |
-|------|-------------|---------|
-| `feat:` | New feature | `feat: add duration filter` |
-| `fix:` | Bug fix | `fix: resolve CSS selector for new layout` |
-| `perf:` | Performance improvement | `perf: optimize MutationObserver callback` |
-| `refactor:` | Code restructure | `refactor: extract Utils module` |
-| `docs:` | Documentation | `docs: update README installation guide` |
-| `chore:` | Maintenance | `chore: update metadata version` |
-| `style:` | Code style (no logic change) | `style: fix indentation` |
-
-### Release Process
-
-1. Develop on `beta` branch
-2. Test thoroughly on live YouTube
-3. Merge to `main` via PR (or direct if solo)
-4. Tag release: `git tag v1.6.2`
-5. Push: `git push origin main --tags`
+### Commit 格式
+- `feat:` 新功能
+- `fix:` 修 Bug
+- `docs:` 改文件
+- `chore:` 雜事
 
 ---
 
-## 📁 Directory Structure
+## 資料夾結構
 
 ```
 youtube-homepage-cleaner/
-├── .agent/                      # AI agent configuration
-│   └── workflows/               # Automated workflows
-├── assets/                      # Images and media
-│   └── banner.png
-├── docs/                        # Extended documentation
-│   └── adr/                     # Architecture Decision Records
-├── openspec/                    # Spec-driven development
-│   ├── project.md               # This file
-│   ├── AGENTS.md                # OpenSpec instructions
-│   ├── specs/                   # Current specifications
-│   │   ├── adblock-guard/
-│   │   ├── core-filtering/
-│   │   ├── i18n/
-│   │   ├── interaction/
-│   │   ├── localization/
-│   │   ├── notification-control/
-│   │   └── ui-cleaning/
-│   └── changes/                 # Proposed changes
-│       └── archive/             # Completed changes
-├── youtube-homepage-cleaner.user.js  # Main script
-├── README.md                    # User-facing documentation
-├── README-greasyfork.md         # GreasyFork version
-├── CHANGELOG.md                 # Version history
-├── CONTRIBUTING.md              # Contribution guide
-├── SECURITY.md                  # Security policy
-├── GEMINI.md                    # AI collaboration rules
-├── AGENTS.md                    # Root agent config
-└── LICENSE                      # MIT License
+├── src/                    # 原始碼
+├── docs/adr/               # 架構決策記錄
+├── openspec/               # 規範文件
+│   ├── specs/              # 現行規範
+│   └── changes/            # 變更提案
+├── youtube-homepage-cleaner.user.js  # 主腳本
+├── GEMINI.md               # AI 協作規則
+└── README.md               # 說明文件
 ```
 
 ---
 
-## 🧪 Testing Strategy
+## 測試清單
 
-### Manual Testing Checklist
-
-| Context | Test Cases |
-|---------|------------|
-| **Homepage** | Shorts hidden, ads hidden, low-view filter works |
-| **Watch Page** | Related videos filtered, anti-adblock active |
-| **Search Results** | Shorts/ads hidden, playlist hiding respects settings |
-| **Channel Page** | Playlists NOT hidden (intentional) |
-| **SPA Navigation** | Filters re-apply on navigation |
-
-### A/B Test Resilience
-
-YouTube frequently tests multiple layouts. The script MUST handle:
-- `ytd-rich-item-renderer` (traditional layout)
-- `yt-lockup-view-model` (new 2024+ layout)
-- Both layouts simultaneously on the same page
+| 頁面 | 測試項目 |
+|------|---------|
+| 首頁 | Shorts 隱藏、廣告隱藏、低觀看過濾 |
+| 播放頁 | 相關影片過濾 |
+| 搜尋頁 | Shorts/廣告隱藏 |
+| SPA 導航 | 換頁後過濾器重新生效 |
 
 ---
 
-## 📚 External References
+## 參考資料
 
-- [Tampermonkey Documentation](https://www.tampermonkey.net/documentation.php)
-- [YouTube DOM Structure Analysis](https://github.com/nickyout/youtube-element-reference)
-- [OpenSpec Framework](https://github.com/sammcj/openspec)
+- [Tampermonkey 文件](https://www.tampermonkey.net/documentation.php)
 - [Conventional Commits](https://www.conventionalcommits.org/)
-- [Keep a Changelog](https://keepachangelog.com/)

@@ -1,66 +1,62 @@
-# 🏗️ Architecture Documentation
+# 架構文件
 
-The project follows a **Modular Architecture** designed for maintainability, performance, and extensibility.
+這份文件說明專案的程式碼結構。
 
-## 📂 Directory Structure
+---
+
+## 資料夾結構
 
 ```
 src/
-├── main.js                  # Entry point (initializes modules)
-├── meta.json                # Userscript metadata (version, includes, etc.)
-├── core/                    # Core infrastructure
-│   ├── config.js            # Configuration management (GM_getValue/GM_setValue)
-│   ├── logger.js            # Centralized logging with levels
-│   ├── stats.js             # Filter statistics tracking
-│   └── utils.js             # Shared utilities (i18n helpers, parsing, debounce)
-├── data/                    # Static data
-│   └── selectors.js         # CSS Selectors for DOM elements (Centralized)
-├── features/                # Feature modules
-│   ├── adblock-guard.js     # Anti-Adblock popup handling
-│   ├── custom-rules.js      # Logic for custom toggleable rules
-│   ├── interaction.js       # UI interactions (New Tab, etc.)
-│   ├── style-manager.js     # CSS injection and management
-│   └── video-filter.js      # Main filtering engine (High Performance)
-└── ui/                      # User Interface
-    ├── i18n.js              # Localization (zh-TW, zh-CN, en, ja)
-    └── menu.js              # Tampermonkey Menu implementation
+├── main.js           # 程式進入點
+├── meta.json         # 腳本資訊 (版本、作者等)
+├── core/             # 核心功能
+│   ├── config.js     # 設定管理
+│   ├── logger.js     # 日誌輸出
+│   ├── stats.js      # 統計資料
+│   └── utils.js      # 工具函式
+├── data/
+│   └── selectors.js  # CSS 選擇器 (集中管理)
+├── features/         # 功能模組
+│   ├── adblock-guard.js   # 處理反廣告封鎖彈窗
+│   ├── custom-rules.js    # 自訂規則
+│   ├── interaction.js     # 使用者互動
+│   ├── style-manager.js   # CSS 樣式管理
+│   └── video-filter.js    # 影片過濾 (核心)
+└── ui/               # 介面
+    ├── i18n.js       # 多語言 (中英日)
+    └── menu.js       # 設定選單
 ```
 
-## 🧩 Key Modules
+---
 
-### Core (`src/core/`)
+## 主要模組說明
 
-*   **ConfigManager**: Handles persistent settings. Uses a `Snake_Case` to `camelCase` mapping strategy for internal keys vs. storage keys.
-*   **Utils**: Provides essential helpers like `debounce`, `parseNumeric` (handling '1.2萬', '50K', etc.), and `toSimplified` (for cross-region filtering).
+### Core (核心)
+- **ConfigManager**: 管理使用者設定，會記住你的選擇
+- **Utils**: 工具函式，像是把「1.2萬」轉成數字
 
-### Features (`src/features/`)
+### Features (功能)
+- **VideoFilter**: 最重要的模組，負責過濾影片
+- **AdBlockGuard**: 自動關閉 YouTube 的廣告封鎖警告
 
-*   **VideoFilter**: The heart of the cleaner.
-    *   **Strategy**: Uses `LazyVideoData` to parse DOM elements only when needed.
-    *   **Performance**: Implements `requestIdleCallback` to process video elements in batches, preventing UI blocking.
-    *   **Logic**: Applies filtering based on Views, Duration, Keywords, Channels, and specific element types (Shorts, Ads).
-*   **AdBlockGuard**: Monitors for the "Ad blockers violate YouTube's Terms of Service" popup and dismisses it non-intrusively.
+### UI (介面)
+- **Menu**: Tampermonkey 選單，讓你調整設定
+- **I18N**: 根據你的語言顯示對應文字
 
-### UI (`src/ui/`)
+---
 
-*   **Menu**: Renders the settings menu using standard `prompt` and `alert` dialogs (to keep the script lightweight and native-feeling, per [ADR-0005](adr/0005-native-ui-over-custom-modal.md)).
-*   **I18N**: Manages translations. Auto-detects user language based on YouTube's `html` lang attribute or browser settings.
+## 運作流程
 
-## 🔄 Data Flow
+1. 網頁載入 → 初始化設定和樣式
+2. MutationObserver 監控頁面變化
+3. 有新內容出現 → VideoFilter 開始過濾
+4. 符合規則的影片 → 隱藏
 
-1.  **Initialization**: `main.js` instantiates `ConfigManager`, `StyleManager`, and `I18N`.
-2.  **Observation**: `MutationObserver` (in `main.js`) watches `document.body` for changes.
-3.  **Processing**:
-    *   When nodes are added, `VideoFilter.processPage()` is triggered (debounced).
-    *   `VideoFilter` queues elements for processing via `requestIdleCallback`.
-    *   `LazyVideoData` extracts metadata (title, views) from the DOM.
-    *   Rules are checked against the metadata.
-    *   If a rule matches, the element is hidden (`display: none`) and flagged (`data-yp-hidden`).
+---
 
-## 🛠️ Design Decisions (ADRs)
+## 效能設計
 
-See `docs/adr/` for detailed Architecture Decision Records.
-
-*   **ADR-001**: CSS-First Filtering - Prefer CSS for static elements for best performance.
-*   **ADR-002**: No External Dependencies - Keep the script self-contained and lightweight.
-*   **ADR-006**: Lightweight Chinese Conversion - Use a compact mapping string instead of a full library.
+- **CSS 優先**: 能用 CSS 隱藏就不用 JS，快 10-100 倍
+- **延遲處理**: 用 debounce 避免太頻繁執行
+- **分批處理**: 用 requestIdleCallback 不卡畫面
