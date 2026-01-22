@@ -11,7 +11,7 @@
 // @icon        https://www.google.com/s2/favicons?sz=64&domain=youtube.com
 // @downloadURL https://raw.githubusercontent.com/bennytsai1234/YouTube-Cleaner/main/youtube-homepage-cleaner.user.js
 // @updateURL   https://raw.githubusercontent.com/bennytsai1234/YouTube-Cleaner/main/youtube-homepage-cleaner.user.js
-// @version     1.7.9
+// @version     1.8.0
 // @grant       GM_info
 // @grant       GM_addStyle
 // @grant       GM_setValue
@@ -127,17 +127,13 @@
 
     class ConfigManager {
         constructor() {
-            this.defaults = {
-                LOW_VIEW_THRESHOLD: 1000,
-                ENABLE_LOW_VIEW_FILTER: true,
-                DEBUG_MODE: false,
-                OPEN_IN_NEW_TAB: true,
-                OPEN_NOTIFICATIONS_IN_NEW_TAB: true,
-                ENABLE_KEYWORD_FILTER: false,
-                KEYWORD_BLACKLIST: [],
-                ENABLE_REGION_CONVERT: true,
+            this.DEFAULT_SETTINGS = {
+                ENABLE_KEYWORD_FILTER: true,
+                KEYWORD_BLACKLIST: ['預告', 'Teaser', 'Trailer', 'PV', 'CM', 'MV', 'Cover', '翻唱'],
                 ENABLE_CHANNEL_FILTER: false,
                 CHANNEL_BLACKLIST: [],
+                ENABLE_SECTION_FILTER: true,
+                SECTION_TITLE_BLACKLIST: ['耳目一新', '重溫舊愛', '合輯', 'Mixes', 'Latest posts', '最新貼文'],
                 ENABLE_DURATION_FILTER: false,
                 DURATION_MIN: 0,
                 DURATION_MAX: 0,
@@ -172,6 +168,7 @@
             }
             loaded.compiledKeywords = (loaded.KEYWORD_BLACKLIST || []).map(k => Utils.generateCnRegex(k)).filter(Boolean);
             loaded.compiledChannels = (loaded.CHANNEL_BLACKLIST || []).map(k => Utils.generateCnRegex(k)).filter(Boolean);
+            loaded.compiledSections = (loaded.SECTION_TITLE_BLACKLIST || []).map(k => Utils.generateCnRegex(k)).filter(Boolean);
             return loaded;
         }
         get(key) { return this.state[key]; }
@@ -185,6 +182,9 @@
             }
             if (key === 'CHANNEL_BLACKLIST') {
                 this.state.compiledChannels = value.map(k => Utils.generateCnRegex(k)).filter(Boolean);
+            }
+            if (key === 'SECTION_TITLE_BLACKLIST') {
+                this.state.compiledSections = value.map(k => Utils.generateCnRegex(k)).filter(Boolean);
             }
         }
         toggleRule(ruleId) {
@@ -375,6 +375,12 @@
             CHANNEL: 'ytd-channel-name, .ytd-channel-name, a[href^="/@"]',
             TITLE: '#video-title, #title, .yt-lockup-metadata-view-model__title, .yt-lockup-metadata-view-model__heading-reset, h3'
         },
+        SHELF_TITLE: [
+            '#rich-shelf-header #title',
+            'ytd-reel-shelf-renderer #title',
+            'h2#title',
+            '.ytd-shelf-renderer #title'
+        ],
         BADGES: {
             MEMBERS: '.badge-style-type-members-only, [aria-label*="會員專屬"], [aria-label*="Members only"]',
             SHORTS: 'a[href*="/shorts/"]'},
@@ -570,6 +576,7 @@
             }
             const textRule = this.customRules.check(element, element.innerText);
             if (textRule) return this._hide(element, textRule);
+            if (this._checkSectionFilter(element)) return;
             const isVideoElement = /VIDEO|LOCKUP|RICH-ITEM/.test(element.tagName);
             if (isVideoElement) {
                 const item = new LazyVideoData(element);
@@ -583,6 +590,25 @@
                 if (this._checkPlaylistFilter(item, element)) return;
             }
             element.dataset.ypChecked = 'true';
+        }
+        _checkSectionFilter(element) {
+            if (!/RICH-SECTION|REEL-SHELF|SHELF-RENDERER/.test(element.tagName)) return false;
+            if (!this.config.get('ENABLE_SECTION_FILTER')) return false;
+            let titleText = '';
+            for (const sel of SELECTORS.SHELF_TITLE) {
+                const titleEl = element.querySelector(sel);
+                if (titleEl) {
+                    titleText = titleEl.textContent.trim();
+                    break;
+                }
+            }
+            if (!titleText) return false;
+            const compiled = this.config.get('compiledSections');
+            if (compiled && compiled.some(rx => rx.test(titleText))) {
+                this._hide(element, 'section_blacklist');
+                return true;
+            }
+            return false;
         }
         _checkKeywordFilter(item, element) {
             if (!this.config.get('ENABLE_KEYWORD_FILTER') || !item.title) return false;
@@ -761,6 +787,8 @@
                 adv_keyword_list: '✏️ 關鍵字清單',
                 adv_channel_filter: '頻道過濾',
                 adv_channel_list: '✏️ 頻道清單',
+                adv_section_filter: '欄位過濾',
+                adv_section_list: '✏️ 欄位標題清單',
                 adv_duration_filter: '長度過濾',
                 adv_duration_set: '⏱️ 設定長度',
                 adv_min: '最短(分):',
@@ -805,6 +833,8 @@
                 adv_keyword_list: '✏️ 关键字列表',
                 adv_channel_filter: '频道过滤',
                 adv_channel_list: '✏️ 频道列表',
+                adv_section_filter: '栏位过滤',
+                adv_section_list: '✏️ 栏位标题列表',
                 adv_duration_filter: '时长过滤',
                 adv_duration_set: '⏱️ 设置时长',
                 adv_min: '最短(分):',
@@ -849,6 +879,8 @@
                 adv_keyword_list: '✏️ Keyword List',
                 adv_channel_filter: 'Channel Filter',
                 adv_channel_list: '✏️ Channel List',
+                adv_section_filter: 'Section Filter',
+                adv_section_list: '✏️ Section Title List',
                 adv_duration_filter: 'Duration Filter',
                 adv_duration_set: '⏱️ Set Duration',
                 adv_min: 'Min (min):',
@@ -1076,20 +1108,28 @@
                 `2. ${this.t('adv_keyword_list')}\n` +
                 `3. ${i('ENABLE_CHANNEL_FILTER')} ${this.t('adv_channel_filter')}\n` +
                 `4. ${this.t('adv_channel_list')}\n` +
-                `5. ${i('ENABLE_DURATION_FILTER')} ${this.t('adv_duration_filter')}\n` +
-                `6. ${this.t('adv_duration_set')}\n` +
-                `7. ${i('ENABLE_REGION_CONVERT')} ${this.t('adv_region_convert')}\n` +
+                `5. ${i('ENABLE_SECTION_FILTER')} ${this.t('adv_section_filter')}\n` +
+                `6. ${this.t('adv_section_list')}\n` +
+                `7. ${i('ENABLE_DURATION_FILTER')} ${this.t('adv_duration_filter')}\n` +
+                `8. ${this.t('adv_duration_set')}\n` +
+                `9. ${i('ENABLE_REGION_CONVERT')} ${this.t('adv_region_convert')}\n` +
                 `0. ${this.t('back')}`
             );
-            if (c === '1' || c === '3' || c === '5' || c === '7') this.toggle(c === '1' ? 'ENABLE_KEYWORD_FILTER' : c === '3' ? 'ENABLE_CHANNEL_FILTER' : c === '5' ? 'ENABLE_DURATION_FILTER' : 'ENABLE_REGION_CONVERT', true);
+            if (c === '1') this.toggle('ENABLE_KEYWORD_FILTER', true);
             else if (c === '2') this.manage('KEYWORD_BLACKLIST');
+            else if (c === '3') this.toggle('ENABLE_CHANNEL_FILTER', true);
             else if (c === '4') this.manage('CHANNEL_BLACKLIST');
-            else if (c === '6') {
+            else if (c === '5') this.toggle('ENABLE_SECTION_FILTER', true);
+            else if (c === '6') this.manage('SECTION_TITLE_BLACKLIST');
+            else if (c === '7') this.toggle('ENABLE_DURATION_FILTER', true);
+            else if (c === '8') {
                 const min = prompt(this.t('adv_min')); const max = prompt(this.t('adv_max'));
                 if (min) this.config.set('DURATION_MIN', min * 60);
                 if (max) this.config.set('DURATION_MAX', max * 60);
                 this.onRefresh(); this.showAdvancedMenu();
-            } else if (c === '0') this.showMainMenu();
+            }
+            else if (c === '9') this.toggle('ENABLE_REGION_CONVERT', true);
+            else if (c === '0') this.showMainMenu();
         }
         manage(k) {
             const l = this.config.get(k);

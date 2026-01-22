@@ -35,6 +35,14 @@ export const SELECTORS = {
         TITLE: '#video-title, #title, .yt-lockup-metadata-view-model__title, .yt-lockup-metadata-view-model__heading-reset, h3'
     },
 
+    // 欄位/區塊標題選擇器 (用於整區過濾)
+    SHELF_TITLE: [
+        '#rich-shelf-header #title',           // 標準首頁 Shelf
+        'ytd-reel-shelf-renderer #title',      // Shorts Shelf
+        'h2#title',                            // 通用
+        '.ytd-shelf-renderer #title'
+    ],
+
     // 會員/廣告標記
     BADGES: {
         MEMBERS: '.badge-style-type-members-only, [aria-label*="會員專屬"], [aria-label*="Members only"]',

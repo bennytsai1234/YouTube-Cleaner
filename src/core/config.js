@@ -3,17 +3,17 @@ import { Utils } from './utils.js';
 // --- 1. Core: Configuration Management ---
 export class ConfigManager {
     constructor() {
-        this.defaults = {
-            LOW_VIEW_THRESHOLD: 1000,
-            ENABLE_LOW_VIEW_FILTER: true,
-            DEBUG_MODE: false,
-            OPEN_IN_NEW_TAB: true,
-            OPEN_NOTIFICATIONS_IN_NEW_TAB: true,
-            ENABLE_KEYWORD_FILTER: false,
-            KEYWORD_BLACKLIST: [],
-            ENABLE_REGION_CONVERT: true,
+        this.DEFAULT_SETTINGS = {
+            // ... (existing)
+            ENABLE_KEYWORD_FILTER: true,
+            KEYWORD_BLACKLIST: ['預告', 'Teaser', 'Trailer', 'PV', 'CM', 'MV', 'Cover', '翻唱'],
             ENABLE_CHANNEL_FILTER: false,
             CHANNEL_BLACKLIST: [],
+            ENABLE_SECTION_FILTER: true,
+            SECTION_TITLE_BLACKLIST: ['耳目一新', '重溫舊愛', '合輯', 'Mixes', 'Latest posts', '最新貼文'],
+            
+            // ... (rest)
+
             ENABLE_DURATION_FILTER: false,
             DURATION_MIN: 0,
             DURATION_MAX: 0,
@@ -53,6 +53,7 @@ export class ConfigManager {
         // Pre-compile Regexes
         loaded.compiledKeywords = (loaded.KEYWORD_BLACKLIST || []).map(k => Utils.generateCnRegex(k)).filter(Boolean);
         loaded.compiledChannels = (loaded.CHANNEL_BLACKLIST || []).map(k => Utils.generateCnRegex(k)).filter(Boolean);
+        loaded.compiledSections = (loaded.SECTION_TITLE_BLACKLIST || []).map(k => Utils.generateCnRegex(k)).filter(Boolean);
 
         return loaded;
     }
@@ -71,6 +72,9 @@ export class ConfigManager {
         }
         if (key === 'CHANNEL_BLACKLIST') {
             this.state.compiledChannels = value.map(k => Utils.generateCnRegex(k)).filter(Boolean);
+        }
+        if (key === 'SECTION_TITLE_BLACKLIST') {
+            this.state.compiledSections = value.map(k => Utils.generateCnRegex(k)).filter(Boolean);
         }
     }
 

@@ -18,6 +18,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.8.0] - 2026-01-22
+
+### Added
+- **Section Blocker (Shelf Filter)**: Added a new feature to hide entire homepage sections/shelves based on their title.
+    - Users can now filter out sections like "New to you" (耳目一新), "Relive old favorites" (重溫舊愛), "Mixes" (合輯), "Latest posts", etc.
+    - **Settings UI**: Added "Section Filter" options in the Advanced Menu.
+    - **Default Blacklist**: Pre-populated with common clutter sections.
+    - **Regex Support**: Supports keywords and regular expressions.
+
+---
+
 ## [1.7.9] - 2026-01-22
 
 ### Fixed

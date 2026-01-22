@@ -150,6 +150,9 @@ export class VideoFilter {
         const textRule = this.customRules.check(element, element.innerText);
         if (textRule) return this._hide(element, textRule);
 
+        // 1. 欄位標題過濾 (新增功能)
+        if (this._checkSectionFilter(element)) return;
+
         // 影片元素處理
         const isVideoElement = /VIDEO|LOCKUP|RICH-ITEM/.test(element.tagName);
         if (isVideoElement) {
@@ -177,6 +180,32 @@ export class VideoFilter {
         }
 
         element.dataset.ypChecked = 'true';
+    }
+
+    _checkSectionFilter(element) {
+        // 只檢查 Section 容器
+        if (!/RICH-SECTION|REEL-SHELF|SHELF-RENDERER/.test(element.tagName)) return false;
+        if (!this.config.get('ENABLE_SECTION_FILTER')) return false;
+
+        // 尋找標題
+        let titleText = '';
+        for (const sel of SELECTORS.SHELF_TITLE) {
+            const titleEl = element.querySelector(sel);
+            if (titleEl) {
+                titleText = titleEl.textContent.trim();
+                break;
+            }
+        }
+
+        if (!titleText) return false;
+
+        const compiled = this.config.get('compiledSections');
+        if (compiled && compiled.some(rx => rx.test(titleText))) {
+            this._hide(element, 'section_blacklist');
+            return true;
+        }
+
+        return false;
     }
 
     _checkKeywordFilter(item, element) {

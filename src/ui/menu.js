@@ -118,20 +118,28 @@ export class UIManager {
             `2. ${this.t('adv_keyword_list')}\n` +
             `3. ${i('ENABLE_CHANNEL_FILTER')} ${this.t('adv_channel_filter')}\n` +
             `4. ${this.t('adv_channel_list')}\n` +
-            `5. ${i('ENABLE_DURATION_FILTER')} ${this.t('adv_duration_filter')}\n` +
-            `6. ${this.t('adv_duration_set')}\n` +
-            `7. ${i('ENABLE_REGION_CONVERT')} ${this.t('adv_region_convert')}\n` +
+            `5. ${i('ENABLE_SECTION_FILTER')} ${this.t('adv_section_filter')}\n` +
+            `6. ${this.t('adv_section_list')}\n` +
+            `7. ${i('ENABLE_DURATION_FILTER')} ${this.t('adv_duration_filter')}\n` +
+            `8. ${this.t('adv_duration_set')}\n` +
+            `9. ${i('ENABLE_REGION_CONVERT')} ${this.t('adv_region_convert')}\n` +
             `0. ${this.t('back')}`
         );
-        if (c === '1' || c === '3' || c === '5' || c === '7') this.toggle(c === '1' ? 'ENABLE_KEYWORD_FILTER' : c === '3' ? 'ENABLE_CHANNEL_FILTER' : c === '5' ? 'ENABLE_DURATION_FILTER' : 'ENABLE_REGION_CONVERT', true);
+        if (c === '1') this.toggle('ENABLE_KEYWORD_FILTER', true);
         else if (c === '2') this.manage('KEYWORD_BLACKLIST');
+        else if (c === '3') this.toggle('ENABLE_CHANNEL_FILTER', true);
         else if (c === '4') this.manage('CHANNEL_BLACKLIST');
-        else if (c === '6') {
+        else if (c === '5') this.toggle('ENABLE_SECTION_FILTER', true);
+        else if (c === '6') this.manage('SECTION_TITLE_BLACKLIST');
+        else if (c === '7') this.toggle('ENABLE_DURATION_FILTER', true);
+        else if (c === '8') {
             const min = prompt(this.t('adv_min')); const max = prompt(this.t('adv_max'));
             if (min) this.config.set('DURATION_MIN', min * 60);
             if (max) this.config.set('DURATION_MAX', max * 60);
             this.onRefresh(); this.showAdvancedMenu();
-        } else if (c === '0') this.showMainMenu();
+        } 
+        else if (c === '9') this.toggle('ENABLE_REGION_CONVERT', true);
+        else if (c === '0') this.showMainMenu();
     }
     manage(k) {
         const l = this.config.get(k);
