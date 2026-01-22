@@ -18,6 +18,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.7.9] - 2026-01-22
+
+### Fixed
+- **Ghost Element Logic**: Removed `offsetParent` check which prevented processing of already-hidden elements.
+    - Previously, the script skipped elements that YouTube had "soft hidden" (making `offsetParent` null), causing them to retain clickable areas without our rigorous `!important` overrides.
+    - This ensures `native_hidden` logic now correctly applies to *all* hidden elements, guaranteeing they are completely removed from layout and interaction.
+
+---
+
 ## [1.7.8] - 2026-01-22
 
 ### Fixed
