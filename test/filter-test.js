@@ -1,65 +1,197 @@
+/**
+ * YouTube Cleaner 測試套件
+ * 使用 Node.js 原生執行，無需額外測試框架
+ */
+
 import { Utils } from '../src/core/utils.js';
 
-// Mock Config Manager
+// ==================== 測試工具 ====================
+const TestRunner = {
+    passed: 0,
+    failed: 0,
+    currentSuite: '',
+
+    suite(name, fn) {
+        this.currentSuite = name;
+        console.log(`\n📦 ${name}`);
+        console.log('─'.repeat(40));
+        fn();
+    },
+
+    assert(description, condition) {
+        if (condition) {
+            console.log(`  ✅ ${description}`);
+            this.passed++;
+        } else {
+            console.error(`  ❌ ${description}`);
+            this.failed++;
+        }
+    },
+
+    assertEqual(description, actual, expected) {
+        const pass = actual === expected;
+        if (pass) {
+            console.log(`  ✅ ${description}`);
+            this.passed++;
+        } else {
+            console.error(`  ❌ ${description}`);
+            console.error(`     期望: ${expected}, 實際: ${actual}`);
+            this.failed++;
+        }
+    },
+
+    summary() {
+        console.log('\n' + '═'.repeat(40));
+        console.log(`📊 測試結果: ${this.passed} 通過, ${this.failed} 失敗`);
+        console.log('═'.repeat(40));
+        return this.failed === 0;
+    }
+};
+
+// ==================== Mock 物件 ====================
 class MockConfig {
     constructor() {
-        this.kw = [];
-        this.compiled = [];
+        this.keywords = [];
+        this.compiledKeywords = [];
     }
+
     setKeywords(list) {
-        this.kw = list;
-        this.compiled = list.map(k => Utils.generateCnRegex(k)).filter(Boolean);
+        this.keywords = list;
+        this.compiledKeywords = list.map(k => Utils.generateCnRegex(k)).filter(Boolean);
     }
-    check(title) {
-        return this.compiled.some(rx => rx.test(title));
+
+    matchKeyword(title) {
+        return this.compiledKeywords.some(rx => rx.test(title));
     }
 }
 
-// Test Runner
-function runTests() {
-    let passed = 0;
-    let failed = 0;
+// ==================== Utils 測試 ====================
+TestRunner.suite('Utils.parseNumeric', () => {
+    // 基本數字
+    TestRunner.assertEqual('解析純數字', Utils.parseNumeric('1234'), 1234);
+    TestRunner.assertEqual('解析帶逗號數字', Utils.parseNumeric('1,234,567'), 1234567);
+
+    // 英文單位
+    TestRunner.assertEqual('解析 K (千)', Utils.parseNumeric('5.2K'), 5200);
+    TestRunner.assertEqual('解析 M (百萬)', Utils.parseNumeric('1.5M'), 1500000);
+    TestRunner.assertEqual('解析 B (十億)', Utils.parseNumeric('2B'), 2000000000);
+
+    // 中文單位
+    TestRunner.assertEqual('解析 萬', Utils.parseNumeric('3.5萬'), 35000);
+    TestRunner.assertEqual('解析 億', Utils.parseNumeric('1.2億'), 120000000);
+    TestRunner.assertEqual('解析 千', Utils.parseNumeric('5千'), 5000);
+
+    // 簡體中文單位
+    TestRunner.assertEqual('解析 万 (簡)', Utils.parseNumeric('2.5万'), 25000);
+    TestRunner.assertEqual('解析 亿 (簡)', Utils.parseNumeric('3亿'), 300000000);
+
+    // 邊界情況
+    TestRunner.assertEqual('空字串返回 null', Utils.parseNumeric(''), null);
+    TestRunner.assertEqual('null 返回 null', Utils.parseNumeric(null), null);
+
+    // 排除時間字串
+    TestRunner.assertEqual('排除 "3 days ago"', Utils.parseNumeric('3 days ago', 'view'), null);
+    TestRunner.assertEqual('排除 "2年前"', Utils.parseNumeric('2年前', 'view'), null);
+});
+
+TestRunner.suite('Utils.parseDuration', () => {
+    // 標準格式
+    TestRunner.assertEqual('解析 mm:ss (3:45)', Utils.parseDuration('3:45'), 225);
+    TestRunner.assertEqual('解析 hh:mm:ss (1:30:00)', Utils.parseDuration('1:30:00'), 5400);
+    TestRunner.assertEqual('解析 0:30', Utils.parseDuration('0:30'), 30);
+
+    // 邊界情況
+    TestRunner.assertEqual('空字串返回 null', Utils.parseDuration(''), null);
+    TestRunner.assertEqual('無效格式返回 null', Utils.parseDuration('abc'), null);
+});
+
+TestRunner.suite('Utils.parseTimeAgo', () => {
+    // 英文
+    TestRunner.assertEqual('解析 "5 minutes ago"', Utils.parseTimeAgo('5 minutes ago'), 5);
+    TestRunner.assertEqual('解析 "2 hours ago"', Utils.parseTimeAgo('2 hours ago'), 120);
+    TestRunner.assertEqual('解析 "3 days ago"', Utils.parseTimeAgo('3 days ago'), 4320);
+    TestRunner.assertEqual('解析 "1 week ago"', Utils.parseTimeAgo('1 week ago'), 10080);
+    TestRunner.assertEqual('解析 "2 months ago"', Utils.parseTimeAgo('2 months ago'), 86400);
+    TestRunner.assertEqual('解析 "1 year ago"', Utils.parseTimeAgo('1 year ago'), 525600);
+
+    // 中文
+    TestRunner.assertEqual('解析 "5分鐘前"', Utils.parseTimeAgo('5分鐘前'), 5);
+    TestRunner.assertEqual('解析 "2小時前"', Utils.parseTimeAgo('2小時前'), 120);
+    TestRunner.assertEqual('解析 "3天前"', Utils.parseTimeAgo('3天前'), 4320);
+    TestRunner.assertEqual('解析 "1週前"', Utils.parseTimeAgo('1週前'), 10080);
+    TestRunner.assertEqual('解析 "2個月前"', Utils.parseTimeAgo('2月前'), 86400);
+
+    // 秒
+    TestRunner.assertEqual('解析 "seconds ago" 返回 0', Utils.parseTimeAgo('30 seconds ago'), 0);
+    TestRunner.assertEqual('解析 "秒前" 返回 0', Utils.parseTimeAgo('30秒前'), 0);
+});
+
+TestRunner.suite('Utils.parseLiveViewers', () => {
+    // 英文
+    TestRunner.assertEqual('解析 "1.5K watching"', Utils.parseLiveViewers('1.5K watching'), 1500);
+    TestRunner.assertEqual('解析 "500 viewers"', Utils.parseLiveViewers('500 viewers'), 500);
+
+    // 中文
+    TestRunner.assertEqual('解析 "1.2萬人正在觀看"', Utils.parseLiveViewers('1.2萬人正在觀看'), 12000);
+    TestRunner.assertEqual('解析 "500觀眾"', Utils.parseLiveViewers('500觀眾'), 500);
+
+    // 非直播文字
+    TestRunner.assertEqual('非直播返回 null', Utils.parseLiveViewers('1.5K views'), null);
+});
+
+TestRunner.suite('Utils.generateCnRegex - 繁簡轉換', () => {
     const config = new MockConfig();
 
-    const assert = (scenario, condition) => {
-        if (condition) {
-            console.log(`✅ [PASS] ${scenario}`);
-            passed++;
-        } else {
-            console.error(`❌ [FAIL] ${scenario}`);
-            failed++;
-        }
-    };
+    // 檢查 OpenCC 是否可用
+    const hasOpenCC = typeof globalThis.OpenCC !== 'undefined';
 
-    console.log('--- Starting Filter Validation ---');
+    if (hasOpenCC) {
+        // 簡體關鍵字 → 繁體標題
+        config.setKeywords(['预告']);
+        TestRunner.assert('簡體關鍵字匹配繁體標題', config.matchKeyword('最新電影預告片'));
 
-    // Scenario 1: Basic Simp Keyword -> Trad Title
-    config.setKeywords(['预告']);
-    assert('Simplified keyword matches Traditional title', config.check('最新電影預告片'));
+        // 繁體關鍵字 → 簡體標題
+        config.setKeywords(['預告']);
+        TestRunner.assert('繁體關鍵字匹配簡體標題', config.matchKeyword('最新电影预告片'));
 
-    // Scenario 2: Trad Keyword -> Simp Title
-    config.setKeywords(['預告']);
-    assert('Traditional keyword matches Simplified title', config.check('最新电影预告片'));
+        // 混合內容
+        config.setKeywords(['遊戲']);
+        TestRunner.assert('繁體關鍵字匹配混合內容', config.matchKeyword('游戏实况'));
+    } else {
+        console.log('  ⏭️  跳過繁簡轉換測試 (OpenCC 未載入，需在瀏覽器環境測試)');
+    }
 
-    // Scenario 3: Mixed Variants (Simp Title with Trad parts)
-    config.setKeywords(['预告']);
-    assert('Keyword matches mixed content', config.check('最新预告片'));
+    // 這些測試不需要 OpenCC
+    // 特殊字元跳脫
+    config.setKeywords(['Live.']);
+    TestRunner.assert('正確跳脫特殊字元 (.)', config.matchKeyword('YouTube Live. Stream'));
+    TestRunner.assert('不將 . 當作萬用字元', !config.matchKeyword('LiveXStream'));
 
-    // Scenario 4: Special Regex Chars in Keyword
-    config.setKeywords(['Live.']); // Should match "Live." literally, not "LiveX"
-    assert('Escapes special chars', config.check('YouTube Live. Stream'));
-    assert('Does not treat dot as wildcard', !config.check('LiveXStream'));
-
-    // Scenario 5: Case Insensitive
+    // 大小寫不敏感
     config.setKeywords(['game']);
-    assert('Case insensitive matching', config.check('Best GAME Ever'));
+    TestRunner.assert('大小寫不敏感匹配', config.matchKeyword('Best GAME Ever'));
 
-    // Scenario 6: No Match
+    // 不匹配
     config.setKeywords(['Minecraft']);
-    assert('Correctly ignores non-matching titles', !config.check('Roblox Gameplay'));
+    TestRunner.assert('正確不匹配無關標題', !config.matchKeyword('Roblox Gameplay'));
+});
 
-    console.log('----------------------------------');
-    console.log(`Tests Completed: ${passed} Passed, ${failed} Failed.`);
-}
+TestRunner.suite('Utils.debounce', () => {
+    let callCount = 0;
+    const fn = Utils.debounce(() => callCount++, 50);
 
-runTests();
+    // 快速連續呼叫
+    fn(); fn(); fn();
+
+    // 立即檢查 (應該還沒執行)
+    TestRunner.assertEqual('Debounce 延遲執行', callCount, 0);
+});
+
+// ==================== 執行測試 ====================
+console.log('🧪 YouTube Cleaner 測試套件');
+console.log('═'.repeat(40));
+
+const allPassed = TestRunner.summary();
+
+// 結束狀態碼
+process.exit(allPassed ? 0 : 1);

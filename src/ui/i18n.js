@@ -1,4 +1,4 @@
-// --- 0.3 Internationalization (i18n) ---
+// --- 國際化 (i18n) - 繁中、簡中、英文 ---
 export const I18N = {
     _lang: null,
 
@@ -135,50 +135,6 @@ export const I18N = {
             adv_remove: 'Remove',
             adv_clear: 'Clear',
             adv_region_convert: 'Region Agnostic Filter'
-        },
-        'ja': {
-            title: 'YouTube クリーナー',
-            menu_rules: '📂 フィルタルール',
-            menu_low_view: '低視聴数フィルター (ライブ含む)',
-            menu_threshold: '🔢 閾値設定',
-            menu_advanced: '🚫 詳細フィルター',
-            menu_new_tab: '新しいタブで開く (動画)',
-            menu_notification_new_tab: '新しいタブで開く (通知)',
-            menu_debug: 'デバッグ',
-            menu_reset: '🔄 初期化',
-            menu_stats: '📊 フィルター統計',
-            menu_export: '💾 設定のエクスポート/インポート',
-            menu_lang: '🌐 言語',
-            menu_input: 'オプションを入力:',
-            stats_title: '【 フィルター統計 】',
-            stats_empty: 'まだフィルターされたコンテンツはありません',
-            stats_filtered: '{0} 件をフィルターしました',
-            export_title: '【 設定管理 】',
-            export_export: '📤 設定をエクスポート',
-            export_import: '📥 設定をインポート',
-            export_success: '✅ 設定をクリップボードにコピーしました！',
-            export_copy: '設定をコピー (Ctrl+C):',
-            import_prompt: '設定JSONを貼り付け:',
-            import_success: '✅ 設定をインポートしました！',
-            import_fail: '❌ インポート失敗: ',
-            rules_title: '【 フィルタールール 】',
-            rules_back: '(0 戻る)',
-            threshold_prompt: '閾値:',
-            reset_confirm: 'リセットしますか?',
-            lang_title: '【 言語選択 】',
-            back: '戻る',
-            adv_keyword_filter: 'キーワードフィルター',
-            adv_keyword_list: '✏️ キーワードリスト',
-            adv_channel_filter: 'チャンネルフィルター',
-            adv_channel_list: '✏️ チャンネルリスト',
-            adv_duration_filter: '長さフィルター',
-            adv_duration_set: '⏱️ 長さ設定',
-            adv_min: '最短(分):',
-            adv_max: '最長(分):',
-            adv_add: '追加',
-            adv_remove: '削除',
-            adv_clear: 'クリア',
-            adv_region_convert: '地域非依存フィルタ'
         }
     },
 
@@ -255,46 +211,18 @@ export const I18N = {
             explore_topics: 'Explore Topics',
             recommended_playlists: 'Recommended Playlists',
             members_early_access: 'Members Early Access'
-        },
-        'ja': {
-            ad_block_popup: '広告ブロックポップアップ',
-            ad_sponsor: '広告/スポンサー',
-            members_only: 'メンバー限定',
-            shorts_item: 'Shorts アイテム',
-            mix_only: 'ミックス',
-            premium_banner: 'Premium バナー',
-            news_block: 'ニュースセクション',
-            shorts_block: 'Shorts セクション',
-            posts_block: 'コミュニティ投稿',
-            playables_block: 'プレイアブル',
-            fundraiser_block: '募金活動',
-            shorts_grid_shelf: 'Shorts グリッド',
-            movies_shelf: '映画のおすすめ',
-            youtube_featured_shelf: 'YouTube おすすめ',
-            popular_gaming_shelf: '人気ゲーム',
-            more_from_game_shelf: 'ゲーム関連',
-            trending_playlist: '急上昇プレイリスト',
-            inline_survey: 'アンケート',
-            clarify_box: '情報ボックス',
-            explore_topics: 'トピックを探す',
-            recommended_playlists: 'おすすめプレイリスト',
-            members_early_access: 'メンバー先行'
         }
     },
 
-    // 取得規則顯示名稱
     getRuleName(ruleKey) {
         return this.ruleNames[this.lang]?.[ruleKey] || this.ruleNames['en'][ruleKey] || ruleKey;
     },
 
-    // 自動偵測語言
     detectLanguage() {
         const ytLang = document.documentElement.lang || navigator.language || 'zh-TW';
         if (ytLang.startsWith('zh-CN') || ytLang.startsWith('zh-Hans')) return 'zh-CN';
         if (ytLang.startsWith('zh')) return 'zh-TW';
-        if (ytLang.startsWith('ja')) return 'ja';
-        if (ytLang.startsWith('en')) return 'en';
-        return 'zh-TW';
+        return 'en';
     },
 
     get lang() {
@@ -309,19 +237,16 @@ export const I18N = {
         GM_setValue('ui_language', value);
     },
 
-    // 取得翻譯字串
     t(key, ...args) {
         const str = this.strings[this.lang]?.[key] || this.strings['en'][key] || key;
         return str.replace(/\{(\d+)\}/g, (_, i) => args[i] ?? '');
     },
 
-    // 語言清單
     get availableLanguages() {
         return {
             'zh-TW': '繁體中文',
             'zh-CN': '简体中文',
-            'en': 'English',
-            'ja': '日本語'
+            'en': 'English'
         };
     }
 };

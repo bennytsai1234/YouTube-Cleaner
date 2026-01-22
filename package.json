@@ -6,7 +6,8 @@
   "scripts": {
     "build": "rollup -c",
     "dev": "rollup -c -w",
-    "lint": "eslint src"
+    "lint": "eslint src",
+    "test": "node test/filter-test.js"
   },
   "repository": {
     "type": "git",

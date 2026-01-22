@@ -23,7 +23,22 @@
 (function () {
     'use strict';
 
+    const TIME_UNITS = {
+        MINUTE: 1,
+        HOUR: 60,
+        DAY: 1440,
+        WEEK: 10080,
+        MONTH: 43200,
+        YEAR: 525600
+    };
+    const UNIT_MAP = {
+        'k': 1e3, 'm': 1e6, 'b': 1e9,
+        '千': 1e3, '萬': 1e4, '億': 1e8,
+        '万': 1e4, '亿': 1e8
+    };
     const Utils = {
+        _openccToSimp: null,
+        _openccToTrad: null,
         debounce: (func, delay) => {
             let t;
             return (...args) => { clearTimeout(t); t = setTimeout(() => func(...args), delay); };
@@ -31,21 +46,12 @@
         parseNumeric: (text, type = 'any') => {
             if (!text) return null;
             const clean = text.replace(/,/g, '').toLowerCase().trim();
-            if (type === 'view' && /(ago|前|hour|minute|day|week|month|year|秒|分|時|天|週|月|年|時間|전|日|ヶ月|年前)/.test(clean)) return null;
-            const match = clean.match(/([\d.]+)\s*([kmb千萬万億亿]|천|만|억|lakh|crore)?/i);
+            if (type === 'view' && /(ago|前|hour|minute|day|week|month|year|秒|分|時|天|週|月|年)/.test(clean)) return null;
+            const match = clean.match(/([\d.]+)\s*([kmb千萬万億亿])?/i);
             if (!match) return null;
             let num = parseFloat(match[1]);
             const unit = match[2]?.toLowerCase();
-            if (unit) {
-                const unitMap = {
-                    'k': 1e3, 'm': 1e6, 'b': 1e9,
-                    '千': 1e3, '萬': 1e4, '億': 1e8,
-                    '万': 1e4, '亿': 1e8,
-                    '천': 1e3, '만': 1e4, '억': 1e8,
-                    'lakh': 1e5, 'crore': 1e7
-                };
-                num *= (unitMap[unit] || 1);
-            }
+            if (unit && UNIT_MAP[unit]) num *= UNIT_MAP[unit];
             return Math.floor(num);
         },
         parseDuration: (text) => {
@@ -59,84 +65,63 @@
         parseTimeAgo: (text) => {
             if (!text) return null;
             const raw = text.toLowerCase();
-            if (/second|秒|초|วินาที/.test(raw)) return 0;
+            if (/second|秒/.test(raw)) return 0;
             const match = raw.match(/(\d+)/);
             if (!match) return null;
             const val = parseInt(match[1], 10);
-            if (/minute|分鐘|分钟|分|분|นาที/.test(raw)) return val;
-            if (/hour|小時|小时|時間|시간|ชั่วโมง/.test(raw)) return val * 60;
-            if (/day|天|日|일|วัน/.test(raw)) return val * 1440;
-            if (/week|週|周|주|สัปดาห์/.test(raw)) return val * 10080;
-            if (/month|月|ヶ月|개월|เดือน/.test(raw)) return val * 43200;
-            if (/year|年|년|ปี/.test(raw)) return val * 525600;
+            if (/minute|分/.test(raw)) return val * TIME_UNITS.MINUTE;
+            if (/hour|小時|時/.test(raw)) return val * TIME_UNITS.HOUR;
+            if (/day|天|日/.test(raw)) return val * TIME_UNITS.DAY;
+            if (/week|週|周/.test(raw)) return val * TIME_UNITS.WEEK;
+            if (/month|月/.test(raw)) return val * TIME_UNITS.MONTH;
+            if (/year|年/.test(raw)) return val * TIME_UNITS.YEAR;
             return null;
         },
         parseLiveViewers: (text) => {
             if (!text) return null;
-            const liveKeywords = /(正在觀看|觀眾|watching|viewers)/i;
-            if (!liveKeywords.test(text)) return null;
+            if (!/(正在觀看|觀眾|watching|viewers)/i.test(text)) return null;
             return Utils.parseNumeric(text, 'any');
         },
-        extractAriaTextForCounts: (container) => {
-            const a1 = container.querySelector(':scope a#video-title-link[aria-label]');
-            if (a1?.ariaLabel) return a1.ariaLabel;
-            const a2 = container.querySelector(':scope a#thumbnail[aria-label]');
-            if (a2?.ariaLabel) return a2.ariaLabel;
-            return '';
+        _initOpenCC: () => {
+            if (Utils._openccToSimp) return true;
+            if (typeof OpenCC === 'undefined') return false;
+            try {
+                Utils._openccToSimp = OpenCC.Converter({ from: 'tw', to: 'cn' });
+                Utils._openccToTrad = OpenCC.Converter({ from: 'cn', to: 'tw' });
+                return true;
+            } catch (e) {
+                console.warn('[YT Cleaner] OpenCC init failed');
+                return false;
+            }
         },
         toSimplified: (str) => {
             if (!str) return '';
-            if (!Utils._openccConverter && typeof OpenCC !== 'undefined') {
-                try {
-                    Utils._openccConverter = OpenCC.Converter({ from: 'tw', to: 'cn' });
-                } catch (e) {
-                    console.warn('[YT Cleaner] OpenCC init failed');
-                }
-            }
-            if (Utils._openccConverter) {
-                try {
-                    return Utils._openccConverter(str);
-                } catch (e) {  }
+            if (Utils._initOpenCC()) {
+                try { return Utils._openccToSimp(str); } catch (e) {  }
             }
             return str;
         },
         generateCnRegex: (text) => {
-             if (!text) return null;
-             if (typeof OpenCC !== 'undefined') {
-                 if (!Utils._openccToSimp) {
-                     try {
-                         Utils._openccToSimp = OpenCC.Converter({ from: 'tw', to: 'cn' });
-                         Utils._openccToTrad = OpenCC.Converter({ from: 'cn', to: 'tw' });
-                     } catch (e) {
-                         console.warn('[YT Cleaner] OpenCC regex init failed');
-                     }
-                 }
-             }
-             if (Utils._openccToSimp && Utils._openccToTrad) {
-                 const simplified = Utils._openccToSimp(text);
-                 const traditional = Utils._openccToTrad(text);
-                 const escSimp = simplified.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-                 const escTrad = traditional.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-                 if (escSimp === escTrad) {
-                     try {
-                         return new RegExp(escSimp, 'i');
-                     } catch (e) {
-                         return null;
-                     }
-                 }
-                 try {
-                     return new RegExp(`(?:${escSimp}|${escTrad})`, 'i');
-                 } catch (e) {
-                     console.error('Regex gen failed', e);
-                     return null;
-                 }
-             }
-             const escaped = text.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-             try {
-                 return new RegExp(escaped, 'i');
-             } catch (e) {
-                 return null;
-             }
+            if (!text) return null;
+            const escape = s => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+            if (Utils._initOpenCC()) {
+                const simp = Utils._openccToSimp(text);
+                const trad = Utils._openccToTrad(text);
+                const escSimp = escape(simp);
+                const escTrad = escape(trad);
+                try {
+                    return escSimp === escTrad
+                        ? new RegExp(escSimp, 'i')
+                        : new RegExp(`(?:${escSimp}|${escTrad})`, 'i');
+                } catch (e) {
+                    return null;
+                }
+            }
+            try {
+                return new RegExp(escape(text), 'i');
+            } catch (e) {
+                return null;
+            }
         }
     };
 
@@ -285,14 +270,16 @@
         }
     }
 
+    const TIMING = {
+        RESUME_COOLDOWN: 3000
+    };
     class AdBlockGuard {
         constructor() {
             this.keywords = [
-                'Ad blockers', '廣告攔截器', '广告拦截器', '広告ブロッカー', '광고 차단기',
-                'Video player will be blocked', '影片播放器將被封鎖', '视频播放器将被封锁',
-                'Allow YouTube', '允許 YouTube', '允许 YouTube',
-                'You have an ad blocker', '您使用了廣告攔截器',
-                'YouTube 禁止使用廣告攔截器', "YouTube doesn't allow ad blockers"
+                'Ad blockers', '廣告攔截器',
+                'Video player will be blocked', '影片播放器將被封鎖',
+                'Allow YouTube', '允許 YouTube',
+                "YouTube doesn't allow ad blockers"
             ];
             this.whitelistSelectors = [
                 'ytd-sponsorships-offer-renderer',
@@ -302,73 +289,67 @@
                 'ytd-playlist-add-to-option-renderer'
             ];
             this.lastTrigger = 0;
+            this.observer = null;
         }
         start() {
-            const beat = () => {
-                this.checkAndClean();
-                setTimeout(() => requestAnimationFrame(beat), 800);
+            this.observer = new MutationObserver(() => this.checkAndClean());
+            this.observer.observe(document.body, {
+                childList: true,
+                subtree: false
+            });
+            const setupPopupObserver = () => {
+                const popupContainer = document.querySelector('ytd-popup-container');
+                if (popupContainer && !popupContainer._adGuardObserved) {
+                    popupContainer._adGuardObserved = true;
+                    this.observer.observe(popupContainer, { childList: true, subtree: true });
+                }
             };
-            beat();
+            setupPopupObserver();
+            setTimeout(setupPopupObserver, 2000);
+            this.checkAndClean();
         }
         isWhitelisted(dialog) {
-            for (const sel of this.whitelistSelectors) {
-                if (dialog.querySelector(sel)) {
-                    Logger.info(`✅ Whitelist dialog detected: ${sel}`);
-                    return true;
-                }
-            }
-            return false;
+            return this.whitelistSelectors.some(sel => dialog.querySelector(sel));
         }
         isAdBlockPopup(dialog) {
-            if (dialog.tagName === 'YTD-ENFORCEMENT-MESSAGE-VIEW-MODEL') {
-                return true;
-            }
-            if (dialog.querySelector('ytd-enforcement-message-view-model')) {
-                return true;
-            }
-            if (dialog.innerText && this.keywords.some(k => dialog.innerText.includes(k))) {
-                return true;
-            }
+            if (dialog.tagName === 'YTD-ENFORCEMENT-MESSAGE-VIEW-MODEL') return true;
+            if (dialog.querySelector('ytd-enforcement-message-view-model')) return true;
+            if (dialog.innerText && this.keywords.some(k => dialog.innerText.includes(k))) return true;
             return false;
         }
         checkAndClean() {
             const popupSelectors = [
                 'tp-yt-paper-dialog',
                 'ytd-enforcement-message-view-model',
-                'yt-playability-error-supported-renderers',
-                'ytd-popup-container tp-yt-paper-dialog',
-                '[role="dialog"]:has(ytd-enforcement-message-view-model)'
+                'yt-playability-error-supported-renderers'
             ];
             const dialogs = document.querySelectorAll(popupSelectors.join(', '));
             let detected = false;
             for (const dialog of dialogs) {
                 if (this.isWhitelisted(dialog)) continue;
                 if (this.isAdBlockPopup(dialog)) {
-                    const dismissBtns = dialog.querySelectorAll('[aria-label="Close"], #dismiss-button, [aria-label="可能有風險"], .yt-spec-button-shape-next--call-to-action');
-                    dismissBtns.forEach(btn => btn.click());
+                    dialog.querySelectorAll('[aria-label="Close"], #dismiss-button').forEach(btn => btn.click());
                     dialog.remove();
                     detected = true;
                     Logger.info(`🚫 Removed AdBlock Popup: ${dialog.tagName}`);
                 }
             }
             if (detected) {
-                document.querySelectorAll('tp-yt-iron-overlay-backdrop, .ytd-popup-container, [style*="z-index: 9999"]').forEach(b => {
-                    if (b.classList.contains('opened') || b.style.display !== 'none') {
-                        b.style.display = 'none';
-                        b.remove();
-                    }
-                });
+                document.querySelectorAll('tp-yt-iron-overlay-backdrop.opened').forEach(b => b.remove());
                 this.resumeVideo();
             }
         }
         resumeVideo() {
-            if (Date.now() - this.lastTrigger > 3000) {
+            if (Date.now() - this.lastTrigger > TIMING.RESUME_COOLDOWN) {
                 this.lastTrigger = Date.now();
                 const video = document.querySelector('video');
-                if (video && video.paused && !video.ended) {
-                    video.play().catch(() => { });
+                if (video?.paused && !video.ended) {
+                    video.play().catch(() => {});
                 }
             }
+        }
+        destroy() {
+            this.observer?.disconnect();
         }
     }
 
@@ -477,6 +458,9 @@
         }
     }
 
+    const BATCH_SIZE = 20;
+    const IDLE_TIMEOUT = 500;
+    const MUTATION_THRESHOLD = 100;
     class LazyVideoData {
         constructor(element) {
             this.el = element;
@@ -489,17 +473,15 @@
         }
         get title() {
             if (this._title === null) {
-                 const el = this.el.querySelector(SELECTORS.METADATA.TITLE);
-                 if (el?.title) {
-                     this._title = el.title.trim();
-                 } else {
-                     this._title = el?.textContent?.trim() || '';
-                 }
+                const el = this.el.querySelector(SELECTORS.METADATA.TITLE);
+                this._title = el?.title?.trim() || el?.textContent?.trim() || '';
             }
             return this._title;
         }
         get channel() {
-            if (this._channel === null) this._channel = this.el.querySelector(SELECTORS.METADATA.CHANNEL)?.textContent?.trim() || '';
+            if (this._channel === null) {
+                this._channel = this.el.querySelector(SELECTORS.METADATA.CHANNEL)?.textContent?.trim() || '';
+            }
             return this._channel;
         }
         _parseMetadata() {
@@ -540,52 +522,16 @@
         get isLive() { return this._liveViewers !== null; }
         get isMembers() {
             return this.el.querySelector(SELECTORS.BADGES.MEMBERS) ||
-                this.el.innerText.includes('會員專屬') ||
-                this.el.innerText.includes('Members only');
+                /會員專屬|Members only/.test(this.el.innerText);
         }
     }
     class VideoFilter {
         constructor(config) {
             this.config = config;
             this.customRules = new CustomRuleManager(config);
-            this.pendingElements = new Set();
-            this.isProcessing = false;
-        }
-        _startProcessor() {
-            if (this.isProcessing || this.pendingElements.size === 0) return;
-            this.isProcessing = true;
-            this._processNextBatch();
-        }
-        _processNextBatch() {
-            if (this.pendingElements.size === 0) {
-                this.isProcessing = false;
-                return;
-            }
-            requestIdleCallback((deadline) => {
-                const iterator = this.pendingElements.values();
-                let count = 0;
-                const batchSize = 20;
-                while (count < batchSize && (deadline.timeRemaining() > 0 || deadline.didTimeout)) {
-                    const { value, done } = iterator.next();
-                    if (done) break;
-                    const el = value;
-                    this.pendingElements.delete(el);
-                    try {
-                        this.processElement(el);
-                    } catch (e) {
-                        Logger.error('Filter error', e);
-                    }
-                    count++;
-                }
-                if (this.pendingElements.size > 0) {
-                    this._processNextBatch();
-                } else {
-                    this.isProcessing = false;
-                }
-            }, { timeout: 1000 });
         }
         processMutations(mutations) {
-            if (mutations.length > 100) {
+            if (mutations.length > MUTATION_THRESHOLD) {
                 this.processPage();
                 return;
             }
@@ -593,18 +539,11 @@
             for (const mutation of mutations) {
                 for (const node of mutation.addedNodes) {
                     if (node.nodeType !== 1) continue;
-                    if (node.matches && node.matches(SELECTORS.allContainers)) {
-                        candidates.add(node);
-                    }
-                    if (node.querySelectorAll) {
-                        const children = node.querySelectorAll(SELECTORS.allContainers);
-                        for (const child of children) candidates.add(child);
-                    }
+                    if (node.matches?.(SELECTORS.allContainers)) candidates.add(node);
+                    node.querySelectorAll?.(SELECTORS.allContainers).forEach(c => candidates.add(c));
                 }
             }
-            if (candidates.size > 0) {
-                this._processBatch(Array.from(candidates), 0);
-            }
+            if (candidates.size > 0) this._processBatch(Array.from(candidates), 0);
         }
         processPage() {
             const elements = Array.from(document.querySelectorAll(SELECTORS.allContainers));
@@ -613,90 +552,106 @@
             if ('requestIdleCallback' in window) {
                 this._processBatch(unprocessed, 0);
             } else {
-                for (const el of unprocessed) this.processElement(el);
+                unprocessed.forEach(el => this.processElement(el));
             }
         }
-        _processBatch(elements, startIndex, batchSize = 20) {
+        _processBatch(elements, startIndex) {
             requestIdleCallback((deadline) => {
                 let i = startIndex;
                 while (i < elements.length && (deadline.timeRemaining() > 0 || deadline.didTimeout)) {
                     this.processElement(elements[i]);
                     i++;
-                    if (i - startIndex >= batchSize) break;
+                    if (i - startIndex >= BATCH_SIZE) break;
                 }
-                if (i < elements.length) {
-                    this._processBatch(elements, i, batchSize);
-                }
-            }, { timeout: 500 });
+                if (i < elements.length) this._processBatch(elements, i);
+            }, { timeout: IDLE_TIMEOUT });
         }
         processElement(element) {
-            if (element.dataset.ypChecked) return;
-            if (element.offsetParent === null) return;
+            if (element.dataset.ypChecked || element.offsetParent === null) return;
             const textRule = this.customRules.check(element, element.innerText);
             if (textRule) return this._hide(element, textRule);
-            if (element.tagName.includes('VIDEO') || element.tagName.includes('LOCKUP') || element.tagName.includes('RICH-ITEM')) {
+            const isVideoElement = /VIDEO|LOCKUP|RICH-ITEM/.test(element.tagName);
+            if (isVideoElement) {
                 const item = new LazyVideoData(element);
-                if (this.config.get('ENABLE_KEYWORD_FILTER') && item.title) {
-                    const convert = this.config.get('ENABLE_REGION_CONVERT');
-                    if (convert && this.config.get('compiledKeywords')) {
-                        if (this.config.get('compiledKeywords').some(rx => rx.test(item.title))) {
-                            return this._hide(element, 'keyword_blacklist');
-                        }
-                    } else {
-                        const title = item.title.toLowerCase();
-                        if (this.config.get('KEYWORD_BLACKLIST').some(k => title.includes(k.toLowerCase()))) {
-                             return this._hide(element, 'keyword_blacklist');
-                        }
-                    }
-                }
-                if (this.config.get('ENABLE_CHANNEL_FILTER') && item.channel) {
-                    const convert = this.config.get('ENABLE_REGION_CONVERT');
-                    if (convert && this.config.get('compiledChannels')) {
-                         if (this.config.get('compiledChannels').some(rx => rx.test(item.channel))) {
-                            return this._hide(element, 'channel_blacklist');
-                        }
-                    } else {
-                        const channel = item.channel.toLowerCase();
-                        if (this.config.get('CHANNEL_BLACKLIST').some(k => channel.includes(k.toLowerCase()))) {
-                            return this._hide(element, 'channel_blacklist');
-                        }
-                    }
-                }
+                if (this._checkKeywordFilter(item, element)) return;
+                if (this._checkChannelFilter(item, element)) return;
                 if (this.config.get('RULE_ENABLES').members_only && item.isMembers) {
                     return this._hide(element, 'members_only_js');
                 }
-                if (this.config.get('ENABLE_LOW_VIEW_FILTER') && !item.isShorts) {
-                    const th = this.config.get('LOW_VIEW_THRESHOLD');
-                    const grace = this.config.get('GRACE_PERIOD_HOURS') * 60;
-                    if (item.isLive && item.liveViewers !== null && item.liveViewers < th) {
-                        return this._hide(element, 'low_viewer_live');
-                    }
-                    if (!item.isLive && item.viewCount !== null && item.timeAgo !== null && item.timeAgo > grace && item.viewCount < th) {
-                        return this._hide(element, 'low_view');
-                    }
-                }
-                if (this.config.get('ENABLE_DURATION_FILTER') && !item.isShorts && item.duration !== null) {
-                    const min = this.config.get('DURATION_MIN');
-                    const max = this.config.get('DURATION_MAX');
-                    if ((min > 0 && item.duration < min) || (max > 0 && item.duration > max)) return this._hide(element, 'duration_filter');
-                }
+                if (this._checkViewFilter(item, element)) return;
+                if (this._checkDurationFilter(item, element)) return;
             }
             element.dataset.ypChecked = 'true';
+        }
+        _checkKeywordFilter(item, element) {
+            if (!this.config.get('ENABLE_KEYWORD_FILTER') || !item.title) return false;
+            const compiled = this.config.get('compiledKeywords');
+            if (this.config.get('ENABLE_REGION_CONVERT') && compiled) {
+                if (compiled.some(rx => rx.test(item.title))) {
+                    this._hide(element, 'keyword_blacklist');
+                    return true;
+                }
+            } else {
+                const title = item.title.toLowerCase();
+                if (this.config.get('KEYWORD_BLACKLIST').some(k => title.includes(k.toLowerCase()))) {
+                    this._hide(element, 'keyword_blacklist');
+                    return true;
+                }
+            }
+            return false;
+        }
+        _checkChannelFilter(item, element) {
+            if (!this.config.get('ENABLE_CHANNEL_FILTER') || !item.channel) return false;
+            const compiled = this.config.get('compiledChannels');
+            if (this.config.get('ENABLE_REGION_CONVERT') && compiled) {
+                if (compiled.some(rx => rx.test(item.channel))) {
+                    this._hide(element, 'channel_blacklist');
+                    return true;
+                }
+            } else {
+                const channel = item.channel.toLowerCase();
+                if (this.config.get('CHANNEL_BLACKLIST').some(k => channel.includes(k.toLowerCase()))) {
+                    this._hide(element, 'channel_blacklist');
+                    return true;
+                }
+            }
+            return false;
+        }
+        _checkViewFilter(item, element) {
+            if (!this.config.get('ENABLE_LOW_VIEW_FILTER') || item.isShorts) return false;
+            const th = this.config.get('LOW_VIEW_THRESHOLD');
+            const grace = this.config.get('GRACE_PERIOD_HOURS') * 60;
+            if (item.isLive && item.liveViewers !== null && item.liveViewers < th) {
+                this._hide(element, 'low_viewer_live');
+                return true;
+            }
+            if (!item.isLive && item.viewCount !== null && item.timeAgo !== null &&
+                item.timeAgo > grace && item.viewCount < th) {
+                this._hide(element, 'low_view');
+                return true;
+            }
+            return false;
+        }
+        _checkDurationFilter(item, element) {
+            if (!this.config.get('ENABLE_DURATION_FILTER') || item.isShorts || item.duration === null) return false;
+            const min = this.config.get('DURATION_MIN');
+            const max = this.config.get('DURATION_MAX');
+            if ((min > 0 && item.duration < min) || (max > 0 && item.duration > max)) {
+                this._hide(element, 'duration_filter');
+                return true;
+            }
+            return false;
         }
         _hide(element, reason) {
             const container = element.closest('ytd-rich-item-renderer, ytd-grid-video-renderer, ytd-compact-video-renderer') || element;
             container.style.display = 'none';
             container.dataset.ypHidden = reason;
-            if (container !== element) {
-                element.dataset.ypHidden = reason;
-            }
+            if (container !== element) element.dataset.ypHidden = reason;
             FilterStats.record(reason);
             Logger.info(`Hidden [${reason}]`, container);
         }
         clearCache() {
-            document.querySelectorAll('[data-yp-checked]').forEach(el => {
-                delete el.dataset.ypChecked;
-            });
+            document.querySelectorAll('[data-yp-checked]').forEach(el => delete el.dataset.ypChecked);
         }
         reset() {
             document.querySelectorAll('[data-yp-hidden]').forEach(el => {
@@ -895,50 +850,6 @@
                 adv_remove: 'Remove',
                 adv_clear: 'Clear',
                 adv_region_convert: 'Region Agnostic Filter'
-            },
-            'ja': {
-                title: 'YouTube クリーナー',
-                menu_rules: '📂 フィルタルール',
-                menu_low_view: '低視聴数フィルター (ライブ含む)',
-                menu_threshold: '🔢 閾値設定',
-                menu_advanced: '🚫 詳細フィルター',
-                menu_new_tab: '新しいタブで開く (動画)',
-                menu_notification_new_tab: '新しいタブで開く (通知)',
-                menu_debug: 'デバッグ',
-                menu_reset: '🔄 初期化',
-                menu_stats: '📊 フィルター統計',
-                menu_export: '💾 設定のエクスポート/インポート',
-                menu_lang: '🌐 言語',
-                menu_input: 'オプションを入力:',
-                stats_title: '【 フィルター統計 】',
-                stats_empty: 'まだフィルターされたコンテンツはありません',
-                stats_filtered: '{0} 件をフィルターしました',
-                export_title: '【 設定管理 】',
-                export_export: '📤 設定をエクスポート',
-                export_import: '📥 設定をインポート',
-                export_success: '✅ 設定をクリップボードにコピーしました！',
-                export_copy: '設定をコピー (Ctrl+C):',
-                import_prompt: '設定JSONを貼り付け:',
-                import_success: '✅ 設定をインポートしました！',
-                import_fail: '❌ インポート失敗: ',
-                rules_title: '【 フィルタールール 】',
-                rules_back: '(0 戻る)',
-                threshold_prompt: '閾値:',
-                reset_confirm: 'リセットしますか?',
-                lang_title: '【 言語選択 】',
-                back: '戻る',
-                adv_keyword_filter: 'キーワードフィルター',
-                adv_keyword_list: '✏️ キーワードリスト',
-                adv_channel_filter: 'チャンネルフィルター',
-                adv_channel_list: '✏️ チャンネルリスト',
-                adv_duration_filter: '長さフィルター',
-                adv_duration_set: '⏱️ 長さ設定',
-                adv_min: '最短(分):',
-                adv_max: '最長(分):',
-                adv_add: '追加',
-                adv_remove: '削除',
-                adv_clear: 'クリア',
-                adv_region_convert: '地域非依存フィルタ'
             }
         },
         ruleNames: {
@@ -1013,30 +924,6 @@
                 explore_topics: 'Explore Topics',
                 recommended_playlists: 'Recommended Playlists',
                 members_early_access: 'Members Early Access'
-            },
-            'ja': {
-                ad_block_popup: '広告ブロックポップアップ',
-                ad_sponsor: '広告/スポンサー',
-                members_only: 'メンバー限定',
-                shorts_item: 'Shorts アイテム',
-                mix_only: 'ミックス',
-                premium_banner: 'Premium バナー',
-                news_block: 'ニュースセクション',
-                shorts_block: 'Shorts セクション',
-                posts_block: 'コミュニティ投稿',
-                playables_block: 'プレイアブル',
-                fundraiser_block: '募金活動',
-                shorts_grid_shelf: 'Shorts グリッド',
-                movies_shelf: '映画のおすすめ',
-                youtube_featured_shelf: 'YouTube おすすめ',
-                popular_gaming_shelf: '人気ゲーム',
-                more_from_game_shelf: 'ゲーム関連',
-                trending_playlist: '急上昇プレイリスト',
-                inline_survey: 'アンケート',
-                clarify_box: '情報ボックス',
-                explore_topics: 'トピックを探す',
-                recommended_playlists: 'おすすめプレイリスト',
-                members_early_access: 'メンバー先行'
             }
         },
         getRuleName(ruleKey) {
@@ -1046,9 +933,7 @@
             const ytLang = document.documentElement.lang || navigator.language || 'zh-TW';
             if (ytLang.startsWith('zh-CN') || ytLang.startsWith('zh-Hans')) return 'zh-CN';
             if (ytLang.startsWith('zh')) return 'zh-TW';
-            if (ytLang.startsWith('ja')) return 'ja';
-            if (ytLang.startsWith('en')) return 'en';
-            return 'zh-TW';
+            return 'en';
         },
         get lang() {
             if (!this._lang) {
@@ -1068,8 +953,7 @@
             return {
                 'zh-TW': '繁體中文',
                 'zh-CN': '简体中文',
-                'en': 'English',
-                'ja': '日本語'
+                'en': 'English'
             };
         }
     };
