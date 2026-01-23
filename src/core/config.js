@@ -3,7 +3,7 @@ import { Utils } from './utils.js';
 // --- 1. Core: Configuration Management ---
 export class ConfigManager {
     constructor() {
-        this.DEFAULT_SETTINGS = {
+        this.defaults = {
             // ... (existing)
             ENABLE_KEYWORD_FILTER: true,
             KEYWORD_BLACKLIST: ['預告', 'Teaser', 'Trailer', 'PV', 'CM', 'MV', 'Cover', '翻唱'],
@@ -11,7 +11,7 @@ export class ConfigManager {
             CHANNEL_BLACKLIST: [],
             ENABLE_SECTION_FILTER: true,
             SECTION_TITLE_BLACKLIST: ['耳目一新', '重溫舊愛', '合輯', 'Mixes', 'Latest posts', '最新貼文'],
-            
+
             // ... (rest)
 
             ENABLE_DURATION_FILTER: false,

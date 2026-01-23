@@ -18,6 +18,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.8.2] - 2026-01-24
+
+### Fixed
+- **Critical: Filtering Broken Since v1.8.0**: Fixed a critical regression where all filtering rules stopped working.
+    - **Root Cause**: In v1.8.0, `ConfigManager.defaults` was accidentally renamed to `ConfigManager.DEFAULT_SETTINGS`, but `_load()` method still referenced `this.defaults`.
+    - This caused `this.defaults` to be `undefined`, resulting in an empty configuration loop and no rules being applied.
+    - **Impact**: All keyword, channel, section, and custom rule filtering was non-functional in v1.8.0 and v1.8.1.
+
+---
+
 ## [1.8.1] - 2026-01-23
 
 ### Changed
