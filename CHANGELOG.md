@@ -18,6 +18,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.8.9] - 2026-01-25
+
+### Added
+- **Customizable low View Grace Period**: Users can now set the "Grace Period" (豁免期) for low view count filtering directly from the main menu (Option 3).
+    - Setting it to `0` disables the grace period, filtering strictly by view count.
+    - Default remains 4 hours.
+    - The menu now displays both Threshold and Grace Period (e.g., `1000 / 4h`).
+
+---
+
 ## [1.8.8] - 2026-01-25
 
 ### Fixed
@@ -343,7 +353,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
-[Unreleased]: https://github.com/bennytsai1234/youtube-homepage-cleaner/compare/v1.8.8...HEAD
+[Unreleased]: https://github.com/bennytsai1234/youtube-homepage-cleaner/compare/v1.8.9...HEAD
+[1.8.9]: https://github.com/bennytsai1234/youtube-homepage-cleaner/compare/v1.8.8...v1.8.9
 [1.8.8]: https://github.com/bennytsai1234/youtube-homepage-cleaner/compare/v1.8.7...v1.8.8
 [1.8.7]: https://github.com/bennytsai1234/youtube-homepage-cleaner/compare/v1.8.6...v1.8.7
 [1.8.6]: https://github.com/bennytsai1234/youtube-homepage-cleaner/compare/v1.8.5...v1.8.6

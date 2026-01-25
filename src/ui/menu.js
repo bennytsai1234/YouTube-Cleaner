@@ -15,7 +15,7 @@ export class UIManager {
             `【 ${this.t('title')} v${GM_info.script.version} 】\n\n` +
             `1. ${this.t('menu_rules')}\n` +
             `2. ${i('ENABLE_LOW_VIEW_FILTER')} ${this.t('menu_low_view')}\n` +
-            `3. ${this.t('menu_threshold')} (${this.config.get('LOW_VIEW_THRESHOLD')})\n` +
+            `3. ${this.t('menu_view_settings')} (${this.config.get('LOW_VIEW_THRESHOLD')} / ${this.config.get('GRACE_PERIOD_HOURS')}h)\n` +
             `4. ${this.t('menu_advanced')}\n` +
             `5. ${i('OPEN_IN_NEW_TAB')} ${this.t('menu_new_tab')}\n` +
             `6. ${i('OPEN_NOTIFICATIONS_IN_NEW_TAB')} ${this.t('menu_notification_new_tab')}\n` +
@@ -33,10 +33,34 @@ export class UIManager {
             case '1': this.showRuleMenu(); break;
             case '2': this.toggle('ENABLE_LOW_VIEW_FILTER'); break;
             case '3': {
+                // Step 1: Threshold
                 const v = prompt(this.t('threshold_prompt'), this.config.get('LOW_VIEW_THRESHOLD'));
                 const num = Number(v);
-                if (v !== null && !isNaN(num)) this.update('LOW_VIEW_THRESHOLD', num);
-                else if (v !== null) alert('❌ 請輸入有效的數字');
+                if (v !== null && !isNaN(num)) {
+                    this.update('LOW_VIEW_THRESHOLD', num);
+
+                    // Step 2: Grace Period
+                    // 使用 setTimeout 確保前一個 prompt 關閉後再跳下一個，避免瀏覽器行為干擾 (可選)
+                    setTimeout(() => {
+                        const g = prompt(this.t('grace_prompt'), this.config.get('GRACE_PERIOD_HOURS'));
+                        const gNum = Number(g);
+                        if (g !== null && !isNaN(gNum)) {
+                            this.update('GRACE_PERIOD_HOURS', gNum);
+                            // 再次顯示主選單 (因為上一行 update 會顯示，這裡可能會重複，但 update 已經負責顯示主選單了)
+                            // 其實 update 內部會 called showMainMenu, 但這裡我們連續 update 兩次
+                            // 第一次 update 會 showMainMenu, 然後 setTimeout 觸發第二個 prompt
+                            // 第二個 prompt 結束後再次 update -> showMainMenu.
+                            // 流程: Prompt1 -> Update1(ShowMenu) -> (async) Prompt2 -> Update2(ShowMenu)
+                            // 這會導致 Prompt2 在 Menu 顯示後彈出，這是可以接受的 UX。
+                        } else if (g !== null) {
+                            alert('❌ 請輸入有效的數字');
+                            this.showMainMenu();
+                        }
+                    }, 50);
+                } else if (v !== null) {
+                    alert('❌ 請輸入有效的數字');
+                    this.showMainMenu();
+                }
                 break;
             }
             case '4': this.showAdvancedMenu(); break;

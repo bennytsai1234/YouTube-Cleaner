@@ -11,7 +11,7 @@
 // @icon        https://www.google.com/s2/favicons?sz=64&domain=youtube.com
 // @downloadURL https://raw.githubusercontent.com/bennytsai1234/YouTube-Cleaner/main/youtube-homepage-cleaner.user.js
 // @updateURL   https://raw.githubusercontent.com/bennytsai1234/YouTube-Cleaner/main/youtube-homepage-cleaner.user.js
-// @version     1.8.8
+// @version     1.8.9
 // @grant       GM_info
 // @grant       GM_addStyle
 // @grant       GM_setValue
@@ -797,7 +797,7 @@
                 title: 'YouTube 淨化大師',
                 menu_rules: '📂 設定過濾規則',
                 menu_low_view: '低觀看數過濾 (含直播)',
-                menu_threshold: '🔢 設定閾值',
+                menu_view_settings: '🔢 設定閾值與豁免期',
                 menu_advanced: '🚫 進階過濾',
                 menu_new_tab: '強制新分頁 (影片)',
                 menu_notification_new_tab: '強制新分頁 (通知)',
@@ -820,7 +820,8 @@
                 import_fail: '❌ 匯入失敗: ',
                 rules_title: '【 過濾規則 】',
                 rules_back: '(0 返回)',
-                threshold_prompt: '閾值:',
+                threshold_prompt: '請輸入「觀看數閾值」 (低於此數將被過濾):',
+                grace_prompt: '請輸入「豁免時間 (小時)」 (設為 0 則不豁免):',
                 reset_confirm: '重設?',
                 lang_title: '【 選擇語言 】',
                 back: '返回',
@@ -843,7 +844,7 @@
                 title: 'YouTube 净化大师',
                 menu_rules: '📂 设置过滤规则',
                 menu_low_view: '低观看数过滤 (含直播)',
-                menu_threshold: '🔢 设置阈值',
+                menu_view_settings: '🔢 设置阈值与豁免期',
                 menu_advanced: '🚫 高级过滤',
                 menu_new_tab: '强制新标签页 (视频)',
                 menu_notification_new_tab: '强制新标签页 (通知)',
@@ -866,7 +867,8 @@
                 import_fail: '❌ 导入失败: ',
                 rules_title: '【 过滤规则 】',
                 rules_back: '(0 返回)',
-                threshold_prompt: '阈值:',
+                threshold_prompt: '请输入「观看数阈值」 (低于此数将被过滤):',
+                grace_prompt: '请输入「豁免时间 (小时)」 (设为 0 则不豁免):',
                 reset_confirm: '重置?',
                 lang_title: '【 选择语言 】',
                 back: '返回',
@@ -889,7 +891,7 @@
                 title: 'YouTube Cleaner',
                 menu_rules: '📂 Filter Rules',
                 menu_low_view: 'Low View Filter (incl. Live)',
-                menu_threshold: '🔢 Set Threshold',
+                menu_view_settings: '🔢 Set Threshold & Grace Period',
                 menu_advanced: '🚫 Advanced Filters',
                 menu_new_tab: 'Force New Tab (Video)',
                 menu_notification_new_tab: 'Force New Tab (Notif)',
@@ -912,7 +914,8 @@
                 import_fail: '❌ Import failed: ',
                 rules_title: '【 Filter Rules 】',
                 rules_back: '(0 Back)',
-                threshold_prompt: 'Threshold:',
+                threshold_prompt: 'Enter View Threshold:',
+                grace_prompt: 'Enter Grace Period (Hours) (0 to disable):',
                 reset_confirm: 'Reset?',
                 lang_title: '【 Select Language 】',
                 back: 'Back',
@@ -1049,7 +1052,7 @@
                 `【 ${this.t('title')} v${GM_info.script.version} 】\n\n` +
                 `1. ${this.t('menu_rules')}\n` +
                 `2. ${i('ENABLE_LOW_VIEW_FILTER')} ${this.t('menu_low_view')}\n` +
-                `3. ${this.t('menu_threshold')} (${this.config.get('LOW_VIEW_THRESHOLD')})\n` +
+                `3. ${this.t('menu_view_settings')} (${this.config.get('LOW_VIEW_THRESHOLD')} / ${this.config.get('GRACE_PERIOD_HOURS')}h)\n` +
                 `4. ${this.t('menu_advanced')}\n` +
                 `5. ${i('OPEN_IN_NEW_TAB')} ${this.t('menu_new_tab')}\n` +
                 `6. ${i('OPEN_NOTIFICATIONS_IN_NEW_TAB')} ${this.t('menu_notification_new_tab')}\n` +
@@ -1069,8 +1072,22 @@
                 case '3': {
                     const v = prompt(this.t('threshold_prompt'), this.config.get('LOW_VIEW_THRESHOLD'));
                     const num = Number(v);
-                    if (v !== null && !isNaN(num)) this.update('LOW_VIEW_THRESHOLD', num);
-                    else if (v !== null) alert('❌ 請輸入有效的數字');
+                    if (v !== null && !isNaN(num)) {
+                        this.update('LOW_VIEW_THRESHOLD', num);
+                        setTimeout(() => {
+                            const g = prompt(this.t('grace_prompt'), this.config.get('GRACE_PERIOD_HOURS'));
+                            const gNum = Number(g);
+                            if (g !== null && !isNaN(gNum)) {
+                                this.update('GRACE_PERIOD_HOURS', gNum);
+                            } else if (g !== null) {
+                                alert('❌ 請輸入有效的數字');
+                                this.showMainMenu();
+                            }
+                        }, 50);
+                    } else if (v !== null) {
+                        alert('❌ 請輸入有效的數字');
+                        this.showMainMenu();
+                    }
                     break;
                 }
                 case '4': this.showAdvancedMenu(); break;
