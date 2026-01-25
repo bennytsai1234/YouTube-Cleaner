@@ -12,7 +12,7 @@ export class UIManager {
         const statsInfo = FilterStats.session.total > 0 ? ` (${FilterStats.session.total})` : '';
         const langName = I18N.availableLanguages[I18N.lang];
         const choice = prompt(
-            `【 ${this.t('title')} v1.6.5 】\n\n` +
+            `【 ${this.t('title')} v${GM_info.script.version} 】\n\n` +
             `1. ${this.t('menu_rules')}\n` +
             `2. ${i('ENABLE_LOW_VIEW_FILTER')} ${this.t('menu_low_view')}\n` +
             `3. ${this.t('menu_threshold')} (${this.config.get('LOW_VIEW_THRESHOLD')})\n` +
@@ -71,7 +71,7 @@ export class UIManager {
     }
     exportSettings() {
         const exportData = {
-            version: '1.6.5',
+            version: GM_info.script.version,
             timestamp: new Date().toISOString(),
             settings: this.config.state,
             language: I18N.lang
@@ -107,7 +107,7 @@ export class UIManager {
         this.showExportImportMenu();
     }
     showRuleMenu() {
-        const r = this.config.get('RULE_ENABLES'); const k = Object.keys(r); 
+        const r = this.config.get('RULE_ENABLES'); const k = Object.keys(r);
         const c = prompt(`${this.t('rules_title')} ${this.t('rules_back')}\n` + k.map((key, i) => `${i + 1}. [${r[key] ? '✅' : '❌'}] ${I18N.getRuleName(key)}`).join('\n'));
         if (c && c !== '0') { this.config.toggleRule(k[parseInt(c) - 1]); this.onRefresh(); this.showRuleMenu(); } else if (c === '0') this.showMainMenu();
     }
@@ -137,7 +137,7 @@ export class UIManager {
             if (min) this.config.set('DURATION_MIN', min * 60);
             if (max) this.config.set('DURATION_MAX', max * 60);
             this.onRefresh(); this.showAdvancedMenu();
-        } 
+        }
         else if (c === '9') this.toggle('ENABLE_REGION_CONVERT', true);
         else if (c === '0') this.showMainMenu();
     }

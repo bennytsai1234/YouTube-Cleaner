@@ -18,6 +18,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.8.3] - 2026-01-25
+
+### Fixed
+- **Critical: Settings Not Persisting (New Tab, Low View Filter, etc.)**: Fixed a bug where several settings were not being saved/loaded correctly.
+    - **Root Cause**: `ConfigManager.defaults` was missing 6 key configuration entries: `OPEN_IN_NEW_TAB`, `OPEN_NOTIFICATIONS_IN_NEW_TAB`, `ENABLE_LOW_VIEW_FILTER`, `LOW_VIEW_THRESHOLD`, `DEBUG_MODE`, `ENABLE_REGION_CONVERT`.
+    - Since these keys were not in `defaults`, the `_load()` method never restored them from storage, causing settings to reset on page reload.
+    - **Reported by**: User "Leadra" on Greasy Fork.
+
+### Changed
+- **Dynamic Version Display**: Menu and export now use `GM_info.script.version` instead of hardcoded strings.
+- **Default Settings Changed**: All filter options now default to **enabled**:
+    - `ENABLE_LOW_VIEW_FILTER`: false → true
+    - `ENABLE_CHANNEL_FILTER`: false → true
+    - `ENABLE_DURATION_FILTER`: false → true
+    - `DEBUG_MODE`: false → true
+
+---
+
 ## [1.8.2] - 2026-01-24
 
 ### Fixed

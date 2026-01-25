@@ -11,7 +11,7 @@
 // @icon        https://www.google.com/s2/favicons?sz=64&domain=youtube.com
 // @downloadURL https://raw.githubusercontent.com/bennytsai1234/YouTube-Cleaner/main/youtube-homepage-cleaner.user.js
 // @updateURL   https://raw.githubusercontent.com/bennytsai1234/YouTube-Cleaner/main/youtube-homepage-cleaner.user.js
-// @version     1.8.2
+// @version     1.8.3
 // @grant       GM_info
 // @grant       GM_addStyle
 // @grant       GM_setValue
@@ -139,13 +139,21 @@
     class ConfigManager {
         constructor() {
             this.defaults = {
+                // 主選單設定
+                OPEN_IN_NEW_TAB: true,
+                OPEN_NOTIFICATIONS_IN_NEW_TAB: true,
+                ENABLE_LOW_VIEW_FILTER: true,
+                LOW_VIEW_THRESHOLD: 1000,
+                DEBUG_MODE: true,
+                // 進階過濾設定
+                ENABLE_REGION_CONVERT: true,
                 ENABLE_KEYWORD_FILTER: true,
                 KEYWORD_BLACKLIST: ['預告', 'Teaser', 'Trailer', 'PV', 'CM', 'MV', 'Cover', '翻唱'],
-                ENABLE_CHANNEL_FILTER: false,
+                ENABLE_CHANNEL_FILTER: true,
                 CHANNEL_BLACKLIST: [],
                 ENABLE_SECTION_FILTER: true,
                 SECTION_TITLE_BLACKLIST: ['耳目一新', '重溫舊愛', '合輯', 'Mixes', 'Latest posts', '最新貼文'],
-                ENABLE_DURATION_FILTER: false,
+                ENABLE_DURATION_FILTER: true,
                 DURATION_MIN: 0,
                 DURATION_MAX: 0,
                 GRACE_PERIOD_HOURS: 4,
@@ -1015,7 +1023,7 @@
             const statsInfo = FilterStats.session.total > 0 ? ` (${FilterStats.session.total})` : '';
             const langName = I18N.availableLanguages[I18N.lang];
             const choice = prompt(
-                `【 ${this.t('title')} v1.6.5 】\n\n` +
+                `【 ${this.t('title')} v${GM_info.script.version} 】\n\n` +
                 `1. ${this.t('menu_rules')}\n` +
                 `2. ${i('ENABLE_LOW_VIEW_FILTER')} ${this.t('menu_low_view')}\n` +
                 `3. ${this.t('menu_threshold')} (${this.config.get('LOW_VIEW_THRESHOLD')})\n` +
@@ -1074,7 +1082,7 @@
         }
         exportSettings() {
             const exportData = {
-                version: '1.6.5',
+                version: GM_info.script.version,
                 timestamp: new Date().toISOString(),
                 settings: this.config.state,
                 language: I18N.lang

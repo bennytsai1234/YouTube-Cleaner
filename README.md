@@ -11,7 +11,7 @@
 [![GitHub Stars](https://img.shields.io/github/stars/bennytsai1234/youtube-homepage-cleaner?style=for-the-badge&logo=github&color=gold)](https://github.com/bennytsai1234/youtube-homepage-cleaner/stargazers)
 [![GitHub Forks](https://img.shields.io/github/forks/bennytsai1234/youtube-homepage-cleaner?style=for-the-badge&logo=github&color=blue)](https://github.com/bennytsai1234/youtube-homepage-cleaner/network/members)
 [![License](https://img.shields.io/github/license/bennytsai1234/youtube-homepage-cleaner?style=for-the-badge&color=green)](LICENSE)
-[![Version](https://img.shields.io/badge/version-v1.6.5-orange?style=for-the-badge)](https://github.com/bennytsai1234/youtube-homepage-cleaner/releases)
+[![Version](https://img.shields.io/badge/version-v1.8.3-orange?style=for-the-badge)](https://github.com/bennytsai1234/youtube-homepage-cleaner/releases)
 
 [✨ **功能特色**](#-主要功能與特色) · [📖 **更新日誌**](#-版本紀錄) · [🐛 **問題回報**](https://github.com/bennytsai1234/youtube-homepage-cleaner/issues)
 
@@ -36,7 +36,7 @@
 | 點擊跳轉中斷瀏覽 | ✅ 全部新分頁開啟 |
 | Anti-Adblock 彈窗騷擾 | ✅ 自動攔截處理 |
 
-> 🎉 **超過 15+ 種過濾規則**，所有功能都可以**一鍵開關**，完全由你掌控！
+> 🎉 **超過 21+ 種過濾規則**，所有功能都可以**一鍵開關**，完全由你掌控！
 
 ---
 
@@ -53,6 +53,7 @@
 | 📑 **播放清單** | 隱藏首頁推薦播放清單 (不影響頻道頁面) |
 | 👑 **特定內容** | 隱藏會員專屬影片 |
 | 📉 **低觀看數過濾** | 隱藏低觀看數影片 (**閾值與 4 小時豁免期可自訂**) |
+| 🗂️ **區塊過濾器** | 依標題隱藏整個區塊，如「耳目一新」、「重溫舊愛」、「合輯」等 (**支援正則表達式**) |
 
 ---
 
@@ -125,56 +126,60 @@
 
 ## 📋 版本紀錄
 
+### v1.8.3 (2026-01-25) - 目前版本
+- 🔥 **Critical Fix**: 修復設定無法儲存的問題（如「新分頁開啟」、「低觀看數過濾」等）
+  - 原因：`ConfigManager.defaults` 缺少 6 個關鍵設定項目
+  - 感謝 Greasy Fork 用戶 **Leadra** 回報此問題
+
+### v1.8.2 (2026-01-24)
+- 🔥 **Critical Fix**: 修復 v1.8.0 引入的設定載入錯誤，導致所有過濾規則失效的問題
+
+### v1.8.0 (2026-01-22)
+- ✨ **區塊過濾器 (Section Blocker)**: 全新功能！依標題隱藏首頁區塊
+  - 可過濾「耳目一新」、「重溫舊愛」、「合輯」等推薦區塊
+  - 支援關鍵字與正則表達式
+  - 預設黑名單已包含常見干擾區塊
+
+### v1.7.x 系列 (2026-01-18 ~ 2026-01-22)
+- 🚀 **效能大幅提升**: 從全頁掃描改為增量式 MutationObserver 處理
+- 🔧 **穩定性修復**: 解決點擊分類標籤 (Chip) 導致頁面凍結的問題
+- 🧠 **State Machine Scheduler**: 防止多重過濾循環造成的 Race Condition
+- 🛡️ **鬼影元素修復**: 確保隱藏的影片不會留下可點擊的空白區域
+
+<details>
+<summary><b>📦 v1.6.x 系列</b></summary>
+
+### v1.6.7 (2026-01-07)
+- 🔄 **繁簡轉換引擎升級**: 改用 OpenCC-JS，支援 8000+ 字詞對照
+
+### v1.6.6 (2026-01-07)
+- ✨ **繁簡通用過濾**: 關鍵字過濾同時匹配繁體和簡體
+
 ### v1.6.5 (2026-01-06)
-- 🧠 **邏輯優化**: 修正了「稍後觀看」列表會被過濾的問題。現在播放清單內的影片**不會**被隱藏，但依然支援「強制新分頁開啟」。
+- 🧠 **邏輯優化**: 修正「稍後觀看」列表被誤過濾的問題
 
 ### v1.6.4 (2026-01-06)
-- ✨ **播放清單影片支援**: 為「稍後觀看」與播放清單內的影片項目 (`ytd-playlist-video-renderer`) 新增強制新分頁開啟支援
-
-### v1.6.3 (2026-01-05)
-- 🤖 **CI/CD 整合**: 導入 GitHub Actions 自動化檢查與發布流程
-- 🧹 **代碼品質**: 修復了 ESLint 回報的語法問題與潛在 Bug
-
-### v1.6.2 (2026-01-05)
-- ⚡ **效能優化**: 改用原生 `is-shorts` 屬性來過濾 Shorts 區塊，減少對文字內容的依賴
+- ✨ **播放清單支援**: 新增播放清單影片的新分頁開啟支援
 
 ### v1.6.1 (2025-12-29)
-- 🔔 **通知新分頁**: 強制通知選單中的連結在新分頁開啟，避免中斷當前播放內容
-- 🔧 **i18n 強化**: 更新所有語言的通知相關字串
+- 🔔 **通知新分頁**: 強制通知選單連結在新分頁開啟
 
-<details>
-<summary><b>📦 v1.6.0 重大更新</b></summary>
-
-- 🚀 **全新架構**: 代碼完全重寫，導入模組化設計，穩定性與擴充性大幅提升
-- ⚡ **極致效能**: 導入 `requestIdleCallback` 與智慧防抖技術
-- 🌐 **國際化支援 (i18n)**: 完整支援繁中、简中、English、日本語
-- 📊 **過濾統計**: 新增可視化統計面板
-- 💾 **設定匯出/匯入**: 設定一鍵備份
-- 🛡️ **Anti-Adblock 2.0**: 全新白名單機制，精準攔截
+### v1.6.0 (2025-12-26) 🚀 重大更新
+- 🚀 **全新架構**: 代碼完全重寫，導入模組化設計
+- ⚡ **極致效能**: 導入 `requestIdleCallback` 與智慧防抖
+- 🌐 **i18n 國際化**: 支援繁中、简中、English、日本語
+- 📊 **過濾統計**: 可視化統計面板
+- 💾 **設定匯出/匯入**: 一鍵備份還原
 
 </details>
 
 <details>
-<summary><b>📦 v1.5.7</b></summary>
+<summary><b>📦 v1.5.x 及更早版本</b></summary>
 
-- 🆕 **支援新版 YouTube 佈局**: 完整支援 `yt-lockup-view-model` 結構
-- 📊 更新 metadata 解析器
-- ⏱️ 更新時長解析器
-
-</details>
-
-<details>
-<summary><b>📦 v1.5.6</b></summary>
-
-- 🔧 **完整還原 v1.4.0**: 補回所有遺漏功能
-
-</details>
-
-<details>
-<summary><b>📦 v1.5.2</b></summary>
-
-- ⚡ **效能與穩定性大幅優化**: 深度重構核心引擎
-- 🛡️ **強化反偵測機制**
+- **v1.5.7**: 支援新版 YouTube 佈局 (`yt-lockup-view-model`)
+- **v1.5.6**: 完整還原 v1.4.0 功能
+- **v1.5.2**: 深度重構核心引擎
+- **v1.4.0**: 初始公開版本，15+ 過濾規則
 
 </details>
 

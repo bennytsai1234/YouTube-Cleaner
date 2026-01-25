@@ -4,17 +4,25 @@ import { Utils } from './utils.js';
 export class ConfigManager {
     constructor() {
         this.defaults = {
+            // 主選單設定
+            OPEN_IN_NEW_TAB: true,
+            OPEN_NOTIFICATIONS_IN_NEW_TAB: true,
+            ENABLE_LOW_VIEW_FILTER: true,
+            LOW_VIEW_THRESHOLD: 1000,
+            DEBUG_MODE: true,
+            // 進階過濾設定
+            ENABLE_REGION_CONVERT: true,
             // ... (existing)
             ENABLE_KEYWORD_FILTER: true,
             KEYWORD_BLACKLIST: ['預告', 'Teaser', 'Trailer', 'PV', 'CM', 'MV', 'Cover', '翻唱'],
-            ENABLE_CHANNEL_FILTER: false,
+            ENABLE_CHANNEL_FILTER: true,
             CHANNEL_BLACKLIST: [],
             ENABLE_SECTION_FILTER: true,
             SECTION_TITLE_BLACKLIST: ['耳目一新', '重溫舊愛', '合輯', 'Mixes', 'Latest posts', '最新貼文'],
 
             // ... (rest)
 
-            ENABLE_DURATION_FILTER: false,
+            ENABLE_DURATION_FILTER: true,
             DURATION_MIN: 0,
             DURATION_MAX: 0,
             GRACE_PERIOD_HOURS: 4,
