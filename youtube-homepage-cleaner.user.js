@@ -11,7 +11,7 @@
 // @icon        https://www.google.com/s2/favicons?sz=64&domain=youtube.com
 // @downloadURL https://raw.githubusercontent.com/bennytsai1234/YouTube-Cleaner/main/youtube-homepage-cleaner.user.js
 // @updateURL   https://raw.githubusercontent.com/bennytsai1234/YouTube-Cleaner/main/youtube-homepage-cleaner.user.js
-// @version     1.8.9
+// @version     1.9.0
 // @grant       GM_info
 // @grant       GM_addStyle
 // @grant       GM_setValue
@@ -797,7 +797,8 @@
                 title: 'YouTube 淨化大師',
                 menu_rules: '📂 設定過濾規則',
                 menu_low_view: '低觀看數過濾 (含直播)',
-                menu_view_settings: '🔢 設定閾值與豁免期',
+                menu_threshold: '🔢 設定閾值',
+                menu_grace: '⏳ 設定豁免期',
                 menu_advanced: '🚫 進階過濾',
                 menu_new_tab: '強制新分頁 (影片)',
                 menu_notification_new_tab: '強制新分頁 (通知)',
@@ -844,7 +845,8 @@
                 title: 'YouTube 净化大师',
                 menu_rules: '📂 设置过滤规则',
                 menu_low_view: '低观看数过滤 (含直播)',
-                menu_view_settings: '🔢 设置阈值与豁免期',
+                menu_threshold: '🔢 设置阈值',
+                menu_grace: '⏳ 设置豁免期',
                 menu_advanced: '🚫 高级过滤',
                 menu_new_tab: '强制新标签页 (视频)',
                 menu_notification_new_tab: '强制新标签页 (通知)',
@@ -890,10 +892,11 @@
             'en': {
                 title: 'YouTube Cleaner',
                 menu_rules: '📂 Filter Rules',
-                menu_low_view: 'Low View Filter (incl. Live)',
-                menu_view_settings: '🔢 Set Threshold & Grace Period',
-                menu_advanced: '🚫 Advanced Filters',
-                menu_new_tab: 'Force New Tab (Video)',
+                menu_low_view: '低觀看數過濾 (含直播)',
+                menu_threshold: '🔢 設定閾值',
+                menu_grace: '⏳ 設定豁免期',
+                menu_advanced: '🚫 進階過濾',
+                menu_new_tab: '強制新分頁 (影片)',
                 menu_notification_new_tab: 'Force New Tab (Notif)',
                 menu_debug: 'Debug',
                 menu_reset: '🔄 Reset to Default',
@@ -1052,15 +1055,16 @@
                 `【 ${this.t('title')} v${GM_info.script.version} 】\n\n` +
                 `1. ${this.t('menu_rules')}\n` +
                 `2. ${i('ENABLE_LOW_VIEW_FILTER')} ${this.t('menu_low_view')}\n` +
-                `3. ${this.t('menu_view_settings')} (${this.config.get('LOW_VIEW_THRESHOLD')} / ${this.config.get('GRACE_PERIOD_HOURS')}h)\n` +
-                `4. ${this.t('menu_advanced')}\n` +
-                `5. ${i('OPEN_IN_NEW_TAB')} ${this.t('menu_new_tab')}\n` +
-                `6. ${i('OPEN_NOTIFICATIONS_IN_NEW_TAB')} ${this.t('menu_notification_new_tab')}\n` +
-                `7. ${i('DEBUG_MODE')} ${this.t('menu_debug')}\n` +
-                `8. ${this.t('menu_reset')}\n` +
-                `9. ${this.t('menu_stats')}${statsInfo}\n` +
-                `10. ${this.t('menu_export')}\n` +
-                `11. ${this.t('menu_lang')} [${langName}]\n\n` +
+                `3. ${this.t('menu_threshold')} (${this.config.get('LOW_VIEW_THRESHOLD')})\n` +
+                `4. ${this.t('menu_grace')} (${this.config.get('GRACE_PERIOD_HOURS')}h)\n` +
+                `5. ${this.t('menu_advanced')}\n` +
+                `6. ${i('OPEN_IN_NEW_TAB')} ${this.t('menu_new_tab')}\n` +
+                `7. ${i('OPEN_NOTIFICATIONS_IN_NEW_TAB')} ${this.t('menu_notification_new_tab')}\n` +
+                `8. ${i('DEBUG_MODE')} ${this.t('menu_debug')}\n` +
+                `9. ${this.t('menu_reset')}\n` +
+                `10. ${this.t('menu_stats')}${statsInfo}\n` +
+                `11. ${this.t('menu_export')}\n` +
+                `12. ${this.t('menu_lang')} [${langName}]\n\n` +
                 this.t('menu_input')
             );
             if (choice) this.handleMenu(choice);
@@ -1072,32 +1076,27 @@
                 case '3': {
                     const v = prompt(this.t('threshold_prompt'), this.config.get('LOW_VIEW_THRESHOLD'));
                     const num = Number(v);
-                    if (v !== null && !isNaN(num)) {
-                        this.update('LOW_VIEW_THRESHOLD', num);
-                        setTimeout(() => {
-                            const g = prompt(this.t('grace_prompt'), this.config.get('GRACE_PERIOD_HOURS'));
-                            const gNum = Number(g);
-                            if (g !== null && !isNaN(gNum)) {
-                                this.update('GRACE_PERIOD_HOURS', gNum);
-                            } else if (g !== null) {
-                                alert('❌ 請輸入有效的數字');
-                                this.showMainMenu();
-                            }
-                        }, 50);
-                    } else if (v !== null) {
-                        alert('❌ 請輸入有效的數字');
-                        this.showMainMenu();
-                    }
+                    if (v !== null && !isNaN(num)) this.update('LOW_VIEW_THRESHOLD', num);
+                    else if (v !== null) alert('❌ 請輸入有效的數字');
+                    this.showMainMenu();
                     break;
                 }
-                case '4': this.showAdvancedMenu(); break;
-                case '5': this.toggle('OPEN_IN_NEW_TAB'); break;
-                case '6': this.toggle('OPEN_NOTIFICATIONS_IN_NEW_TAB'); break;
-                case '7': this.toggle('DEBUG_MODE'); break;
-                case '8': if (confirm(this.t('reset_confirm'))) { Object.keys(this.config.defaults).forEach(k => this.config.set(k, this.config.defaults[k])); this.update('', null); } break;
-                case '9': this.showStats(); break;
-                case '10': this.showExportImportMenu(); break;
-                case '11': this.showLanguageMenu(); break;
+                case '4': {
+                    const v = prompt(this.t('grace_prompt'), this.config.get('GRACE_PERIOD_HOURS'));
+                    const num = Number(v);
+                    if (v !== null && !isNaN(num)) this.update('GRACE_PERIOD_HOURS', num);
+                    else if (v !== null) alert('❌ 請輸入有效的數字');
+                    this.showMainMenu();
+                    break;
+                }
+                case '5': this.showAdvancedMenu(); break;
+                case '6': this.toggle('OPEN_IN_NEW_TAB'); break;
+                case '7': this.toggle('OPEN_NOTIFICATIONS_IN_NEW_TAB'); break;
+                case '8': this.toggle('DEBUG_MODE'); break;
+                case '9': if (confirm(this.t('reset_confirm'))) { Object.keys(this.config.defaults).forEach(k => this.config.set(k, this.config.defaults[k])); this.update('', null); } break;
+                case '10': this.showStats(); break;
+                case '11': this.showExportImportMenu(); break;
+                case '12': this.showLanguageMenu(); break;
             }
         }
         showStats() {

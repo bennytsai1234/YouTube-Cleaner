@@ -18,6 +18,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.9.0] - 2026-01-25
+
+### Changed
+- **Menu UX Improvement**: Split "Low View Settings" into two separate menu options for better usability.
+    - **Option 3**: Set View Threshold (設定閾值)
+    - **Option 4**: Set Grace Period (設定豁免期)
+    - This change resolves issues with browser popup blocking and makes configuration more straightforward.
+
+---
+
 ## [1.8.9] - 2026-01-25
 
 ### Added
@@ -353,7 +363,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
-[Unreleased]: https://github.com/bennytsai1234/youtube-homepage-cleaner/compare/v1.8.9...HEAD
+[Unreleased]: https://github.com/bennytsai1234/youtube-homepage-cleaner/compare/v1.9.0...HEAD
+[1.9.0]: https://github.com/bennytsai1234/youtube-homepage-cleaner/compare/v1.8.9...v1.9.0
 [1.8.9]: https://github.com/bennytsai1234/youtube-homepage-cleaner/compare/v1.8.8...v1.8.9
 [1.8.8]: https://github.com/bennytsai1234/youtube-homepage-cleaner/compare/v1.8.7...v1.8.8
 [1.8.7]: https://github.com/bennytsai1234/youtube-homepage-cleaner/compare/v1.8.6...v1.8.7
