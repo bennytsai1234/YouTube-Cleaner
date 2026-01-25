@@ -18,6 +18,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.8.4] - 2026-01-25
+
+### Fixed
+- **Notification Panel: Comment Video Thumbnail Not Opening in New Tab**: Fixed an issue where clicking on video thumbnails in comment notifications (`ytd-comment-video-thumbnail-header-renderer`) did not trigger the "open in new tab" behavior.
+    - Extended notification panel detection to include: `ytd-notification-renderer`, `ytd-comment-video-thumbnail-header-renderer`, and `#sections.ytd-multi-page-menu-renderer`.
+    - Also improved link detection to include `a[href*="/watch?"]` in addition to `a.yt-simple-endpoint`.
+
+---
+
 ## [1.8.3] - 2026-01-25
 
 ### Fixed

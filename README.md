@@ -11,7 +11,7 @@
 [![GitHub Stars](https://img.shields.io/github/stars/bennytsai1234/youtube-homepage-cleaner?style=for-the-badge&logo=github&color=gold)](https://github.com/bennytsai1234/youtube-homepage-cleaner/stargazers)
 [![GitHub Forks](https://img.shields.io/github/forks/bennytsai1234/youtube-homepage-cleaner?style=for-the-badge&logo=github&color=blue)](https://github.com/bennytsai1234/youtube-homepage-cleaner/network/members)
 [![License](https://img.shields.io/github/license/bennytsai1234/youtube-homepage-cleaner?style=for-the-badge&color=green)](LICENSE)
-[![Version](https://img.shields.io/badge/version-v1.8.3-orange?style=for-the-badge)](https://github.com/bennytsai1234/youtube-homepage-cleaner/releases)
+[![Version](https://img.shields.io/badge/version-v1.8.4-orange?style=for-the-badge)](https://github.com/bennytsai1234/youtube-homepage-cleaner/releases)
 
 [✨ **功能特色**](#-主要功能與特色) · [📖 **更新日誌**](#-版本紀錄) · [🐛 **問題回報**](https://github.com/bennytsai1234/youtube-homepage-cleaner/issues)
 
@@ -126,7 +126,10 @@
 
 ## 📋 版本紀錄
 
-### v1.8.3 (2026-01-25) - 目前版本
+### v1.8.4 (2026-01-25) - 目前版本
+- 🔧 **修復通知面板新分頁**: 評論通知中的影片縮略圖現在也會在新分頁開啟
+
+### v1.8.3 (2026-01-25)
 - 🔥 **Critical Fix**: 修復設定無法儲存的問題（如「新分頁開啟」、「低觀看數過濾」等）
   - 原因：`ConfigManager.defaults` 缺少 6 個關鍵設定項目
   - 感謝 Greasy Fork 用戶 **Leadra** 回報此問題

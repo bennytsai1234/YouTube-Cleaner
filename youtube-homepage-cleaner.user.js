@@ -11,7 +11,7 @@
 // @icon        https://www.google.com/s2/favicons?sz=64&domain=youtube.com
 // @downloadURL https://raw.githubusercontent.com/bennytsai1234/YouTube-Cleaner/main/youtube-homepage-cleaner.user.js
 // @updateURL   https://raw.githubusercontent.com/bennytsai1234/YouTube-Cleaner/main/youtube-homepage-cleaner.user.js
-// @version     1.8.3
+// @version     1.8.4
 // @grant       GM_info
 // @grant       GM_addStyle
 // @grant       GM_setValue
@@ -729,10 +729,11 @@
             document.addEventListener('click', (e) => {
                 if (e.target.closest('[data-yp-hidden]')) return;
                 if (this.config.get('OPEN_NOTIFICATIONS_IN_NEW_TAB')) {
-                    const notification = e.target.closest('ytd-notification-renderer');
-                    if (notification) {
-                        const link = e.target.closest('a.yt-simple-endpoint');
-                        if (link && link.href && !e.target.closest('yt-icon-button')) {
+                    // 處理通知面板中的所有連結 (包含一般通知和評論通知)
+                    const notificationPanel = e.target.closest('ytd-notification-renderer, ytd-comment-video-thumbnail-header-renderer, #sections.ytd-multi-page-menu-renderer');
+                    if (notificationPanel) {
+                        const link = e.target.closest('a.yt-simple-endpoint, a[href*="/watch?"]');
+                        if (link && link.href && !e.target.closest('yt-icon-button, button')) {
                             e.preventDefault();
                             e.stopImmediatePropagation();
                             window.open(link.href, '_blank');
