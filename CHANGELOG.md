@@ -18,6 +18,27 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.8.6] - 2026-01-25
+
+### Changed
+- **Performance Optimization**:
+    - Switched from `innerText` to `textContent` for text filtering, significantly reducing layout thrashing (Reflow) during scrolling.
+    - Implemented **Throttling** (250ms) for `AdBlockGuard` to reduce CPU usage during rapid page mutations.
+    - Implemented **Singleton Pattern** for `ConfigManager` to ensure state consistency across modules.
+
+---
+
+## [1.8.5] - 2026-01-25
+
+### Fixed
+- **AdBlockGuard Initialization**: Implemented **Smart Retry** mechanism. Instead of a hard 2-second delay, it now retries connection to the popup container every 500ms (up to 5s), fixing race conditions on slow connections.
+- **Menu Input Validation**: Added `NaN` checks for numeric inputs (Threshold, Duration) to prevent settings corruption from invalid user input.
+- **Utils Robustness**:
+    - Updated time parser regex to support floating point values (e.g., "1.5 hours").
+    - Enhanced duration parser to handle edge cases better.
+
+---
+
 ## [1.8.4] - 2026-01-25
 
 ### Fixed
@@ -303,7 +324,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
-[Unreleased]: https://github.com/bennytsai1234/youtube-homepage-cleaner/compare/v1.6.8...HEAD
+[Unreleased]: https://github.com/bennytsai1234/youtube-homepage-cleaner/compare/v1.8.6...HEAD
+[1.8.6]: https://github.com/bennytsai1234/youtube-homepage-cleaner/compare/v1.8.5...v1.8.6
+[1.8.5]: https://github.com/bennytsai1234/youtube-homepage-cleaner/compare/v1.8.4...v1.8.5
+[1.8.4]: https://github.com/bennytsai1234/youtube-homepage-cleaner/compare/v1.8.3...v1.8.4
+[1.8.3]: https://github.com/bennytsai1234/youtube-homepage-cleaner/compare/v1.8.2...v1.8.3
+[1.8.2]: https://github.com/bennytsai1234/youtube-homepage-cleaner/compare/v1.8.1...v1.8.2
+[1.8.1]: https://github.com/bennytsai1234/youtube-homepage-cleaner/compare/v1.8.0...v1.8.1
+[1.8.0]: https://github.com/bennytsai1234/youtube-homepage-cleaner/compare/v1.7.9...v1.8.0
+[1.7.9]: https://github.com/bennytsai1234/youtube-homepage-cleaner/compare/v1.7.8...v1.7.9
+[1.7.8]: https://github.com/bennytsai1234/youtube-homepage-cleaner/compare/v1.7.7...v1.7.8
+[1.7.7]: https://github.com/bennytsai1234/youtube-homepage-cleaner/compare/v1.7.5...v1.7.7
+[1.7.5]: https://github.com/bennytsai1234/youtube-homepage-cleaner/compare/v1.7.4...v1.7.5
+[1.7.4]: https://github.com/bennytsai1234/youtube-homepage-cleaner/compare/v1.7.3...v1.7.4
+[1.7.3]: https://github.com/bennytsai1234/youtube-homepage-cleaner/compare/v1.7.2...v1.7.3
+[1.7.2]: https://github.com/bennytsai1234/youtube-homepage-cleaner/compare/v1.7.1...v1.7.2
+[1.7.1]: https://github.com/bennytsai1234/youtube-homepage-cleaner/compare/v1.7.0...v1.7.1
+[1.7.0]: https://github.com/bennytsai1234/youtube-homepage-cleaner/compare/v1.6.8...v1.7.0
 [1.6.8]: https://github.com/bennytsai1234/youtube-homepage-cleaner/compare/v1.6.7...v1.6.8
 [1.6.7]: https://github.com/bennytsai1234/youtube-homepage-cleaner/compare/v1.6.6...v1.6.7
 [1.6.6]: https://github.com/bennytsai1234/youtube-homepage-cleaner/compare/v1.6.5...v1.6.6

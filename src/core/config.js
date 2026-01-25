@@ -1,8 +1,12 @@
 import { Utils } from './utils.js';
 
 // --- 1. Core: Configuration Management ---
+let instance = null;
+
 export class ConfigManager {
     constructor() {
+        if (instance) return instance;
+        instance = this;
         this.defaults = {
             // 主選單設定
             OPEN_IN_NEW_TAB: true,

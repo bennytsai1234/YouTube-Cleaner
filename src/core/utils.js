@@ -19,7 +19,7 @@ const MULTIPLIERS = {
 // Pre-compiled regexes
 const RX_NUMERIC = /([\d.]+)\s*([kmb千萬万億亿])?/i;
 const RX_TIME_AGO_CHECK = /(ago|前|hour|minute|day|week|month|year|秒|分|時|天|週|月|年)/i;
-const RX_TIME_AGO_PARSE = /(\d+)\s*(second|minute|min|hour|hr|day|week|month|year|秒|分|小時|時|天|日|週|周|月|年)/i;
+const RX_TIME_AGO_PARSE = /([\d.]+)\s*(second|minute|min|hour|hr|day|week|month|year|秒|分|小時|時|天|日|週|周|月|年)/i;
 const RX_ZERO_TIME = /second|秒/i;
 
 const TIME_UNIT_KEYS = {
@@ -40,6 +40,18 @@ export const Utils = {
     debounce: (func, delay) => {
         let t;
         return (...args) => { clearTimeout(t); t = setTimeout(() => func(...args), delay); };
+    },
+
+    throttle: (func, limit) => {
+        let inThrottle;
+        return function(...args) {
+            const context = this;
+            if (!inThrottle) {
+                func.apply(context, args);
+                inThrottle = true;
+                setTimeout(() => inThrottle = false, limit);
+            }
+        };
     },
 
     parseNumeric: (text, type = 'any') => {
@@ -66,9 +78,12 @@ export const Utils = {
         if (!text) return null;
         const parts = text.trim().split(':').map(Number);
         if (parts.some(isNaN)) return null;
-        return parts.length === 3
-            ? parts[0] * 3600 + parts[1] * 60 + parts[2]
-            : (parts.length === 2 ? parts[0] * 60 + parts[1] : null);
+        // 處理 "MM:SS" 或 "HH:MM:SS"
+        if (parts.length === 3) return parts[0] * 3600 + parts[1] * 60 + parts[2];
+        if (parts.length === 2) return parts[0] * 60 + parts[1];
+        // 處理純秒數 (雖然 YouTube 目前少見)
+        if (parts.length === 1) return parts[0];
+        return null;
     },
 
     parseTimeAgo: (text) => {

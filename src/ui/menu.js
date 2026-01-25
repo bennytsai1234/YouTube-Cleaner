@@ -32,7 +32,13 @@ export class UIManager {
         switch (c.trim()) {
             case '1': this.showRuleMenu(); break;
             case '2': this.toggle('ENABLE_LOW_VIEW_FILTER'); break;
-            case '3': { const v = prompt(this.t('threshold_prompt')); if (v) this.update('LOW_VIEW_THRESHOLD', Number(v)); break; }
+            case '3': {
+                const v = prompt(this.t('threshold_prompt'), this.config.get('LOW_VIEW_THRESHOLD'));
+                const num = Number(v);
+                if (v !== null && !isNaN(num)) this.update('LOW_VIEW_THRESHOLD', num);
+                else if (v !== null) alert('❌ 請輸入有效的數字');
+                break;
+            }
             case '4': this.showAdvancedMenu(); break;
             case '5': this.toggle('OPEN_IN_NEW_TAB'); break;
             case '6': this.toggle('OPEN_NOTIFICATIONS_IN_NEW_TAB'); break;
@@ -133,9 +139,17 @@ export class UIManager {
         else if (c === '6') this.manage('SECTION_TITLE_BLACKLIST');
         else if (c === '7') this.toggle('ENABLE_DURATION_FILTER', true);
         else if (c === '8') {
-            const min = prompt(this.t('adv_min')); const max = prompt(this.t('adv_max'));
-            if (min) this.config.set('DURATION_MIN', min * 60);
-            if (max) this.config.set('DURATION_MAX', max * 60);
+            const min = prompt(this.t('adv_min'), this.config.get('DURATION_MIN') / 60);
+            const max = prompt(this.t('adv_max'), this.config.get('DURATION_MAX') / 60);
+
+            if (min !== null) {
+                const m = Number(min);
+                if (!isNaN(m)) this.config.set('DURATION_MIN', m * 60);
+            }
+            if (max !== null) {
+                const m = Number(max);
+                if (!isNaN(m)) this.config.set('DURATION_MAX', m * 60);
+            }
             this.onRefresh(); this.showAdvancedMenu();
         }
         else if (c === '9') this.toggle('ENABLE_REGION_CONVERT', true);

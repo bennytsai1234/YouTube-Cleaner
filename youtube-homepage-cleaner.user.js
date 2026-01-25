@@ -11,7 +11,7 @@
 // @icon        https://www.google.com/s2/favicons?sz=64&domain=youtube.com
 // @downloadURL https://raw.githubusercontent.com/bennytsai1234/YouTube-Cleaner/main/youtube-homepage-cleaner.user.js
 // @updateURL   https://raw.githubusercontent.com/bennytsai1234/YouTube-Cleaner/main/youtube-homepage-cleaner.user.js
-// @version     1.8.4
+// @version     1.8.6
 // @grant       GM_info
 // @grant       GM_addStyle
 // @grant       GM_setValue
@@ -38,7 +38,7 @@
     };
     const RX_NUMERIC = /([\d.]+)\s*([kmb千萬万億亿])?/i;
     const RX_TIME_AGO_CHECK = /(ago|前|hour|minute|day|week|month|year|秒|分|時|天|週|月|年)/i;
-    const RX_TIME_AGO_PARSE = /(\d+)\s*(second|minute|min|hour|hr|day|week|month|year|秒|分|小時|時|天|日|週|周|月|年)/i;
+    const RX_TIME_AGO_PARSE = /([\d.]+)\s*(second|minute|min|hour|hr|day|week|month|year|秒|分|小時|時|天|日|週|周|月|年)/i;
     const RX_ZERO_TIME = /second|秒/i;
     const TIME_UNIT_KEYS = {
         'minute': TIME_UNITS.MINUTE, 'min': TIME_UNITS.MINUTE, '分': TIME_UNITS.MINUTE,
@@ -54,6 +54,17 @@
         debounce: (func, delay) => {
             let t;
             return (...args) => { clearTimeout(t); t = setTimeout(() => func(...args), delay); };
+        },
+        throttle: (func, limit) => {
+            let inThrottle;
+            return function(...args) {
+                const context = this;
+                if (!inThrottle) {
+                    func.apply(context, args);
+                    inThrottle = true;
+                    setTimeout(() => inThrottle = false, limit);
+                }
+            };
         },
         parseNumeric: (text, type = 'any') => {
             if (!text) return null;
@@ -72,9 +83,10 @@
             if (!text) return null;
             const parts = text.trim().split(':').map(Number);
             if (parts.some(isNaN)) return null;
-            return parts.length === 3
-                ? parts[0] * 3600 + parts[1] * 60 + parts[2]
-                : (parts.length === 2 ? parts[0] * 60 + parts[1] : null);
+            if (parts.length === 3) return parts[0] * 3600 + parts[1] * 60 + parts[2];
+            if (parts.length === 2) return parts[0] * 60 + parts[1];
+            if (parts.length === 1) return parts[0];
+            return null;
         },
         parseTimeAgo: (text) => {
             if (!text) return null;
@@ -136,16 +148,17 @@
         }
     };
 
+    let instance = null;
     class ConfigManager {
         constructor() {
+            if (instance) return instance;
+            instance = this;
             this.defaults = {
-                // 主選單設定
                 OPEN_IN_NEW_TAB: true,
                 OPEN_NOTIFICATIONS_IN_NEW_TAB: true,
                 ENABLE_LOW_VIEW_FILTER: true,
                 LOW_VIEW_THRESHOLD: 1000,
                 DEBUG_MODE: true,
-                // 進階過濾設定
                 ENABLE_REGION_CONVERT: true,
                 ENABLE_KEYWORD_FILTER: true,
                 KEYWORD_BLACKLIST: ['預告', 'Teaser', 'Trailer', 'PV', 'CM', 'MV', 'Cover', '翻唱'],
@@ -305,20 +318,23 @@
             this.observer = null;
         }
         start() {
-            this.observer = new MutationObserver(() => this.checkAndClean());
+            this.checkAndCleanThrottled = Utils.throttle(() => this.checkAndClean(), 250);
+            this.observer = new MutationObserver(() => this.checkAndCleanThrottled());
             this.observer.observe(document.body, {
                 childList: true,
                 subtree: false
             });
-            const setupPopupObserver = () => {
+            const tryConnect = (attempts = 0) => {
                 const popupContainer = document.querySelector('ytd-popup-container');
                 if (popupContainer && !popupContainer._adGuardObserved) {
                     popupContainer._adGuardObserved = true;
                     this.observer.observe(popupContainer, { childList: true, subtree: true });
+                    Logger.info('🛡️ AdBlockGuard attached to popup container');
+                } else if (attempts < 10) {
+                    setTimeout(() => tryConnect(attempts + 1), 500);
                 }
             };
-            setupPopupObserver();
-            setTimeout(setupPopupObserver, 2000);
+            tryConnect();
             this.checkAndClean();
         }
         isWhitelisted(dialog) {
@@ -592,7 +608,7 @@
             if (element.hidden || element.hasAttribute('hidden')) {
                 return this._hide(element, 'native_hidden');
             }
-            const textRule = this.customRules.check(element, element.innerText);
+            const textRule = this.customRules.check(element, element.textContent);
             if (textRule) return this._hide(element, textRule);
             if (this._checkSectionFilter(element)) return;
             const isVideoElement = /VIDEO|LOCKUP|RICH-ITEM/.test(element.tagName);
@@ -729,11 +745,10 @@
             document.addEventListener('click', (e) => {
                 if (e.target.closest('[data-yp-hidden]')) return;
                 if (this.config.get('OPEN_NOTIFICATIONS_IN_NEW_TAB')) {
-                    // 處理通知面板中的所有連結 (包含一般通知和評論通知)
-                    const notificationPanel = e.target.closest('ytd-notification-renderer, ytd-comment-video-thumbnail-header-renderer, #sections.ytd-multi-page-menu-renderer');
-                    if (notificationPanel) {
-                        const link = e.target.closest('a.yt-simple-endpoint, a[href*="/watch?"]');
-                        if (link && link.href && !e.target.closest('yt-icon-button, button')) {
+                    const notification = e.target.closest('ytd-notification-renderer');
+                    if (notification) {
+                        const link = e.target.closest('a.yt-simple-endpoint');
+                        if (link && link.href && !e.target.closest('yt-icon-button')) {
                             e.preventDefault();
                             e.stopImmediatePropagation();
                             window.open(link.href, '_blank');
@@ -1044,7 +1059,13 @@
             switch (c.trim()) {
                 case '1': this.showRuleMenu(); break;
                 case '2': this.toggle('ENABLE_LOW_VIEW_FILTER'); break;
-                case '3': { const v = prompt(this.t('threshold_prompt')); if (v) this.update('LOW_VIEW_THRESHOLD', Number(v)); break; }
+                case '3': {
+                    const v = prompt(this.t('threshold_prompt'), this.config.get('LOW_VIEW_THRESHOLD'));
+                    const num = Number(v);
+                    if (v !== null && !isNaN(num)) this.update('LOW_VIEW_THRESHOLD', num);
+                    else if (v !== null) alert('❌ 請輸入有效的數字');
+                    break;
+                }
                 case '4': this.showAdvancedMenu(); break;
                 case '5': this.toggle('OPEN_IN_NEW_TAB'); break;
                 case '6': this.toggle('OPEN_NOTIFICATIONS_IN_NEW_TAB'); break;
@@ -1142,9 +1163,16 @@
             else if (c === '6') this.manage('SECTION_TITLE_BLACKLIST');
             else if (c === '7') this.toggle('ENABLE_DURATION_FILTER', true);
             else if (c === '8') {
-                const min = prompt(this.t('adv_min')); const max = prompt(this.t('adv_max'));
-                if (min) this.config.set('DURATION_MIN', min * 60);
-                if (max) this.config.set('DURATION_MAX', max * 60);
+                const min = prompt(this.t('adv_min'), this.config.get('DURATION_MIN') / 60);
+                const max = prompt(this.t('adv_max'), this.config.get('DURATION_MAX') / 60);
+                if (min !== null) {
+                    const m = Number(min);
+                    if (!isNaN(m)) this.config.set('DURATION_MIN', m * 60);
+                }
+                if (max !== null) {
+                    const m = Number(max);
+                    if (!isNaN(m)) this.config.set('DURATION_MAX', m * 60);
+                }
                 this.onRefresh(); this.showAdvancedMenu();
             }
             else if (c === '9') this.toggle('ENABLE_REGION_CONVERT', true);

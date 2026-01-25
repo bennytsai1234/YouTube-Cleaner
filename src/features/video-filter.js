@@ -146,8 +146,8 @@ export class VideoFilter {
             return this._hide(element, 'native_hidden');
         }
 
-        // 文字規則檢查
-        const textRule = this.customRules.check(element, element.innerText);
+        // 文字規則檢查 (使用 textContent 避免 Reflow, 效能大幅提升)
+        const textRule = this.customRules.check(element, element.textContent);
         if (textRule) return this._hide(element, textRule);
 
         // 1. 欄位標題過濾 (新增功能)

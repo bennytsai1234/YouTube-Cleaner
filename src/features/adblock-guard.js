@@ -1,4 +1,5 @@
 import { Logger } from '../core/logger.js';
+import { Utils } from '../core/utils.js';
 
 // --- 常數定義 ---
 const TIMING = {
@@ -28,8 +29,11 @@ export class AdBlockGuard {
     }
 
     start() {
-        // 使用 MutationObserver 監聽 popup 容器，比輪詢更高效
-        this.observer = new MutationObserver(() => this.checkAndClean());
+        // 使用 Throttled check，避免頻繁 Mutation 造成效能衝擊
+        this.checkAndCleanThrottled = Utils.throttle(() => this.checkAndClean(), 250);
+
+        // 使用 MutationObserver 監聽 popup 容器
+        this.observer = new MutationObserver(() => this.checkAndCleanThrottled());
 
         // 監聽 body 的直接子元素變化 (popup 通常加在這裡)
         this.observer.observe(document.body, {
@@ -37,18 +41,20 @@ export class AdBlockGuard {
             subtree: false  // 只監聽直接子元素，減少觸發次數
         });
 
-        // 也監聽 popup container
-        const setupPopupObserver = () => {
+        // 嘗試連接 popup container，帶有重試機制
+        const tryConnect = (attempts = 0) => {
             const popupContainer = document.querySelector('ytd-popup-container');
             if (popupContainer && !popupContainer._adGuardObserved) {
                 popupContainer._adGuardObserved = true;
                 this.observer.observe(popupContainer, { childList: true, subtree: true });
+                Logger.info('🛡️ AdBlockGuard attached to popup container');
+            } else if (attempts < 10) {
+                // 如果還沒找到，每 500ms 重試一次，最多 5 秒
+                setTimeout(() => tryConnect(attempts + 1), 500);
             }
         };
 
-        setupPopupObserver();
-        // 延遲再試一次 (popup container 可能還沒載入)
-        setTimeout(setupPopupObserver, 2000);
+        tryConnect();
 
         // 初始檢查一次
         this.checkAndClean();
