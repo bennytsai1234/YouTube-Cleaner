@@ -11,7 +11,7 @@ export class CustomRuleManager {
         this.definitions = [
             // 從 v1.4.0 還原的文字匹配規則 (作為 CSS 的備援)
             { key: 'members_only', rules: [/頻道會員專屬|Members only/i] },
-            { key: 'mix_only', rules: [/^(合輯|Mix)[\s\-–]/i] },
+            { key: 'mix_only', rules: [/(^|\s)(合輯|Mix)([\s\-–]|$)/i] },
 
             // 區塊/Shelf 類規則
             { key: 'news_block', rules: [/新聞快報|Breaking News|ニュース/i] },

@@ -11,7 +11,7 @@
 // @icon        https://www.google.com/s2/favicons?sz=64&domain=youtube.com
 // @downloadURL https://raw.githubusercontent.com/bennytsai1234/YouTube-Cleaner/main/youtube-homepage-cleaner.user.js
 // @updateURL   https://raw.githubusercontent.com/bennytsai1234/YouTube-Cleaner/main/youtube-homepage-cleaner.user.js
-// @version     1.8.7
+// @version     1.8.8
 // @grant       GM_info
 // @grant       GM_addStyle
 // @grant       GM_setValue
@@ -419,7 +419,9 @@
         ],
         BADGES: {
             MEMBERS: '.badge-style-type-members-only, [aria-label*="會員專屬"], [aria-label*="Members only"]',
-            SHORTS: 'a[href*="/shorts/"]'},
+            SHORTS: 'a[href*="/shorts/"]',
+            MIX: 'a[aria-label*="合輯"], a[aria-label*="Mix"]'
+        },
         INTERACTION_EXCLUDE: 'button, yt-icon-button, #menu, ytd-menu-renderer, ytd-toggle-button-renderer, yt-chip-cloud-chip-renderer, .yt-spec-button-shape-next, .yt-core-attributed-string__link, #subscribe-button, .ytp-progress-bar, .ytp-chrome-bottom',
         CLICKABLE: [
             'ytd-rich-item-renderer', 'ytd-video-renderer', 'ytd-compact-video-renderer',
@@ -459,7 +461,7 @@
             this.config = config;
             this.definitions = [
                 { key: 'members_only', rules: [/頻道會員專屬|Members only/i] },
-                { key: 'mix_only', rules: [/^(合輯|Mix)[\s\-–]/i] },
+                { key: 'mix_only', rules: [/(^|\s)(合輯|Mix)([\s\-–]|$)/i] },
                 { key: 'news_block', rules: [/新聞快報|Breaking News|ニュース/i] },
                 { key: 'posts_block', rules: [/貼文|Posts|投稿|Publicaciones|最新 YouTube 貼文/i] },
                 { key: 'playables_block', rules: [/Playables|遊戲角落/i] },
@@ -559,7 +561,12 @@
                 /會員專屬|Members only/.test(this.el.innerText);
         }
         get isPlaylist() {
-            return !!this.el.querySelector('a[href^="/playlist?list="], [content-id^="PL"]');
+            const link = this.el.querySelector('a[href*="list="], [content-id^="PL"]');
+            if (link) return true;
+            if (this.el.querySelector(SELECTORS.BADGES.MIX)) return true;
+            const title = this.title;
+            if (title && /^(合輯|Mix)/i.test(title)) return true;
+            return false;
         }
     }
     class VideoFilter {

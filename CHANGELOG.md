@@ -18,6 +18,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.8.8] - 2026-01-25
+
+### Fixed
+- **Mix Filter Logic**: Fixed an issue where "Mix" (合輯) videos in the new Rich Grid layout were not being correctly identified as playlists.
+    - Updated `isPlaylist` logic to detect `list=` parameters in watch URLs (common for Mixes).
+    - Added fallback checks for Badge text ("合輯") and Title keywords.
+    - Relaxed the regex for `mix_only` rule to better handle leading whitespace in text content.
+
+---
+
 ## [1.8.7] - 2026-01-25
 
 ### Fixed
@@ -333,7 +343,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
-[Unreleased]: https://github.com/bennytsai1234/youtube-homepage-cleaner/compare/v1.8.7...HEAD
+[Unreleased]: https://github.com/bennytsai1234/youtube-homepage-cleaner/compare/v1.8.8...HEAD
+[1.8.8]: https://github.com/bennytsai1234/youtube-homepage-cleaner/compare/v1.8.7...v1.8.8
 [1.8.7]: https://github.com/bennytsai1234/youtube-homepage-cleaner/compare/v1.8.6...v1.8.7
 [1.8.6]: https://github.com/bennytsai1234/youtube-homepage-cleaner/compare/v1.8.5...v1.8.6
 [1.8.5]: https://github.com/bennytsai1234/youtube-homepage-cleaner/compare/v1.8.4...v1.8.5

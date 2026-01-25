@@ -85,7 +85,17 @@ export class LazyVideoData {
             /會員專屬|Members only/.test(this.el.innerText);
     }
     get isPlaylist() {
-        return !!this.el.querySelector('a[href^="/playlist?list="], [content-id^="PL"]');
+        const link = this.el.querySelector('a[href*="list="], [content-id^="PL"]');
+        if (link) return true;
+
+        // 檢查 Badge
+        if (this.el.querySelector(SELECTORS.BADGES.MIX)) return true;
+
+        // 檢查 Title
+        const title = this.title;
+        if (title && /^(合輯|Mix)/i.test(title)) return true;
+
+        return false;
     }
 }
 
