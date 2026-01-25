@@ -21,12 +21,15 @@ export class InteractionEnhancer {
             if (e.target.closest('[data-yp-hidden]')) return;
 
             // 1. 通知新分頁開啟邏輯 (優先處理)
+            // 1. 通知新分頁開啟邏輯 (優先處理)
             if (this.config.get('OPEN_NOTIFICATIONS_IN_NEW_TAB')) {
-                const notification = e.target.closest('ytd-notification-renderer');
-                if (notification) {
-                    const link = e.target.closest('a.yt-simple-endpoint');
-                    // 確保只是點擊通知內容，而非側邊選單或其他按鈕
-                    if (link && link.href && !e.target.closest('yt-icon-button')) {
+                // 擴大偵測範圍：一般通知、評論影片縮圖通知、多頁選單中的 Section
+                const notificationPanel = e.target.closest('ytd-notification-renderer, ytd-comment-video-thumbnail-header-renderer, #sections.ytd-multi-page-menu-renderer');
+
+                if (notificationPanel) {
+                    const link = e.target.closest('a.yt-simple-endpoint, a[href*="/watch?"]');
+                    // 確保只是點擊通知內容，而非側邊選單或其他按鈕 (如 :kebab: menu)
+                    if (link && link.href && !e.target.closest('yt-icon-button, button')) {
                         e.preventDefault();
                         e.stopImmediatePropagation();
                         window.open(link.href, '_blank');

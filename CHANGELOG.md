@@ -18,6 +18,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.8.7] - 2026-01-25
+
+### Fixed
+- **Notification Interaction**: Fixed a regression in `src/` modules where enhanced notification click blocking was missing, causing `v1.8.5/v1.8.6` builds to lose the feature.
+    - Re-synced logic to support `ytd-comment-video-thumbnail-header-renderer` and `a[href*="/watch?"]` correctly.
+    - Ensures comment replies with video thumbnails in the notification dropdown properly open in a new tab.
+
+---
+
 ## [1.8.6] - 2026-01-25
 
 ### Changed
@@ -324,7 +333,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
-[Unreleased]: https://github.com/bennytsai1234/youtube-homepage-cleaner/compare/v1.8.6...HEAD
+[Unreleased]: https://github.com/bennytsai1234/youtube-homepage-cleaner/compare/v1.8.7...HEAD
+[1.8.7]: https://github.com/bennytsai1234/youtube-homepage-cleaner/compare/v1.8.6...v1.8.7
 [1.8.6]: https://github.com/bennytsai1234/youtube-homepage-cleaner/compare/v1.8.5...v1.8.6
 [1.8.5]: https://github.com/bennytsai1234/youtube-homepage-cleaner/compare/v1.8.4...v1.8.5
 [1.8.4]: https://github.com/bennytsai1234/youtube-homepage-cleaner/compare/v1.8.3...v1.8.4
