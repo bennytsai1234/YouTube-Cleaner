@@ -84,6 +84,14 @@ export class LazyVideoData {
         return this.el.querySelector(SELECTORS.BADGES.MEMBERS) ||
             /會員專屬|Members only/.test(this.el.innerText);
     }
+
+    get isUserPlaylist() {
+        const link = this.el.querySelector('a[href*="list="]');
+        if (link && /list=(LL|WL|FL)/.test(link.href)) return true;
+        const texts = Array.from(this.el.querySelectorAll(SELECTORS.METADATA.TEXT));
+        const ownershipKeywords = /Private|Unlisted|Public|私人|不公開|不公开|公開|公开/i;
+        return texts.some(t => ownershipKeywords.test(t.textContent));
+    }
     get isPlaylist() {
         const link = this.el.querySelector('a[href*="list="], [content-id^="PL"]');
         if (link) return true;
@@ -104,6 +112,17 @@ export class VideoFilter {
     constructor(config) {
         this.config = config;
         this.customRules = new CustomRuleManager(config);
+    }
+
+    get isPageAllowingContent() {
+        // 在這些頁面不執行內容過濾 (但仍執行廣告過濾)
+        // 1. /feed/playlists (播放清單頁)
+        // 2. /feed/library (媒體庫)
+        // 3. /feed/subscriptions (訂閱內容) - 通常使用者想看所有訂閱
+        // 4. /@xxx/playlists (頻道播放清單頁)
+        const path = window.location.pathname;
+        return /^\/feed\/(playlists|library|subscriptions)/.test(path) ||
+               /\/playlists$/.test(path);
     }
 
     processMutations(mutations) {
@@ -162,6 +181,12 @@ export class VideoFilter {
 
         // 1. 欄位標題過濾 (新增功能)
         if (this._checkSectionFilter(element)) return;
+
+        // 如果是「允許內容」的頁面 (如播放清單、訂閱)，則跳過後續的內容過濾 (但前面已執行廣告/規則檢查)
+        if (this.isPageAllowingContent) {
+            element.dataset.ypChecked = 'true';
+            return;
+        }
 
         // 影片元素處理
         const isVideoElement = /VIDEO|LOCKUP|RICH-ITEM/.test(element.tagName);
@@ -290,6 +315,7 @@ export class VideoFilter {
 
     _checkPlaylistFilter(item, element) {
         if (!this.config.get('RULE_ENABLES').recommended_playlists || !item.isPlaylist) return false;
+        if (item.isUserPlaylist) return false;
         this._hide(element, 'recommended_playlists');
         return true;
     }

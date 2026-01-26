@@ -168,10 +168,18 @@ export class UIManager {
     manage(k) {
         const l = this.config.get(k);
         const c = prompt(`[${l.join(', ')}]\n1.${this.t('adv_add')} 2.${this.t('adv_remove')} 3.${this.t('adv_clear')} 0.${this.t('back')}`);
-        if (c === '1') { const v = prompt(`${this.t('adv_add')}:`); if (v) this.config.set(k, [...l, ...v.split(',')]); }
-        if (c === '2') { const v = prompt(`${this.t('adv_remove')}:`); if (v) this.config.set(k, l.filter(i => i !== v)); }
-        if (c === '3') this.config.set(k, []);
-        this.onRefresh(); this.showAdvancedMenu();
+
+        if (!c) return; // Cancel or Empty -> Close
+
+        const choice = c.trim();
+        if (choice === '0') { this.showAdvancedMenu(); return; }
+
+        if (choice === '1') { const v = prompt(`${this.t('adv_add')}:`); if (v) this.config.set(k, [...l, ...v.split(',')]); }
+        if (choice === '2') { const v = prompt(`${this.t('adv_remove')}:`); if (v) this.config.set(k, l.filter(i => i !== v)); }
+        if (choice === '3') this.config.set(k, []);
+
+        this.onRefresh();
+        this.manage(k); // Loop back to manage menu
     }
     toggle(k, adv) { this.config.set(k, !this.config.get(k)); this.onRefresh(); adv ? this.showAdvancedMenu() : this.showMainMenu(); }
     update(k, v) { if (k) this.config.set(k, v); this.onRefresh(); this.showMainMenu(); }

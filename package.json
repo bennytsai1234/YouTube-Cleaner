@@ -1,6 +1,6 @@
 {
   "name": "youtube-homepage-cleaner",
-  "version": "1.9.0",
+  "version": "1.9.2",
   "type": "module",
   "description": "Clean YouTube interface by hiding Shorts, suggestions, and clutter elements.",
   "scripts": {

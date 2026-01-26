@@ -18,6 +18,29 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.9.2] - 2026-01-26
+
+### Fixed
+- **Page-Aware Filtering**: The script now intelligently detects "Trusted Pages" to prevent accidental cleaning of user content.
+    - **Safe Pages**: Playlists Feed (`/feed/playlists`), Library (`/feed/library`), Subscriptions (`/feed/subscriptions`), and Channel Playlists (`/@.../playlists`).
+    - On these pages, content-based filters (Low views, Duration, Playlists) are **disabled**, while Ad Blocking remains active.
+    - Resolves issue where the "Playlists" page would appear empty because the script hid all playlists as "recommendations".
+- **Menu UX Fix**: Fixed navigation in "Manage List" sub-menus (Keywords, Channels, etc.).
+    - Previously, clicking "Cancel" would return to the parent menu instead of closing, requiring a second cancellation.
+    - Now, "Cancel" or "Empty OK" immediately closes the menu system.
+    - Added "Loop-back" behavior: After adding/removing an item, the menu stays in the list manager for easier bulk editing.
+
+---
+
+## [1.9.1] - 2026-01-26
+
+### Fixed
+- **User Playlist Whitelist**: Fixed an issue where the user's own playlists (Liked Videos, Watch Later, Favorites) were being hidden by the "Recommended Playlists" filter.
+    - Added specific checks for `list=LL`, `list=WL`, `list=FL`.
+    - Added metadata analysis to whitelist playlists containing "Private", "Unlisted", "Public" (and Chinese equivalents) in their description, identifying them as user-owned content rather than algorithmic recommendations.
+
+---
+
 ## [1.9.0] - 2026-01-25
 
 ### Changed
@@ -364,6 +387,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ---
 
 [Unreleased]: https://github.com/bennytsai1234/youtube-homepage-cleaner/compare/v1.9.0...HEAD
+[1.9.2]: https://github.com/bennytsai1234/youtube-homepage-cleaner/compare/v1.9.1...v1.9.2
+[1.9.1]: https://github.com/bennytsai1234/youtube-homepage-cleaner/compare/v1.9.0...v1.9.1
 [1.9.0]: https://github.com/bennytsai1234/youtube-homepage-cleaner/compare/v1.8.9...v1.9.0
 [1.8.9]: https://github.com/bennytsai1234/youtube-homepage-cleaner/compare/v1.8.8...v1.8.9
 [1.8.8]: https://github.com/bennytsai1234/youtube-homepage-cleaner/compare/v1.8.7...v1.8.8
