@@ -11,7 +11,7 @@
 [![GitHub Stars](https://img.shields.io/github/stars/bennytsai1234/youtube-homepage-cleaner?style=for-the-badge&logo=github&color=gold)](https://github.com/bennytsai1234/youtube-homepage-cleaner/stargazers)
 [![GitHub Forks](https://img.shields.io/github/forks/bennytsai1234/youtube-homepage-cleaner?style=for-the-badge&logo=github&color=blue)](https://github.com/bennytsai1234/youtube-homepage-cleaner/network/members)
 [![License](https://img.shields.io/github/license/bennytsai1234/youtube-homepage-cleaner?style=for-the-badge&color=green)](LICENSE)
-[![Version](https://img.shields.io/badge/version-v1.9.0-orange?style=for-the-badge)](https://github.com/bennytsai1234/youtube-homepage-cleaner/releases)
+[![Version](https://img.shields.io/badge/version-v1.9.2-orange?style=for-the-badge)](https://github.com/bennytsai1234/youtube-homepage-cleaner/releases)
 
 [✨ **功能特色**](#-主要功能與特色) · [📖 **更新日誌**](#-版本紀錄) · [🐛 **問題回報**](https://github.com/bennytsai1234/youtube-homepage-cleaner/issues)
 
@@ -126,7 +126,18 @@
 
 ## 📋 版本紀錄
 
-### v1.8.4 (2026-01-25) - 目前版本
+### v1.9.2 (2026-01-26) - 目前版本
+- 🧠 **安全頁面保護**: 在播放清單 (`/feed/playlists`)、媒體庫、訂閱內容等頁面自動停用內容過濾，防止您的個人內容被誤刪 (廣告過濾仍有效)
+- 🔧 **選單 UX 優化**: 修復「管理清單」子選單的操作邏輯，現在可直接關閉且支援連續編輯
+
+### v1.9.1 (2026-01-26)
+- 🔧 **個人播放清單白名單**: 修正「喜歡的影片」、「稍後觀看」等個人播放清單被誤判為推薦內容而隱藏的問題
+
+### v1.9.0 (2026-01-25)
+- 🔧 **選單 UX 優化**: 將「設定閾值」與「設定豁免期」拆分為獨立選項，操作更直覺
+- 🚀 **預設值調整**: 低觀看數過濾、頻道過濾等功能預設開啟
+
+### v1.8.4 (2026-01-25)
 - 🔧 **修復通知面板新分頁**: 評論通知中的影片縮略圖現在也會在新分頁開啟
 
 ### v1.8.3 (2026-01-25)
