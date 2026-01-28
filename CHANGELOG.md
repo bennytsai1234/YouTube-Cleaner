@@ -18,6 +18,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.9.3] - 2026-01-28
+
+### Added
+- **Core Logic Tests**: Introduced comprehensive unit tests (`test/logic-test.js`) to verify the stability of keyword filtering, view count logic, and duration filters.
+- **Testing Infrastructure**: Unified test commands. `npm run test` now executes both logic and utility tests.
+
+---
+
 ## [1.9.2] - 2026-01-26
 
 ### Fixed

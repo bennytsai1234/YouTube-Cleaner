@@ -11,7 +11,7 @@
 [![GitHub Stars](https://img.shields.io/github/stars/bennytsai1234/youtube-homepage-cleaner?style=for-the-badge&logo=github&color=gold)](https://github.com/bennytsai1234/youtube-homepage-cleaner/stargazers)
 [![GitHub Forks](https://img.shields.io/github/forks/bennytsai1234/youtube-homepage-cleaner?style=for-the-badge&logo=github&color=blue)](https://github.com/bennytsai1234/youtube-homepage-cleaner/network/members)
 [![License](https://img.shields.io/github/license/bennytsai1234/youtube-homepage-cleaner?style=for-the-badge&color=green)](LICENSE)
-[![Version](https://img.shields.io/badge/version-v1.9.2-orange?style=for-the-badge)](https://github.com/bennytsai1234/youtube-homepage-cleaner/releases)
+[![Version](https://img.shields.io/badge/version-v1.9.3-orange?style=for-the-badge)](https://github.com/bennytsai1234/youtube-homepage-cleaner/releases)
 
 [✨ **功能特色**](#-主要功能與特色) · [📖 **更新日誌**](#-版本紀錄) · [🐛 **問題回報**](https://github.com/bennytsai1234/youtube-homepage-cleaner/issues)
 
@@ -126,7 +126,11 @@
 
 ## 📋 版本紀錄
 
-### v1.9.2 (2026-01-26) - 目前版本
+### v1.9.3 (2026-01-28) - 目前版本
+- 🧪 **穩定性強化**: 新增核心邏輯單元測試，確保過濾規則（關鍵字、觀看數、時長）的準確性
+- 🛡️ **開發架構升級**: 完善測試基礎建設，為未來的穩定迭代打下基礎
+
+### v1.9.2 (2026-01-26)
 - 🧠 **安全頁面保護**: 在播放清單 (`/feed/playlists`)、媒體庫、訂閱內容等頁面自動停用內容過濾，防止您的個人內容被誤刪 (廣告過濾仍有效)
 - 🔧 **選單 UX 優化**: 修復「管理清單」子選單的操作邏輯，現在可直接關閉且支援連續編輯
 
