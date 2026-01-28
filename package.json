@@ -7,7 +7,7 @@
     "build": "rollup -c",
     "dev": "rollup -c -w",
     "lint": "eslint src",
-    "test": "node test/filter-test.js"
+    "test": "node test/filter-test.js && node test/logic-test.js"
   },
   "repository": {
     "type": "git",
