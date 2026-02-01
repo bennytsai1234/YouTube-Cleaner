@@ -25,6 +25,9 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      - name: Run Tests
+        run: npm test
+
       - name: Build UserScript
         run: npm run build
 
@@ -39,7 +42,7 @@ jobs:
             echo "RELEASE_VERSION=$VERSION" >> $GITHUB_ENV
 
       - name: Create Release
-        uses: softprops/action-gh-release@v1
+        uses: softprops/action-gh-release@v2
         with:
           files: youtube-homepage-cleaner.user.js
           name: ${{ env.RELEASE_VERSION }}
