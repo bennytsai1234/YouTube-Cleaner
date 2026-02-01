@@ -11,7 +11,7 @@
 // @icon        https://www.google.com/s2/favicons?sz=64&domain=youtube.com
 // @downloadURL https://raw.githubusercontent.com/bennytsai1234/YouTube-Cleaner/main/youtube-homepage-cleaner.user.js
 // @updateURL   https://raw.githubusercontent.com/bennytsai1234/YouTube-Cleaner/main/youtube-homepage-cleaner.user.js
-// @version     1.9.7
+// @version     1.9.8
 // @grant       GM_info
 // @grant       GM_addStyle
 // @grant       GM_setValue
@@ -163,7 +163,6 @@
                 DISABLE_FILTER_ON_CHANNEL: true,
                 ENABLE_KEYWORD_FILTER: true,
                 KEYWORD_BLACKLIST: ['預告', 'Teaser', 'Trailer', 'PV', 'CM', 'MV', 'Cover', '翻唱'],
-                ENABLE_CHANNEL_FILTER: true,
                 ENABLE_CHANNEL_FILTER: true,
                 CHANNEL_BLACKLIST: [],
                 CHANNEL_WHITELIST: [],
@@ -913,7 +912,6 @@
                 adv_keyword_filter: '關鍵字過濾',
                 adv_keyword_list: '✏️ 關鍵字清單',
                 adv_channel_filter: '頻道過濾',
-                adv_channel_filter: '頻道過濾',
                 adv_channel_list: '✏️ 頻道黑名單',
                 adv_channel_whitelist: '🛡️ 頻道白名單 (例外放行)',
                 adv_section_filter: '欄位過濾',
@@ -964,7 +962,6 @@
                 adv_keyword_filter: '关键字过滤',
                 adv_keyword_list: '✏️ 关键字列表',
                 adv_channel_filter: '频道过滤',
-                adv_channel_filter: '频道过滤',
                 adv_channel_list: '✏️ 频道黑名单',
                 adv_channel_whitelist: '🛡️ 频道白名单 (例外放行)',
                 adv_section_filter: '栏位过滤',
@@ -1014,7 +1011,6 @@
                 back: 'Back',
                 adv_keyword_filter: 'Keyword Filter',
                 adv_keyword_list: '✏️ Keyword List',
-                adv_channel_filter: 'Channel Filter',
                 adv_channel_filter: 'Channel Filter',
                 adv_channel_list: '✏️ Channel Blacklist',
                 adv_channel_whitelist: '🛡️ Channel Whitelist',

@@ -21,7 +21,6 @@ export class ConfigManager {
             ENABLE_KEYWORD_FILTER: true,
             KEYWORD_BLACKLIST: ['預告', 'Teaser', 'Trailer', 'PV', 'CM', 'MV', 'Cover', '翻唱'],
             ENABLE_CHANNEL_FILTER: true,
-            ENABLE_CHANNEL_FILTER: true,
             CHANNEL_BLACKLIST: [],
             CHANNEL_WHITELIST: [],
             ENABLE_SECTION_FILTER: true,
