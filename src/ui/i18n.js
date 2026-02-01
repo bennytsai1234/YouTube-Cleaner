@@ -40,7 +40,9 @@ export const I18N = {
             adv_keyword_filter: '關鍵字過濾',
             adv_keyword_list: '✏️ 關鍵字清單',
             adv_channel_filter: '頻道過濾',
-            adv_channel_list: '✏️ 頻道清單',
+            adv_channel_filter: '頻道過濾',
+            adv_channel_list: '✏️ 頻道黑名單',
+            adv_channel_whitelist: '🛡️ 頻道白名單 (例外放行)',
             adv_section_filter: '欄位過濾',
             adv_section_list: '✏️ 欄位標題清單',
             adv_duration_filter: '長度過濾',
@@ -50,7 +52,8 @@ export const I18N = {
             adv_add: '新增',
             adv_remove: '刪除',
             adv_clear: '清空',
-            adv_region_convert: '繁簡通用過濾'
+            adv_region_convert: '繁簡通用過濾',
+            adv_disable_channel: '頻道頁面停止過濾 (保留內容)'
         },
         'zh-CN': {
             title: 'YouTube 净化大师',
@@ -88,7 +91,9 @@ export const I18N = {
             adv_keyword_filter: '关键字过滤',
             adv_keyword_list: '✏️ 关键字列表',
             adv_channel_filter: '频道过滤',
-            adv_channel_list: '✏️ 频道列表',
+            adv_channel_filter: '频道过滤',
+            adv_channel_list: '✏️ 频道黑名单',
+            adv_channel_whitelist: '🛡️ 频道白名单 (例外放行)',
             adv_section_filter: '栏位过滤',
             adv_section_list: '✏️ 栏位标题列表',
             adv_duration_filter: '时长过滤',
@@ -98,7 +103,8 @@ export const I18N = {
             adv_add: '新增',
             adv_remove: '删除',
             adv_clear: '清空',
-            adv_region_convert: '繁简通用过滤'
+            adv_region_convert: '繁简通用过滤',
+            adv_disable_channel: '频道页面停止过滤 (保留内容)'
         },
         'en': {
             title: 'YouTube Cleaner',
@@ -136,7 +142,9 @@ export const I18N = {
             adv_keyword_filter: 'Keyword Filter',
             adv_keyword_list: '✏️ Keyword List',
             adv_channel_filter: 'Channel Filter',
-            adv_channel_list: '✏️ Channel List',
+            adv_channel_filter: 'Channel Filter',
+            adv_channel_list: '✏️ Channel Blacklist',
+            adv_channel_whitelist: '🛡️ Channel Whitelist',
             adv_section_filter: 'Section Filter',
             adv_section_list: '✏️ Section Title List',
             adv_duration_filter: 'Duration Filter',
@@ -146,7 +154,8 @@ export const I18N = {
             adv_add: 'Add',
             adv_remove: 'Remove',
             adv_clear: 'Clear',
-            adv_region_convert: 'Region Agnostic Filter'
+            adv_region_convert: 'Region Agnostic Filter',
+            adv_disable_channel: 'Disable on Channel Pages'
         }
     },
 

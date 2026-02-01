@@ -134,21 +134,24 @@ export class UIManager {
             `2. ${this.t('adv_keyword_list')}\n` +
             `3. ${i('ENABLE_CHANNEL_FILTER')} ${this.t('adv_channel_filter')}\n` +
             `4. ${this.t('adv_channel_list')}\n` +
-            `5. ${i('ENABLE_SECTION_FILTER')} ${this.t('adv_section_filter')}\n` +
-            `6. ${this.t('adv_section_list')}\n` +
-            `7. ${i('ENABLE_DURATION_FILTER')} ${this.t('adv_duration_filter')}\n` +
-            `8. ${this.t('adv_duration_set')}\n` +
-            `9. ${i('ENABLE_REGION_CONVERT')} ${this.t('adv_region_convert')}\n` +
+            `5. ${this.t('adv_channel_whitelist')}\n` +
+            `6. ${i('ENABLE_SECTION_FILTER')} ${this.t('adv_section_filter')}\n` +
+            `7. ${this.t('adv_section_list')}\n` +
+            `8. ${i('ENABLE_DURATION_FILTER')} ${this.t('adv_duration_filter')}\n` +
+            `9. ${this.t('adv_duration_set')}\n` +
+            `10. ${i('ENABLE_REGION_CONVERT')} ${this.t('adv_region_convert')}\n` +
+            `11. ${i('DISABLE_FILTER_ON_CHANNEL')} ${this.t('adv_disable_channel')}\n` +
             `0. ${this.t('back')}`
         );
         if (c === '1') this.toggle('ENABLE_KEYWORD_FILTER', true);
         else if (c === '2') this.manage('KEYWORD_BLACKLIST');
         else if (c === '3') this.toggle('ENABLE_CHANNEL_FILTER', true);
         else if (c === '4') this.manage('CHANNEL_BLACKLIST');
-        else if (c === '5') this.toggle('ENABLE_SECTION_FILTER', true);
-        else if (c === '6') this.manage('SECTION_TITLE_BLACKLIST');
-        else if (c === '7') this.toggle('ENABLE_DURATION_FILTER', true);
-        else if (c === '8') {
+        else if (c === '5') this.manage('CHANNEL_WHITELIST');
+        else if (c === '6') this.toggle('ENABLE_SECTION_FILTER', true);
+        else if (c === '7') this.manage('SECTION_TITLE_BLACKLIST');
+        else if (c === '8') this.toggle('ENABLE_DURATION_FILTER', true);
+        else if (c === '9') {
             const min = prompt(this.t('adv_min'), this.config.get('DURATION_MIN') / 60);
             const max = prompt(this.t('adv_max'), this.config.get('DURATION_MAX') / 60);
 
@@ -162,7 +165,8 @@ export class UIManager {
             }
             this.onRefresh(); this.showAdvancedMenu();
         }
-        else if (c === '9') this.toggle('ENABLE_REGION_CONVERT', true);
+        else if (c === '10') this.toggle('ENABLE_REGION_CONVERT', true);
+        else if (c === '11') this.toggle('DISABLE_FILTER_ON_CHANNEL', true);
         else if (c === '0') this.showMainMenu();
     }
     manage(k) {

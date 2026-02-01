@@ -75,8 +75,15 @@ export class StyleManager {
         });
 
         // 5.5 首頁推薦播放清單 (已移至 JavaScript 處理)
-        
-        GM_addStyle(rules.join('\n'));
-        Logger.info('Static CSS rules injected');
+
+        // 修正：避免重複注入，先檢查是否存在
+        let styleEl = document.getElementById('yt-cleaner-css');
+        if (!styleEl) {
+            styleEl = document.createElement('style');
+            styleEl.id = 'yt-cleaner-css';
+            document.head.appendChild(styleEl);
+        }
+        styleEl.textContent = rules.join('\n');
+        Logger.info('Static CSS rules updated');
     }
 }

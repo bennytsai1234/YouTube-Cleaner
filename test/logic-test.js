@@ -225,6 +225,55 @@ TestRunner.suite('VideoFilter - 影片時長過濾', () => {
     TestRunner.assert('保留 Shorts (不套用時長過濾)', result === false);
 });
 
+TestRunner.suite('VideoFilter - 頻道頁面過濾豁免', () => {
+    const config = new MockConfig();
+    const filter = new VideoFilter(config);
+
+    // 預設開啟豁免
+    config.set('DISABLE_FILTER_ON_CHANNEL', true);
+
+    // 模擬在頻道頁面
+    dom.reconfigure({ url: 'https://www.youtube.com/@TestChannel' });
+
+    TestRunner.assert('頻道頁面應允許內容 (開啟豁免)', filter.isPageAllowingContent === true);
+
+    // 關閉豁免
+    config.set('DISABLE_FILTER_ON_CHANNEL', false);
+    TestRunner.assert('頻道頁面不應允許內容 (關閉豁免)', filter.isPageAllowingContent === false);
+
+    // 模擬在首頁
+    dom.reconfigure({ url: 'https://www.youtube.com/' });
+    TestRunner.assert('首頁不應允許內容 (無論設定)', filter.isPageAllowingContent === false);
+});
+
+TestRunner.suite('VideoFilter - 頻道白名單', () => {
+    const config = new MockConfig();
+    const filter = new VideoFilter(config);
+    const mockElement = createMockElement();
+
+    config.set('CHANNEL_WHITELIST', ['MyFavoriteChannel']);
+    // 觸發重新編譯 regex (因為 MockConfig 沒有自動觸發 setter 的副作用，需手動或擴充 MockConfig)
+    // 但在測試環境我們可以簡單手動設定 compiledWhitelist
+    // 注意: MockConfig 實作較簡單，這裡我們直接測試 _checkWhitelist 邏輯
+
+    // 手動模擬 Config setter 行為
+    const regexList = [new RegExp('MyFavoriteChannel', 'i')];
+    config.set('compiledWhitelist', regexList);
+
+    // 測試 1: 在白名單中的頻道
+    // 假設該影片標題有關鍵字黑名單 (例如 Minecraft)，照理說要被過濾
+    // 但因為在白名單中，_checkWhitelist 應該回傳 true
+    let video = new MockVideoData({ channel: 'MyFavoriteChannel', title: 'Minecraft Gameplay' });
+
+    let isWhitelisted = filter._checkWhitelist(video);
+    TestRunner.assert('白名單頻道應被識別', isWhitelisted === true);
+
+    // 測試 2: 不在白名單
+    video = new MockVideoData({ channel: 'OtherChannel' });
+    isWhitelisted = filter._checkWhitelist(video);
+    TestRunner.assert('非白名單頻道不應被識別', isWhitelisted === false);
+});
+
 // ==================== 執行 ====================
 console.log('🧪 YouTube Cleaner 核心邏輯測試');
 console.log('=' .repeat(40));

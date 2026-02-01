@@ -16,11 +16,14 @@ export class ConfigManager {
             DEBUG_MODE: true,
             // 進階過濾設定
             ENABLE_REGION_CONVERT: true,
+            DISABLE_FILTER_ON_CHANNEL: true,
             // ... (existing)
             ENABLE_KEYWORD_FILTER: true,
             KEYWORD_BLACKLIST: ['預告', 'Teaser', 'Trailer', 'PV', 'CM', 'MV', 'Cover', '翻唱'],
             ENABLE_CHANNEL_FILTER: true,
+            ENABLE_CHANNEL_FILTER: true,
             CHANNEL_BLACKLIST: [],
+            CHANNEL_WHITELIST: [],
             ENABLE_SECTION_FILTER: true,
             SECTION_TITLE_BLACKLIST: ['耳目一新', '重溫舊愛', '合輯', 'Mixes', 'Latest posts', '最新貼文'],
 
@@ -65,6 +68,7 @@ export class ConfigManager {
         // Pre-compile Regexes
         loaded.compiledKeywords = (loaded.KEYWORD_BLACKLIST || []).map(k => Utils.generateCnRegex(k)).filter(Boolean);
         loaded.compiledChannels = (loaded.CHANNEL_BLACKLIST || []).map(k => Utils.generateCnRegex(k)).filter(Boolean);
+        loaded.compiledWhitelist = (loaded.CHANNEL_WHITELIST || []).map(k => Utils.generateCnRegex(k)).filter(Boolean);
         loaded.compiledSections = (loaded.SECTION_TITLE_BLACKLIST || []).map(k => Utils.generateCnRegex(k)).filter(Boolean);
 
         return loaded;
@@ -84,6 +88,9 @@ export class ConfigManager {
         }
         if (key === 'CHANNEL_BLACKLIST') {
             this.state.compiledChannels = value.map(k => Utils.generateCnRegex(k)).filter(Boolean);
+        }
+        if (key === 'CHANNEL_WHITELIST') {
+            this.state.compiledWhitelist = value.map(k => Utils.generateCnRegex(k)).filter(Boolean);
         }
         if (key === 'SECTION_TITLE_BLACKLIST') {
             this.state.compiledSections = value.map(k => Utils.generateCnRegex(k)).filter(Boolean);

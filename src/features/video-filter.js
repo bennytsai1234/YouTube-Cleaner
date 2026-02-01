@@ -78,32 +78,58 @@ export class LazyVideoData {
         return this._duration;
     }
 
-    get isShorts() { return !!this.el.querySelector(SELECTORS.BADGES.SHORTS); }
-    get isLive() { return this._liveViewers !== null; }
+    get isShorts() {
+        if (this._isShorts === undefined) {
+             this._isShorts = !!this.el.querySelector(SELECTORS.BADGES.SHORTS);
+        }
+        return this._isShorts;
+    }
+
+    get isLive() { return this._liveViewers !== null; } // liveViewers 已經有快取機制
+
     get isMembers() {
-        return this.el.querySelector(SELECTORS.BADGES.MEMBERS) ||
-            /會員專屬|Members only/.test(this.el.innerText);
+        if (this._isMembers === undefined) {
+            this._isMembers = !!this.el.querySelector(SELECTORS.BADGES.MEMBERS) ||
+                /會員專屬|Members only/.test(this.el.innerText);
+        }
+        return this._isMembers;
     }
 
     get isUserPlaylist() {
-        const link = this.el.querySelector('a[href*="list="]');
-        if (link && /list=(LL|WL|FL)/.test(link.href)) return true;
-        const texts = Array.from(this.el.querySelectorAll(SELECTORS.METADATA.TEXT));
-        const ownershipKeywords = /Private|Unlisted|Public|私人|不公開|不公开|公開|公开/i;
-        return texts.some(t => ownershipKeywords.test(t.textContent));
+        if (this._isUserPlaylist === undefined) {
+            const link = this.el.querySelector('a[href*="list="]');
+            if (link && /list=(LL|WL|FL)/.test(link.href)) {
+                this._isUserPlaylist = true;
+            } else {
+                const texts = Array.from(this.el.querySelectorAll(SELECTORS.METADATA.TEXT));
+                const ownershipKeywords = /Private|Unlisted|Public|私人|不公開|不公开|公開|公开/i;
+                this._isUserPlaylist = texts.some(t => ownershipKeywords.test(t.textContent));
+            }
+        }
+        return this._isUserPlaylist;
     }
+
     get isPlaylist() {
-        const link = this.el.querySelector('a[href*="list="], [content-id^="PL"]');
-        if (link) return true;
-
-        // 檢查 Badge
-        if (this.el.querySelector(SELECTORS.BADGES.MIX)) return true;
-
-        // 檢查 Title
-        const title = this.title;
-        if (title && /^(合輯|Mix)/i.test(title)) return true;
-
-        return false;
+        if (this._isPlaylist === undefined) {
+            const link = this.el.querySelector('a[href*="list="], [content-id^="PL"]');
+            if (link) {
+                this._isPlaylist = true;
+                return true;
+            }
+            // 檢查 Badge
+            if (this.el.querySelector(SELECTORS.BADGES.MIX)) {
+                this._isPlaylist = true;
+                return true;
+            }
+            // 檢查 Title
+            const title = this.title;
+            if (title && /^(合輯|Mix)/i.test(title)) {
+                this._isPlaylist = true;
+                return true;
+            }
+            this._isPlaylist = false;
+        }
+        return this._isPlaylist;
     }
 }
 
@@ -119,8 +145,12 @@ export class VideoFilter {
         // 1. /feed/playlists (播放清單頁)
         // 2. /feed/library (媒體庫)
         // 3. /feed/subscriptions (訂閱內容) - 通常使用者想看所有訂閱
-        // 4. /@xxx/playlists (頻道播放清單頁)
+        // 4. /@xxx (頻道首頁)、/channel/xxx 等頻道頁面 - 使用者主動瀏覽特定頻道
         const path = window.location.pathname;
+
+        // 頻道頁面判斷
+        if (this.config.get('DISABLE_FILTER_ON_CHANNEL') && /^\/(@|channel\/|c\/|user\/)/.test(path)) return true;
+
         return /^\/feed\/(playlists|library|subscriptions)/.test(path) ||
                /\/playlists$/.test(path);
     }
@@ -193,6 +223,13 @@ export class VideoFilter {
         if (isVideoElement) {
             const item = new LazyVideoData(element);
 
+            // 檢查白名單 (若在白名單中，則跳過所有過濾)
+            if (this._checkWhitelist(item)) {
+                element.dataset.ypChecked = 'true';
+                Logger.info(`Keep [whitelist]: ${item.channel}`, element);
+                return;
+            }
+
             // 關鍵字過濾
             if (this._checkKeywordFilter(item, element)) return;
 
@@ -241,6 +278,21 @@ export class VideoFilter {
         }
 
         return false;
+    }
+
+    _checkWhitelist(item) {
+        if (!item.channel) return false;
+
+        const compiled = this.config.get('compiledWhitelist');
+        // 無設定白名單則跳過
+        if (!compiled || compiled.length === 0) return false;
+
+        if (this.config.get('ENABLE_REGION_CONVERT')) {
+            return compiled.some(rx => rx.test(item.channel));
+        } else {
+            const channel = item.channel.toLowerCase();
+            return this.config.get('CHANNEL_WHITELIST').some(k => channel.includes(k.toLowerCase()));
+        }
     }
 
     _checkKeywordFilter(item, element) {

@@ -11,7 +11,7 @@
 // @icon        https://www.google.com/s2/favicons?sz=64&domain=youtube.com
 // @downloadURL https://raw.githubusercontent.com/bennytsai1234/YouTube-Cleaner/main/youtube-homepage-cleaner.user.js
 // @updateURL   https://raw.githubusercontent.com/bennytsai1234/YouTube-Cleaner/main/youtube-homepage-cleaner.user.js
-// @version     1.9.3
+// @version     1.9.5
 // @grant       GM_info
 // @grant       GM_addStyle
 // @grant       GM_setValue
@@ -160,10 +160,13 @@
                 LOW_VIEW_THRESHOLD: 1000,
                 DEBUG_MODE: true,
                 ENABLE_REGION_CONVERT: true,
+                DISABLE_FILTER_ON_CHANNEL: true,
                 ENABLE_KEYWORD_FILTER: true,
                 KEYWORD_BLACKLIST: ['預告', 'Teaser', 'Trailer', 'PV', 'CM', 'MV', 'Cover', '翻唱'],
                 ENABLE_CHANNEL_FILTER: true,
+                ENABLE_CHANNEL_FILTER: true,
                 CHANNEL_BLACKLIST: [],
+                CHANNEL_WHITELIST: [],
                 ENABLE_SECTION_FILTER: true,
                 SECTION_TITLE_BLACKLIST: ['耳目一新', '重溫舊愛', '合輯', 'Mixes', 'Latest posts', '最新貼文'],
                 ENABLE_DURATION_FILTER: true,
@@ -200,6 +203,7 @@
             }
             loaded.compiledKeywords = (loaded.KEYWORD_BLACKLIST || []).map(k => Utils.generateCnRegex(k)).filter(Boolean);
             loaded.compiledChannels = (loaded.CHANNEL_BLACKLIST || []).map(k => Utils.generateCnRegex(k)).filter(Boolean);
+            loaded.compiledWhitelist = (loaded.CHANNEL_WHITELIST || []).map(k => Utils.generateCnRegex(k)).filter(Boolean);
             loaded.compiledSections = (loaded.SECTION_TITLE_BLACKLIST || []).map(k => Utils.generateCnRegex(k)).filter(Boolean);
             return loaded;
         }
@@ -214,6 +218,9 @@
             }
             if (key === 'CHANNEL_BLACKLIST') {
                 this.state.compiledChannels = value.map(k => Utils.generateCnRegex(k)).filter(Boolean);
+            }
+            if (key === 'CHANNEL_WHITELIST') {
+                this.state.compiledWhitelist = value.map(k => Utils.generateCnRegex(k)).filter(Boolean);
             }
             if (key === 'SECTION_TITLE_BLACKLIST') {
                 this.state.compiledSections = value.map(k => Utils.generateCnRegex(k)).filter(Boolean);
@@ -291,8 +298,14 @@
                     containers.forEach(c => rules.push(`${c}:has(${selector}) { display: none !important; }`));
                 }
             });
-            GM_addStyle(rules.join('\n'));
-            Logger.info('Static CSS rules injected');
+            let styleEl = document.getElementById('yt-cleaner-css');
+            if (!styleEl) {
+                styleEl = document.createElement('style');
+                styleEl.id = 'yt-cleaner-css';
+                document.head.appendChild(styleEl);
+            }
+            styleEl.textContent = rules.join('\n');
+            Logger.info('Static CSS rules updated');
         }
     }
 
@@ -554,26 +567,52 @@
             }
             return this._duration;
         }
-        get isShorts() { return !!this.el.querySelector(SELECTORS.BADGES.SHORTS); }
+        get isShorts() {
+            if (this._isShorts === undefined) {
+                 this._isShorts = !!this.el.querySelector(SELECTORS.BADGES.SHORTS);
+            }
+            return this._isShorts;
+        }
         get isLive() { return this._liveViewers !== null; }
         get isMembers() {
-            return this.el.querySelector(SELECTORS.BADGES.MEMBERS) ||
-                /會員專屬|Members only/.test(this.el.innerText);
+            if (this._isMembers === undefined) {
+                this._isMembers = !!this.el.querySelector(SELECTORS.BADGES.MEMBERS) ||
+                    /會員專屬|Members only/.test(this.el.innerText);
+            }
+            return this._isMembers;
         }
         get isUserPlaylist() {
-            const link = this.el.querySelector('a[href*="list="]');
-            if (link && /list=(LL|WL|FL)/.test(link.href)) return true;
-            const texts = Array.from(this.el.querySelectorAll(SELECTORS.METADATA.TEXT));
-            const ownershipKeywords = /Private|Unlisted|Public|私人|不公開|不公开|公開|公开/i;
-            return texts.some(t => ownershipKeywords.test(t.textContent));
+            if (this._isUserPlaylist === undefined) {
+                const link = this.el.querySelector('a[href*="list="]');
+                if (link && /list=(LL|WL|FL)/.test(link.href)) {
+                    this._isUserPlaylist = true;
+                } else {
+                    const texts = Array.from(this.el.querySelectorAll(SELECTORS.METADATA.TEXT));
+                    const ownershipKeywords = /Private|Unlisted|Public|私人|不公開|不公开|公開|公开/i;
+                    this._isUserPlaylist = texts.some(t => ownershipKeywords.test(t.textContent));
+                }
+            }
+            return this._isUserPlaylist;
         }
         get isPlaylist() {
-            const link = this.el.querySelector('a[href*="list="], [content-id^="PL"]');
-            if (link) return true;
-            if (this.el.querySelector(SELECTORS.BADGES.MIX)) return true;
-            const title = this.title;
-            if (title && /^(合輯|Mix)/i.test(title)) return true;
-            return false;
+            if (this._isPlaylist === undefined) {
+                const link = this.el.querySelector('a[href*="list="], [content-id^="PL"]');
+                if (link) {
+                    this._isPlaylist = true;
+                    return true;
+                }
+                if (this.el.querySelector(SELECTORS.BADGES.MIX)) {
+                    this._isPlaylist = true;
+                    return true;
+                }
+                const title = this.title;
+                if (title && /^(合輯|Mix)/i.test(title)) {
+                    this._isPlaylist = true;
+                    return true;
+                }
+                this._isPlaylist = false;
+            }
+            return this._isPlaylist;
         }
     }
     class VideoFilter {
@@ -583,6 +622,7 @@
         }
         get isPageAllowingContent() {
             const path = window.location.pathname;
+            if (this.config.get('DISABLE_FILTER_ON_CHANNEL') && /^\/(@|channel\/|c\/|user\/)/.test(path)) return true;
             return /^\/feed\/(playlists|library|subscriptions)/.test(path) ||
                    /\/playlists$/.test(path);
         }
@@ -637,6 +677,11 @@
             const isVideoElement = /VIDEO|LOCKUP|RICH-ITEM/.test(element.tagName);
             if (isVideoElement) {
                 const item = new LazyVideoData(element);
+                if (this._checkWhitelist(item)) {
+                    element.dataset.ypChecked = 'true';
+                    Logger.info(`Keep [whitelist]: ${item.channel}`, element);
+                    return;
+                }
                 if (this._checkKeywordFilter(item, element)) return;
                 if (this._checkChannelFilter(item, element)) return;
                 if (this.config.get('RULE_ENABLES').members_only && item.isMembers) {
@@ -666,6 +711,17 @@
                 return true;
             }
             return false;
+        }
+        _checkWhitelist(item) {
+            if (!item.channel) return false;
+            const compiled = this.config.get('compiledWhitelist');
+            if (!compiled || compiled.length === 0) return false;
+            if (this.config.get('ENABLE_REGION_CONVERT')) {
+                return compiled.some(rx => rx.test(item.channel));
+            } else {
+                const channel = item.channel.toLowerCase();
+                return this.config.get('CHANNEL_WHITELIST').some(k => channel.includes(k.toLowerCase()));
+            }
         }
         _checkKeywordFilter(item, element) {
             if (!this.config.get('ENABLE_KEYWORD_FILTER') || !item.title) return false;
@@ -846,7 +902,9 @@
                 adv_keyword_filter: '關鍵字過濾',
                 adv_keyword_list: '✏️ 關鍵字清單',
                 adv_channel_filter: '頻道過濾',
-                adv_channel_list: '✏️ 頻道清單',
+                adv_channel_filter: '頻道過濾',
+                adv_channel_list: '✏️ 頻道黑名單',
+                adv_channel_whitelist: '🛡️ 頻道白名單 (例外放行)',
                 adv_section_filter: '欄位過濾',
                 adv_section_list: '✏️ 欄位標題清單',
                 adv_duration_filter: '長度過濾',
@@ -856,7 +914,8 @@
                 adv_add: '新增',
                 adv_remove: '刪除',
                 adv_clear: '清空',
-                adv_region_convert: '繁簡通用過濾'
+                adv_region_convert: '繁簡通用過濾',
+                adv_disable_channel: '頻道頁面停止過濾 (保留內容)'
             },
             'zh-CN': {
                 title: 'YouTube 净化大师',
@@ -894,7 +953,9 @@
                 adv_keyword_filter: '关键字过滤',
                 adv_keyword_list: '✏️ 关键字列表',
                 adv_channel_filter: '频道过滤',
-                adv_channel_list: '✏️ 频道列表',
+                adv_channel_filter: '频道过滤',
+                adv_channel_list: '✏️ 频道黑名单',
+                adv_channel_whitelist: '🛡️ 频道白名单 (例外放行)',
                 adv_section_filter: '栏位过滤',
                 adv_section_list: '✏️ 栏位标题列表',
                 adv_duration_filter: '时长过滤',
@@ -904,7 +965,8 @@
                 adv_add: '新增',
                 adv_remove: '删除',
                 adv_clear: '清空',
-                adv_region_convert: '繁简通用过滤'
+                adv_region_convert: '繁简通用过滤',
+                adv_disable_channel: '频道页面停止过滤 (保留内容)'
             },
             'en': {
                 title: 'YouTube Cleaner',
@@ -942,7 +1004,9 @@
                 adv_keyword_filter: 'Keyword Filter',
                 adv_keyword_list: '✏️ Keyword List',
                 adv_channel_filter: 'Channel Filter',
-                adv_channel_list: '✏️ Channel List',
+                adv_channel_filter: 'Channel Filter',
+                adv_channel_list: '✏️ Channel Blacklist',
+                adv_channel_whitelist: '🛡️ Channel Whitelist',
                 adv_section_filter: 'Section Filter',
                 adv_section_list: '✏️ Section Title List',
                 adv_duration_filter: 'Duration Filter',
@@ -952,7 +1016,8 @@
                 adv_add: 'Add',
                 adv_remove: 'Remove',
                 adv_clear: 'Clear',
-                adv_region_convert: 'Region Agnostic Filter'
+                adv_region_convert: 'Region Agnostic Filter',
+                adv_disable_channel: 'Disable on Channel Pages'
             }
         },
         ruleNames: {
@@ -1188,21 +1253,24 @@
                 `2. ${this.t('adv_keyword_list')}\n` +
                 `3. ${i('ENABLE_CHANNEL_FILTER')} ${this.t('adv_channel_filter')}\n` +
                 `4. ${this.t('adv_channel_list')}\n` +
-                `5. ${i('ENABLE_SECTION_FILTER')} ${this.t('adv_section_filter')}\n` +
-                `6. ${this.t('adv_section_list')}\n` +
-                `7. ${i('ENABLE_DURATION_FILTER')} ${this.t('adv_duration_filter')}\n` +
-                `8. ${this.t('adv_duration_set')}\n` +
-                `9. ${i('ENABLE_REGION_CONVERT')} ${this.t('adv_region_convert')}\n` +
+                `5. ${this.t('adv_channel_whitelist')}\n` +
+                `6. ${i('ENABLE_SECTION_FILTER')} ${this.t('adv_section_filter')}\n` +
+                `7. ${this.t('adv_section_list')}\n` +
+                `8. ${i('ENABLE_DURATION_FILTER')} ${this.t('adv_duration_filter')}\n` +
+                `9. ${this.t('adv_duration_set')}\n` +
+                `10. ${i('ENABLE_REGION_CONVERT')} ${this.t('adv_region_convert')}\n` +
+                `11. ${i('DISABLE_FILTER_ON_CHANNEL')} ${this.t('adv_disable_channel')}\n` +
                 `0. ${this.t('back')}`
             );
             if (c === '1') this.toggle('ENABLE_KEYWORD_FILTER', true);
             else if (c === '2') this.manage('KEYWORD_BLACKLIST');
             else if (c === '3') this.toggle('ENABLE_CHANNEL_FILTER', true);
             else if (c === '4') this.manage('CHANNEL_BLACKLIST');
-            else if (c === '5') this.toggle('ENABLE_SECTION_FILTER', true);
-            else if (c === '6') this.manage('SECTION_TITLE_BLACKLIST');
-            else if (c === '7') this.toggle('ENABLE_DURATION_FILTER', true);
-            else if (c === '8') {
+            else if (c === '5') this.manage('CHANNEL_WHITELIST');
+            else if (c === '6') this.toggle('ENABLE_SECTION_FILTER', true);
+            else if (c === '7') this.manage('SECTION_TITLE_BLACKLIST');
+            else if (c === '8') this.toggle('ENABLE_DURATION_FILTER', true);
+            else if (c === '9') {
                 const min = prompt(this.t('adv_min'), this.config.get('DURATION_MIN') / 60);
                 const max = prompt(this.t('adv_max'), this.config.get('DURATION_MAX') / 60);
                 if (min !== null) {
@@ -1215,7 +1283,8 @@
                 }
                 this.onRefresh(); this.showAdvancedMenu();
             }
-            else if (c === '9') this.toggle('ENABLE_REGION_CONVERT', true);
+            else if (c === '10') this.toggle('ENABLE_REGION_CONVERT', true);
+            else if (c === '11') this.toggle('DISABLE_FILTER_ON_CHANNEL', true);
             else if (c === '0') this.showMainMenu();
         }
         manage(k) {
