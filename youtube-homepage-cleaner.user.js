@@ -11,7 +11,7 @@
 // @icon        https://www.google.com/s2/favicons?sz=64&domain=youtube.com
 // @downloadURL https://raw.githubusercontent.com/bennytsai1234/YouTube-Cleaner/main/youtube-homepage-cleaner.user.js
 // @updateURL   https://raw.githubusercontent.com/bennytsai1234/YouTube-Cleaner/main/youtube-homepage-cleaner.user.js
-// @version     1.9.5
+// @version     1.9.6
 // @grant       GM_info
 // @grant       GM_addStyle
 // @grant       GM_setValue
@@ -533,6 +533,13 @@
             }
             return this._channel;
         }
+        get url() {
+            if (this._url === undefined) {
+                 const anchor = this.el.querySelector('a[href*="/watch?"], a[href*="/shorts/"]');
+                 this._url = anchor ? anchor.href : '';
+            }
+            return this._url;
+        }
         _parseMetadata() {
             if (this._viewCount !== undefined) return;
             const texts = Array.from(this.el.querySelectorAll(SELECTORS.METADATA.TEXT));
@@ -685,7 +692,7 @@
                 if (this._checkKeywordFilter(item, element)) return;
                 if (this._checkChannelFilter(item, element)) return;
                 if (this.config.get('RULE_ENABLES').members_only && item.isMembers) {
-                    return this._hide(element, 'members_only_js');
+                    return this._hide(element, 'members_only_js', item);
                 }
                 if (this._checkViewFilter(item, element)) return;
                 if (this._checkDurationFilter(item, element)) return;
@@ -728,13 +735,13 @@
             const compiled = this.config.get('compiledKeywords');
             if (this.config.get('ENABLE_REGION_CONVERT') && compiled) {
                 if (compiled.some(rx => rx.test(item.title))) {
-                    this._hide(element, 'keyword_blacklist');
+                    this._hide(element, 'keyword_blacklist', item);
                     return true;
                 }
             } else {
                 const title = item.title.toLowerCase();
                 if (this.config.get('KEYWORD_BLACKLIST').some(k => title.includes(k.toLowerCase()))) {
-                    this._hide(element, 'keyword_blacklist');
+                    this._hide(element, 'keyword_blacklist', item);
                     return true;
                 }
             }
@@ -745,13 +752,13 @@
             const compiled = this.config.get('compiledChannels');
             if (this.config.get('ENABLE_REGION_CONVERT') && compiled) {
                 if (compiled.some(rx => rx.test(item.channel))) {
-                    this._hide(element, 'channel_blacklist');
+                    this._hide(element, 'channel_blacklist', item);
                     return true;
                 }
             } else {
                 const channel = item.channel.toLowerCase();
                 if (this.config.get('CHANNEL_BLACKLIST').some(k => channel.includes(k.toLowerCase()))) {
-                    this._hide(element, 'channel_blacklist');
+                    this._hide(element, 'channel_blacklist', item);
                     return true;
                 }
             }
@@ -762,12 +769,12 @@
             const th = this.config.get('LOW_VIEW_THRESHOLD');
             const grace = this.config.get('GRACE_PERIOD_HOURS') * 60;
             if (item.isLive && item.liveViewers !== null && item.liveViewers < th) {
-                this._hide(element, 'low_viewer_live');
+                this._hide(element, 'low_viewer_live', item);
                 return true;
             }
             if (!item.isLive && item.viewCount !== null && item.timeAgo !== null &&
                 item.timeAgo > grace && item.viewCount < th) {
-                this._hide(element, 'low_view');
+                this._hide(element, 'low_view', item);
                 return true;
             }
             return false;
@@ -777,7 +784,7 @@
             const min = this.config.get('DURATION_MIN');
             const max = this.config.get('DURATION_MAX');
             if ((min > 0 && item.duration < min) || (max > 0 && item.duration > max)) {
-                this._hide(element, 'duration_filter');
+                this._hide(element, 'duration_filter', item);
                 return true;
             }
             return false;
@@ -785,16 +792,20 @@
         _checkPlaylistFilter(item, element) {
             if (!this.config.get('RULE_ENABLES').recommended_playlists || !item.isPlaylist) return false;
             if (item.isUserPlaylist) return false;
-            this._hide(element, 'recommended_playlists');
+            this._hide(element, 'recommended_playlists', item);
             return true;
         }
-        _hide(element, reason) {
+        _hide(element, reason, item = null) {
             const container = element.closest('ytd-rich-item-renderer, ytd-grid-video-renderer, ytd-compact-video-renderer, ytd-playlist-renderer') || element;
             container.style.cssText = 'display: none !important; visibility: hidden !important;';
             container.dataset.ypHidden = reason;
             if (container !== element) element.dataset.ypHidden = reason;
             FilterStats.record(reason);
-            Logger.info(`Hidden [${reason}]`, container);
+            if (item && item.url) {
+                Logger.info(`Hidden [${reason}]\nTitle: ${item.title}\nChannel: ${item.channel}\nURL: ${item.url}`, container);
+            } else {
+                Logger.info(`Hidden [${reason}]`, container);
+            }
         }
         clearCache() {
             document.querySelectorAll('[data-yp-checked]').forEach(el => delete el.dataset.ypChecked);
