@@ -24,7 +24,7 @@ This workflow guarantees that documentation artifacts (README, CONTRIBUTING, CHA
    - Check for any "Unreleased" section and ensure strictly technical commit messages are humanized.
 
 4. **Contributing Guide Review**
-   - Ensure `CONTRIBUTING.md` reflects current workflows (e.g., mentioning `openspec` or `.agent/workflows`).
+   - Ensure `CONTRIBUTING.md` reflects current workflows (e.g., mentioning `.agent/workflows`).
    - If the project structure has changed (e.g., new `src` folders), update the "Project Structure" section.
 
 5. **Commit Documentation Updates**

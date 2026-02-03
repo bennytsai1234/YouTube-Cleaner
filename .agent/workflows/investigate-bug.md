@@ -30,4 +30,4 @@ This workflow guides the agent through a structured debugging process to identif
 
 6. **Action Plan**
    - Propose a fix based on the findings.
-   - Transition to `Step 2` of the `openspec-apply` workflow or simply apply the fix if trivial (using `fix:` commit).
+   - Apply the fix (using `fix:` commit) and verify the solution.
