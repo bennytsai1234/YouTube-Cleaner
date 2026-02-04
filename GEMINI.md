@@ -1,10 +1,40 @@
-# Gemini CLI 開發規範
+# Gemini CLI 開發規範 (Development Protocol)
 
-本檔案定義了 AI Agent 在此專案中的操作規範。
+本檔案定義了 AI Agent 在此專案中的標準工作流程與操作規範。
 
 ---
 
-## 溝通語言
+## 🔁 開發與維護工作流 (The Workflow)
+
+你必須嚴格遵循以下循環來處理每一次的代碼變更：
+
+### 第一階段：實作與修改 (Implementation)
+1. **理解需求**: 確認目標是修復 (Fix)、新功能 (Feat) 還是重構 (Refactor)。
+2. **代碼修改**:
+   - 遵循 `ES6+` 標準與下方的[程式碼風格](#-程式碼風格-code-style)。
+   - 保持 `src/` 目錄的模組化結構。
+   - **禁止**直接修改 `youtube-homepage-cleaner.user.js` (這是 Build 產物)。
+
+### 第二階段：文檔同步 (Documentation Sync) 🚨 **CRITICAL**
+每次修改代碼後，**必須**檢查並更新對應文檔：
+
+| 修改類型 | 必須更新的文檔 | 操作說明 |
+| :--- | :--- | :--- |
+| **✨ 新功能 (Feat)** | `README.md` | 更新功能列表、截圖或設定說明 |
+| | `CHANGELOG.md` | 在 `[Unreleased]` 或新版本號下新增條目 |
+| | `package.json` | 若準備發布，提升 version (SemVer) |
+| **🐛 修復 (Fix)** | `CHANGELOG.md` | 在 `Fixed` 區塊記錄修復內容與原因 |
+| **🏗️ 架構/邏輯變更** | `DEVELOPMENT.md` | 更新技術決策、模組圖或流程說明 |
+| **📦 發布新版** | `src/meta.json` | 確保元數據版本與 `package.json` 一致 |
+
+### 第三階段：驗證與交付 (Verification)
+1. **執行測試**: `npm test` (確保邏輯無壞損)。
+2. **執行構建**: `npm run build` (更新 `user.js`)。
+3. **提交變更**: 使用 Conventional Commits 格式 (`feat:`, `fix:`, `docs:` 等)。
+
+---
+
+## 💬 溝通與語言
 
 | 場合 | 語言 |
 |------|------|
@@ -15,87 +45,50 @@
 
 ---
 
-## 工作原則
-
-- **連續執行**: 多步驟任務自動完成，只在錯誤或需要確認時暫停
-- **小步交付**: 每次只做一小部分，方便驗證
-- **主動檢查**: 改完後自動跑 lint、build、test
-
----
-
-## 程式碼風格
+## 🎨 程式碼風格 (Code Style)
 
 ```javascript
-// ✅ 正確
+// ✅ 正確 (Correct)
 const videoContainer = document.querySelector('#content');
 if (videoContainer?.classList.contains('active')) {
     processVideo(videoContainer);
 }
 
-// ❌ 錯誤
-const video_container = document.querySelector("#content")
-if (video_container.classList.contains("active")) {
-    process_video(video_container)
-}
+// ❌ 錯誤 (Wrong)
+const video_container = document.querySelector("#content") // No snake_case, missing semi
 ```
 
-**重點**：
-- 用單引號 `'`
-- 結尾要分號 `;`
-- 變數用駝峰式 `camelCase`
+**核心規則**：
+- 字串使用單引號 `'`。
+- 語句結尾**必須**加分號 `;`。
+- 變數命名使用 `camelCase`。
+- 優先使用現代語法 (`?.`, `??`, `const/let`)。
 
 ---
 
-## Git 工作流
+## 🚀 Git 與發布 (Git & Release)
 
-### 分支
-```
-main   ← 穩定版本
-  └── beta ← 開發中
-        └── feature/xxx ← 新功能
-```
+### Commit 類型
+- `feat:` 新功能
+- `fix:` 修補 Bug
+- `docs:` 僅修改文件
+- `style:` 格式修改 (不影響代碼運行)
+- `refactor:` 重構 (無新功能修復)
+- `chore:` 構建過程或輔助工具的變更
 
-### Commit 格式
-
-| 類型 | 用途 | 範例 |
-|------|------|------|
-| `feat:` | 新功能 | `feat: add dark mode` |
-| `fix:` | 修 Bug | `fix: button not working` |
-| `docs:` | 改文件 | `docs: update README` |
-| `chore:` | 雜事 | `chore: update version` |
-
-### 發布流程
-1. 在 `beta` 開發
-2. 合併到 `main`
-3. 打標籤 `git tag v1.x.x`
-4. 推送 `git push origin main --tags`
+### 發布流程 (Release Cycle)
+1. 完成所有代碼與文檔修改。
+2. 執行 `npm test` && `npm run build`。
+3. 提交代碼。
+4. 打上標籤: `git tag v1.x.x`。
+5. 推送: `git push origin main --tags`。
 
 ---
 
-## 專案開發指南
-
-詳細的架構說明與技術決策請參考 [DEVELOPMENT.md](DEVELOPMENT.md)。
-
----
-
-## 記住的問題
+## 🔧 常見問題與解法 (Troubleshooting)
 
 | 問題 | 解法 |
 |------|------|
-| Windows Git 中文亂碼 | `git config core.quotepath false` |
-| 指令沒有輸出 | 用 Shell Session + `send_command_input` |
-
----
-
-## 專案推薦 Skills
-
-此專案已配置以下 Skills 以協助開發 (位於全域 Skills 目錄)：
-
-- **核心開發**: `modern-javascript-patterns`, `browser-extension-builder`, `web-performance-optimization`
-- **代碼品質**: `code-review-checklist`, `eslint-optimization` (或 `javascript-mastery`)
-- **測試驗證**: `webapp-testing`, `playwright-skill`
-- **專案發布**: `changelog-automation`, `crafting-effective-readmes`, `git-advanced-workflows`
-- **本地化**: `humanizer-zh`, `i18n-localization`
-
-**使用方式**:
-當進行相關任務時，請優先參考上述 Skills 的 `SKILL.md` (e.g. `view_file .../skills/modern-javascript-patterns/SKILL.md`)。
+| **Windows Git 中文亂碼** | `git config core.quotepath false` |
+| **指令無輸出 (No Output)** | 改用 `run_command` 啟動 Shell Session + `send_command_input` |
+| **Rollup Build 失敗** | 檢查 `src/meta.json` 格式是否正確 Json |

@@ -5,19 +5,6 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
-
-### Added
-- None
-
-### Changed
-- None
-
-### Fixed
-- None
-
----
-
 ## [1.9.3] - 2026-01-28
 
 ### Added
@@ -167,6 +154,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     - **Regex Support**: Supports keywords and regular expressions.
 
 ---
+
+<details>
+<summary>📁 <b>Historical Versions (v1.7.9 and older)</b></summary>
+<br>
 
 ## [1.7.9] - 2026-01-22
 
@@ -392,9 +383,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Anti-adblock popup removal
 - New tab opening for videos
 
+</details>
+
 ---
 
-[Unreleased]: https://github.com/bennytsai1234/youtube-homepage-cleaner/compare/v1.9.0...HEAD
+[Unreleased]: https://github.com/bennytsai1234/youtube-homepage-cleaner/compare/v1.9.3...HEAD
+[1.9.3]: https://github.com/bennytsai1234/youtube-homepage-cleaner/compare/v1.9.2...v1.9.3
 [1.9.2]: https://github.com/bennytsai1234/youtube-homepage-cleaner/compare/v1.9.1...v1.9.2
 [1.9.1]: https://github.com/bennytsai1234/youtube-homepage-cleaner/compare/v1.9.0...v1.9.1
 [1.9.0]: https://github.com/bennytsai1234/youtube-homepage-cleaner/compare/v1.8.9...v1.9.0
@@ -408,24 +402,3 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 [1.8.2]: https://github.com/bennytsai1234/youtube-homepage-cleaner/compare/v1.8.1...v1.8.2
 [1.8.1]: https://github.com/bennytsai1234/youtube-homepage-cleaner/compare/v1.8.0...v1.8.1
 [1.8.0]: https://github.com/bennytsai1234/youtube-homepage-cleaner/compare/v1.7.9...v1.8.0
-[1.7.9]: https://github.com/bennytsai1234/youtube-homepage-cleaner/compare/v1.7.8...v1.7.9
-[1.7.8]: https://github.com/bennytsai1234/youtube-homepage-cleaner/compare/v1.7.7...v1.7.8
-[1.7.7]: https://github.com/bennytsai1234/youtube-homepage-cleaner/compare/v1.7.5...v1.7.7
-[1.7.5]: https://github.com/bennytsai1234/youtube-homepage-cleaner/compare/v1.7.4...v1.7.5
-[1.7.4]: https://github.com/bennytsai1234/youtube-homepage-cleaner/compare/v1.7.3...v1.7.4
-[1.7.3]: https://github.com/bennytsai1234/youtube-homepage-cleaner/compare/v1.7.2...v1.7.3
-[1.7.2]: https://github.com/bennytsai1234/youtube-homepage-cleaner/compare/v1.7.1...v1.7.2
-[1.7.1]: https://github.com/bennytsai1234/youtube-homepage-cleaner/compare/v1.7.0...v1.7.1
-[1.7.0]: https://github.com/bennytsai1234/youtube-homepage-cleaner/compare/v1.6.8...v1.7.0
-[1.6.8]: https://github.com/bennytsai1234/youtube-homepage-cleaner/compare/v1.6.7...v1.6.8
-[1.6.7]: https://github.com/bennytsai1234/youtube-homepage-cleaner/compare/v1.6.6...v1.6.7
-[1.6.6]: https://github.com/bennytsai1234/youtube-homepage-cleaner/compare/v1.6.5...v1.6.6
-[1.6.5]: https://github.com/bennytsai1234/youtube-homepage-cleaner/compare/v1.6.4...v1.6.5
-[1.6.4]: https://github.com/bennytsai1234/youtube-homepage-cleaner/compare/v1.6.2...v1.6.4
-[1.6.2]: https://github.com/bennytsai1234/youtube-homepage-cleaner/compare/v1.6.1...v1.6.2
-[1.6.1]: https://github.com/bennytsai1234/youtube-homepage-cleaner/compare/v1.6.0...v1.6.1
-[1.6.0]: https://github.com/bennytsai1234/youtube-homepage-cleaner/compare/v1.5.7...v1.6.0
-[1.5.7]: https://github.com/bennytsai1234/youtube-homepage-cleaner/compare/v1.5.6...v1.5.7
-[1.5.6]: https://github.com/bennytsai1234/youtube-homepage-cleaner/compare/v1.5.2...v1.5.6
-[1.5.2]: https://github.com/bennytsai1234/youtube-homepage-cleaner/compare/v1.4.0...v1.5.2
-[1.4.0]: https://github.com/bennytsai1234/youtube-homepage-cleaner/releases/tag/v1.4.0
