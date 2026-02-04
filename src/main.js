@@ -1,10 +1,10 @@
-import { ConfigManager } from './core/config.js';
-import { StyleManager } from './features/style-manager.js';
-import { AdBlockGuard } from './features/adblock-guard.js';
-import { VideoFilter } from './features/video-filter.js';
-import { InteractionEnhancer } from './features/interaction.js';
-import { UIManager } from './ui/menu.js';
-import { Logger } from './core/logger.js';
+import { ConfigManager } from './config.js';
+import { StyleManager } from './style-manager.js';
+import { AdBlockGuard } from './adblock-guard.js';
+import { VideoFilter } from './video-filter.js';
+import { InteractionEnhancer } from './interaction.js';
+import { UIManager } from './menu.js';
+import { Logger } from './logger.js';
 
 // --- 10. App Entry ---
 class App {

@@ -72,28 +72,9 @@ main   ← 穩定版本
 
 ---
 
-## OpenSpec 工作流
+## 專案開發指南
 
-做新功能的三步驟：
-
-1. `/openspec-proposal` → 寫提案
-2. `/openspec-apply` → 開始實作
-3. `/openspec-archive` → 完成歸檔
-
----
-
-## 重大架構決策
-
-詳見 [docs/adr/README.md](docs/adr/README.md)
-
-| # | 決策 |
-|---|------|
-| 1 | CSS 優先隱藏 |
-| 2 | 最小外部依賴 |
-| 3 | 混合式 DOM 監控 |
-| 4 | 選擇器集中管理 |
-| 5 | 原生彈窗 UI |
-| 6 | OpenCC-JS 繁簡轉換 |
+詳細的架構說明與技術決策請參考 [DEVELOPMENT.md](DEVELOPMENT.md)。
 
 ---
 

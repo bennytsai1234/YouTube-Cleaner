@@ -11,7 +11,7 @@
 // @icon        https://www.google.com/s2/favicons?sz=64&domain=youtube.com
 // @downloadURL https://raw.githubusercontent.com/bennytsai1234/YouTube-Cleaner/main/youtube-homepage-cleaner.user.js
 // @updateURL   https://raw.githubusercontent.com/bennytsai1234/YouTube-Cleaner/main/youtube-homepage-cleaner.user.js
-// @version     1.9.8
+// @version     1.9.9
 // @grant       GM_info
 // @grant       GM_addStyle
 // @grant       GM_setValue
