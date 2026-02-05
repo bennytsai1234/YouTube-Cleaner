@@ -345,7 +345,7 @@ export class VideoFilter {
                     const trigger = filterDetail.trigger ? ` [${filterDetail.trigger}]` : '';
                     const ruleInfo = filterDetail.rule ? ` {Rule: ${filterDetail.rule}}` : '';
                     
-                    Logger.info(`✅ Keep [Saved by ${savedBy} Whitelist]: ${item.channel} | ${item.title}\n(Originally Triggered: ${filterDetail.reason}${trigger}${ruleInfo})`, container);
+                    Logger.info(`✅ Keep [Saved by ${savedBy} Whitelist]: ${item.channel} | ${item.title}\n(Originally Triggered: ${filterDetail.reason}${trigger}${ruleInfo})`);
                     
                     // ❗ 關鍵修正：將整個容器標記為已檢查，防止重複 Log
                     container.dataset.ypChecked = 'true';
@@ -516,9 +516,9 @@ export class VideoFilter {
         // Rich Logging for Debug
         const logMsg = `Hidden [${reason}]${trigger}${ruleInfo}`;
         if (item && item.url) {
-            Logger.info(`${logMsg}\nTitle: ${item.title}\nChannel: ${item.channel}\nURL: ${item.url}`, container);
+            Logger.info(`${logMsg}\nTitle: ${item.title}\nChannel: ${item.channel}\nURL: ${item.url}`);
         } else {
-            Logger.info(logMsg, container);
+            Logger.info(logMsg);
         }
     }
 

@@ -789,7 +789,7 @@
                         const savedBy = whitelistReason === 'channel_whitelist' ? 'Channel' : 'Keyword';
                         const trigger = filterDetail.trigger ? ` [${filterDetail.trigger}]` : '';
                         const ruleInfo = filterDetail.rule ? ` {Rule: ${filterDetail.rule}}` : '';
-                        Logger.info(`✅ Keep [Saved by ${savedBy} Whitelist]: ${item.channel} | ${item.title}\n(Originally Triggered: ${filterDetail.reason}${trigger}${ruleInfo})`, container);
+                        Logger.info(`✅ Keep [Saved by ${savedBy} Whitelist]: ${item.channel} | ${item.title}\n(Originally Triggered: ${filterDetail.reason}${trigger}${ruleInfo})`);
                         container.dataset.ypChecked = 'true';
                         element.dataset.ypChecked = 'true';
                     } else {
@@ -923,9 +923,9 @@
             if (reason === 'native_hidden') return;
             const logMsg = `Hidden [${reason}]${trigger}${ruleInfo}`;
             if (item && item.url) {
-                Logger.info(`${logMsg}\nTitle: ${item.title}\nChannel: ${item.channel}\nURL: ${item.url}`, container);
+                Logger.info(`${logMsg}\nTitle: ${item.title}\nChannel: ${item.channel}\nURL: ${item.url}`);
             } else {
-                Logger.info(logMsg, container);
+                Logger.info(logMsg);
             }
         }
         clearCache() {
