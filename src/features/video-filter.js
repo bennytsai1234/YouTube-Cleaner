@@ -547,7 +547,7 @@ export class VideoFilter {
         // Rich Logging for Debug
         const logMsg = `Hidden [${reason}]${trigger}${ruleInfo}`;
         if (item && item.url) {
-            Logger.info(`${logMsg}\nTitle: ${item.title}\nChannel: ${item.channel}\nURL: ${item.url}`);
+            Logger.info(`${logMsg}\nTitle: ${item.title}\nChannel: "${item.channel}"\nURL: ${item.url}`);
         } else {
             Logger.info(logMsg);
         }

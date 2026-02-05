@@ -148,19 +148,20 @@ export const Utils = {
     cleanChannelName: (name) => {
         if (!name) return '';
         
+        // 1. 移除 Unicode 不可見字元與特殊空格 (如 ZWSP, NBSP)
+        let clean = name.replace(/[\u200B-\u200D\uFEFF]/g, '').replace(/\u00A0/g, ' ');
+        
         // 懶載入並編譯全語系清理正則
         if (!Utils._channelCleanerRX) {
             const prefixes = [];
             const suffixes = [];
             
-            // 遍歷 I18N 所有語言包，收集所有噪音詞彙
             for (const lang in I18N.strings) {
                 const data = I18N.strings[lang];
                 if (data.channel_prefixes) prefixes.push(...data.channel_prefixes);
                 if (data.channel_suffixes) suffixes.push(...data.channel_suffixes);
             }
 
-            // 轉義特殊字元並組成正則
             const esc = s => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
             const prePattern = prefixes.length > 0 ? `^(${prefixes.map(esc).join('|')})` : '';
             const sufPattern = suffixes.length > 0 ? `(${suffixes.map(esc).join('|')})$` : '';
@@ -171,9 +172,11 @@ export const Utils = {
             };
         }
 
-        let clean = name;
         if (Utils._channelCleanerRX.prefix) clean = clean.replace(Utils._channelCleanerRX.prefix, '');
         if (Utils._channelCleanerRX.suffix) clean = clean.replace(Utils._channelCleanerRX.suffix, '');
+        
+        // 2. 移除剩餘的引號與點綴字元
+        clean = clean.replace(/[「」『』""'']/g, '');
         
         return clean.replace(/·.*$/, '').trim();
     }

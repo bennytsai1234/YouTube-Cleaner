@@ -514,6 +514,7 @@
         },
         cleanChannelName: (name) => {
             if (!name) return '';
+            let clean = name.replace(/[\u200B-\u200D\uFEFF]/g, '').replace(/\u00A0/g, ' ');
             if (!Utils._channelCleanerRX) {
                 const prefixes = [];
                 const suffixes = [];
@@ -530,9 +531,9 @@
                     suffix: sufPattern ? new RegExp(sufPattern, 'i') : null
                 };
             }
-            let clean = name;
             if (Utils._channelCleanerRX.prefix) clean = clean.replace(Utils._channelCleanerRX.prefix, '');
             if (Utils._channelCleanerRX.suffix) clean = clean.replace(Utils._channelCleanerRX.suffix, '');
+            clean = clean.replace(/[「」『』""'']/g, '');
             return clean.replace(/·.*$/, '').trim();
         }
     };
@@ -1336,7 +1337,7 @@
             if (reason === 'native_hidden') return;
             const logMsg = `Hidden [${reason}]${trigger}${ruleInfo}`;
             if (item && item.url) {
-                Logger.info(`${logMsg}\nTitle: ${item.title}\nChannel: ${item.channel}\nURL: ${item.url}`);
+                Logger.info(`${logMsg}\nTitle: ${item.title}\nChannel: "${item.channel}"\nURL: ${item.url}`);
             } else {
                 Logger.info(logMsg);
             }
