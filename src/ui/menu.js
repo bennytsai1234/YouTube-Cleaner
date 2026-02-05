@@ -29,6 +29,7 @@ export class UIManager {
         );
         if (choice) this.handleMenu(choice);
     }
+
     handleMenu(c) {
         switch (c.trim()) {
             case '1': this.showRuleMenu(); break;
@@ -53,17 +54,24 @@ export class UIManager {
             case '6': this.toggle('OPEN_IN_NEW_TAB'); break;
             case '7': this.toggle('OPEN_NOTIFICATIONS_IN_NEW_TAB'); break;
             case '8': this.toggle('DEBUG_MODE'); break;
-            case '9': if (confirm(this.t('reset_confirm'))) { Object.keys(this.config.defaults).forEach(k => this.config.set(k, this.config.defaults[k])); this.update('', null); } break;
+            case '9': 
+                if (confirm(this.t('reset_confirm'))) { 
+                    Object.keys(this.config.defaults).forEach(k => this.config.set(k, this.config.defaults[k])); 
+                    this.update('', null); 
+                } 
+                break;
             case '10': this.showStats(); break;
             case '11': this.showExportImportMenu(); break;
             case '12': this.showLanguageMenu(); break;
         }
     }
+
     showStats() {
         const summary = FilterStats.getSummary();
         alert(`${this.t('stats_title')}\n\n${summary || this.t('stats_empty')}`);
         this.showMainMenu();
     }
+
     showLanguageMenu() {
         const langs = I18N.availableLanguages;
         const keys = Object.keys(langs);
@@ -79,12 +87,14 @@ export class UIManager {
         }
         this.showMainMenu();
     }
+
     showExportImportMenu() {
         const c = prompt(`${this.t('export_title')}\n\n1. ${this.t('export_export')}\n2. ${this.t('export_import')}\n0. ${this.t('back')}`);
         if (c === '1') this.exportSettings();
         else if (c === '2') this.importSettings();
         else if (c === '0') this.showMainMenu();
     }
+
     exportSettings() {
         const exportData = {
             version: GM_info.script.version,
@@ -94,13 +104,15 @@ export class UIManager {
         };
         const json = JSON.stringify(exportData, null, 2);
 
-        navigator.clipboard.writeText(json).then(() => {
+        try {
+            GM_setClipboard(json);
             alert(this.t('export_success'));
-        }).catch(() => {
+        } catch (e) {
             prompt(this.t('export_copy'), json);
-        });
+        }
         this.showExportImportMenu();
     }
+
     importSettings() {
         const json = prompt(this.t('import_prompt'));
         if (!json) { this.showExportImportMenu(); return; }
@@ -122,11 +134,20 @@ export class UIManager {
         }
         this.showExportImportMenu();
     }
+
     showRuleMenu() {
-        const r = this.config.get('RULE_ENABLES'); const k = Object.keys(r);
+        const r = this.config.get('RULE_ENABLES'); 
+        const k = Object.keys(r);
         const c = prompt(`${this.t('rules_title')} ${this.t('rules_back')}\n` + k.map((key, i) => `${i + 1}. [${r[key] ? '✅' : '❌'}] ${I18N.getRuleName(key)}`).join('\n'));
-        if (c && c !== '0') { this.config.toggleRule(k[parseInt(c) - 1]); this.onRefresh(); this.showRuleMenu(); } else if (c === '0') this.showMainMenu();
+        if (c && c !== '0') { 
+            this.config.toggleRule(k[parseInt(c) - 1]); 
+            this.onRefresh(); 
+            this.showRuleMenu(); 
+        } else if (c === '0') {
+            this.showMainMenu();
+        }
     }
+
     showAdvancedMenu() {
         const i = (k) => this.config.get(k) ? '✅' : '❌';
         const c = prompt(
@@ -135,12 +156,13 @@ export class UIManager {
             `3. ${i('ENABLE_CHANNEL_FILTER')} ${this.t('adv_channel_filter')}\n` +
             `4. ${this.t('adv_channel_list')}\n` +
             `5. ${this.t('adv_channel_whitelist')}\n` +
-            `6. ${i('ENABLE_SECTION_FILTER')} ${this.t('adv_section_filter')}\n` +
-            `7. ${this.t('adv_section_list')}\n` +
-            `8. ${i('ENABLE_DURATION_FILTER')} ${this.t('adv_duration_filter')}\n` +
-            `9. ${this.t('adv_duration_set')}\n` +
-            `10. ${i('ENABLE_REGION_CONVERT')} ${this.t('adv_region_convert')}\n` +
-            `11. ${i('DISABLE_FILTER_ON_CHANNEL')} ${this.t('adv_disable_channel')}\n` +
+            `6. ${this.t('adv_keyword_whitelist')}\n` +
+            `7. ${i('ENABLE_SECTION_FILTER')} ${this.t('adv_section_filter')}\n` +
+            `8. ${this.t('adv_section_list')}\n` +
+            `9. ${i('ENABLE_DURATION_FILTER')} ${this.t('adv_duration_filter')}\n` +
+            `10. ${this.t('adv_duration_set')}\n` +
+            `11. ${i('ENABLE_REGION_CONVERT')} ${this.t('adv_region_convert')}\n` +
+            `12. ${i('DISABLE_FILTER_ON_CHANNEL')} ${this.t('adv_disable_channel')}\n` +
             `0. ${this.t('back')}`
         );
         if (c === '1') this.toggle('ENABLE_KEYWORD_FILTER', true);
@@ -148,10 +170,11 @@ export class UIManager {
         else if (c === '3') this.toggle('ENABLE_CHANNEL_FILTER', true);
         else if (c === '4') this.manage('CHANNEL_BLACKLIST');
         else if (c === '5') this.manage('CHANNEL_WHITELIST');
-        else if (c === '6') this.toggle('ENABLE_SECTION_FILTER', true);
-        else if (c === '7') this.manage('SECTION_TITLE_BLACKLIST');
-        else if (c === '8') this.toggle('ENABLE_DURATION_FILTER', true);
-        else if (c === '9') {
+        else if (c === '6') this.manage('KEYWORD_WHITELIST');
+        else if (c === '7') this.toggle('ENABLE_SECTION_FILTER', true);
+        else if (c === '8') this.manage('SECTION_TITLE_BLACKLIST');
+        else if (c === '9') this.toggle('ENABLE_DURATION_FILTER', true);
+        else if (c === '10') {
             const min = prompt(this.t('adv_min'), this.config.get('DURATION_MIN') / 60);
             const max = prompt(this.t('adv_max'), this.config.get('DURATION_MAX') / 60);
 
@@ -165,26 +188,53 @@ export class UIManager {
             }
             this.onRefresh(); this.showAdvancedMenu();
         }
-        else if (c === '10') this.toggle('ENABLE_REGION_CONVERT', true);
-        else if (c === '11') this.toggle('DISABLE_FILTER_ON_CHANNEL', true);
+        else if (c === '11') this.toggle('ENABLE_REGION_CONVERT', true);
+        else if (c === '12') this.toggle('DISABLE_FILTER_ON_CHANNEL', true);
         else if (c === '0') this.showMainMenu();
     }
+
     manage(k) {
         const l = this.config.get(k);
-        const c = prompt(`[${l.join(', ')}]\n1.${this.t('adv_add')} 2.${this.t('adv_remove')} 3.${this.t('adv_clear')} 0.${this.t('back')}`);
+        const choice = prompt(
+            `[ ${k} ]\n${l.join(', ') || '(Empty)'}\n\n` +
+            `1. ${this.t('adv_add')}  2. ${this.t('adv_remove')}\n` +
+            `3. ${this.t('adv_clear')}  4. ${this.t('adv_restore')}\n` +
+            `0. ${this.t('back')}`
+        );
 
-        if (!c) return; // Cancel or Empty -> Close
+        if (!choice) return;
 
-        const choice = c.trim();
-        if (choice === '0') { this.showAdvancedMenu(); return; }
+        const c = choice.trim();
+        if (c === '0') { this.showAdvancedMenu(); return; }
 
-        if (choice === '1') { const v = prompt(`${this.t('adv_add')}:`); if (v) this.config.set(k, [...l, ...v.split(',')]); }
-        if (choice === '2') { const v = prompt(`${this.t('adv_remove')}:`); if (v) this.config.set(k, l.filter(i => i !== v)); }
-        if (choice === '3') this.config.set(k, []);
+        if (c === '1') { 
+            const v = prompt(`${this.t('adv_add')}:`); 
+            if (v) this.config.set(k, [...new Set([...l, ...v.split(',').map(s => s.trim())])]); 
+        }
+        if (c === '2') { 
+            const v = prompt(`${this.t('adv_remove')}:`); 
+            if (v) this.config.set(k, l.filter(i => i !== v.trim())); 
+        }
+        if (c === '3') { 
+            if (confirm(this.t('adv_clear') + '?')) this.config.set(k, []); 
+        }
+        if (c === '4') { 
+            if (confirm(this.t('adv_restore') + '?')) this.config.set(k, [...this.config.defaults[k]]); 
+        }
 
         this.onRefresh();
-        this.manage(k); // Loop back to manage menu
+        this.manage(k);
     }
-    toggle(k, adv) { this.config.set(k, !this.config.get(k)); this.onRefresh(); adv ? this.showAdvancedMenu() : this.showMainMenu(); }
-    update(k, v) { if (k) this.config.set(k, v); this.onRefresh(); this.showMainMenu(); }
+
+    toggle(k, adv) { 
+        this.config.set(k, !this.config.get(k)); 
+        this.onRefresh(); 
+        adv ? this.showAdvancedMenu() : this.showMainMenu(); 
+    }
+
+    update(k, v) { 
+        if (k) this.config.set(k, v); 
+        this.onRefresh(); 
+        this.showMainMenu(); 
+    }
 }

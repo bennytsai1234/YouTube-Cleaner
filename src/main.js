@@ -1,10 +1,10 @@
-import { ConfigManager } from './config.js';
-import { StyleManager } from './style-manager.js';
-import { AdBlockGuard } from './adblock-guard.js';
-import { VideoFilter } from './video-filter.js';
-import { InteractionEnhancer } from './interaction.js';
-import { UIManager } from './menu.js';
-import { Logger } from './logger.js';
+import { ConfigManager } from './core/config.js';
+import { StyleManager } from './features/style-manager.js';
+import { AdBlockGuard } from './features/adblock-guard.js';
+import { VideoFilter } from './features/video-filter.js';
+import { InteractionEnhancer } from './features/interaction.js';
+import { UIManager } from './ui/menu.js';
+import { Logger } from './core/logger.js';
 
 // --- 10. App Entry ---
 class App {
@@ -17,39 +17,17 @@ class App {
         this.ui = new UIManager(this.config, () => this.refresh());
     }
 
-    // **ANTI-ADBLOCK PATCH**: 透過 YouTube 自身的配置對象來阻止偵測
-    patchYouTubeConfig() {
-        try {
-            const config = window.yt?.config_ || window.ytcfg?.data_;
-            if (config?.openPopupConfig?.supportedPopups?.adBlockMessageViewModel) {
-                config.openPopupConfig.supportedPopups.adBlockMessageViewModel = false;
-            }
-            if (config?.EXPERIMENT_FLAGS) {
-                config.EXPERIMENT_FLAGS.ad_blocker_notifications_disabled = true;
-                config.EXPERIMENT_FLAGS.web_enable_adblock_detection_block_playback = false;
-            }
-        } catch (e) {
-            // 忽略錯誤
-        }
-    }
-
     init() {
         Logger.enabled = this.config.get('DEBUG_MODE');
 
-        // 先嘗試 patch YouTube 配置
-        this.patchYouTubeConfig();
-
         this.styleManager.apply();
-        this.adGuard.start();
+        this.adGuard.start(); // Internally calls patchConfig
+        this.filter.start();  // Internally starts MutationObserver
         this.enhancer.init();
         GM_registerMenuCommand('⚙️ 淨化大師設定', () => this.ui.showMainMenu());
 
-        // 優化：使用單一隊列處理 Mutation，由 Filter 內部狀態機管理進度，防止併發循環導致卡死
-        const obs = new MutationObserver((mutations) => this.filter.processMutations(mutations));
-        obs.observe(document.body, { childList: true, subtree: true });
-
         window.addEventListener('yt-navigate-finish', () => {
-            this.patchYouTubeConfig(); // 每次導航後重新 patch
+            this.adGuard.patchConfig(); // 每次導航後重新 patch
             this.filter.clearCache(); // 清除快取，防止 DOM 重用導致過濾失效
             this.filter.processPage();
             this.adGuard.checkAndClean();

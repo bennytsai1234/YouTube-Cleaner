@@ -14,6 +14,7 @@
    - 遵循 `ES6+` 標準與下方的[程式碼風格](#-程式碼風格-code-style)。
    - 保持 `src/` 目錄的模組化結構。
    - **禁止**直接修改 `youtube-homepage-cleaner.user.js` (這是 Build 產物)。
+3. **本地備份 (Git Backup) [CRITICAL]**: 每次完成單個檔案的實質性修改後，必須立即執行 `git add <file> && git commit -m "backup: update <file>"` 進行本地存檔，防止後續操作（如全檔覆寫）意外造成代碼丟失。
 
 ### 第二階段：文檔同步 (Documentation Sync) 🚨 **CRITICAL**
 每次修改代碼後，**必須**檢查並更新對應文檔：
@@ -92,3 +93,4 @@ const video_container = document.querySelector("#content") // No snake_case, mis
 | **Windows Git 中文亂碼** | `git config core.quotepath false` |
 | **指令無輸出 (No Output)** | 改用 `run_command` 啟動 Shell Session + `send_command_input` |
 | **Rollup Build 失敗** | 檢查 `src/meta.json` 格式是否正確 Json |
+| **代碼編輯 (replace) 失敗** | 1. 先用 `read_file` 獲取**精確**的縮排與空格。<br>2. 若兩次失敗，**強制**改用 `write_file` 覆寫全檔。<br>🚨 **CRITICAL**: 必須配合「本地備份」規則，確保隨時可透過 `git checkout` 恢復舊版。 |

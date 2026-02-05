@@ -28,7 +28,27 @@ export class AdBlockGuard {
         this.observer = null;
     }
 
+    // **ANTI-ADBLOCK PATCH**: 透過 YouTube 自身的配置對象來阻止偵測
+    patchConfig() {
+        try {
+            const config = window.yt?.config_ || window.ytcfg?.data_;
+            if (config?.openPopupConfig?.supportedPopups?.adBlockMessageViewModel) {
+                config.openPopupConfig.supportedPopups.adBlockMessageViewModel = false;
+            }
+            if (config?.EXPERIMENT_FLAGS) {
+                config.EXPERIMENT_FLAGS.ad_blocker_notifications_disabled = true;
+                config.EXPERIMENT_FLAGS.web_enable_adblock_detection_block_playback = false;
+            }
+            // Logger.info('🛡️ AdBlock config patched'); // Optional: noisy
+        } catch (e) {
+            // 忽略錯誤
+        }
+    }
+
     start() {
+        // 初始 Patch
+        this.patchConfig();
+
         // 使用 Throttled check，避免頻繁 Mutation 造成效能衝擊
         this.checkAndCleanThrottled = Utils.throttle(() => this.checkAndClean(), 250);
 

@@ -23,11 +23,16 @@ export class ConfigManager {
             ENABLE_CHANNEL_FILTER: true,
             CHANNEL_BLACKLIST: [],
             CHANNEL_WHITELIST: [],
+            KEYWORD_WHITELIST: [], // 新增：關鍵字白名單
             ENABLE_SECTION_FILTER: true,
-            SECTION_TITLE_BLACKLIST: ['耳目一新', '重溫舊愛', '合輯', 'Mixes', 'Latest posts', '最新貼文'],
-
-            // ... (rest)
-
+            SECTION_TITLE_BLACKLIST: [
+                // 中文 (繁/簡)
+                '耳目一新', '重溫舊愛', '合輯', '最新貼文', '發燒影片', '熱門', '為您推薦', '推薦', '先前搜尋內容', '相關內容',
+                // English
+                'New to you', 'Relive', 'Mixes', 'Latest posts', 'Trending', 'Recommended', 'People also watched', 'From your search', 'Related to', 'Previously watched',
+                // Japanese
+                'おすすめ', 'ミックス', '新着', 'トレンド', 'あなたへの', '関連'
+            ],
             ENABLE_DURATION_FILTER: true,
             DURATION_MIN: 0,
             DURATION_MAX: 0,
@@ -68,6 +73,7 @@ export class ConfigManager {
         loaded.compiledKeywords = (loaded.KEYWORD_BLACKLIST || []).map(k => Utils.generateCnRegex(k)).filter(Boolean);
         loaded.compiledChannels = (loaded.CHANNEL_BLACKLIST || []).map(k => Utils.generateCnRegex(k)).filter(Boolean);
         loaded.compiledWhitelist = (loaded.CHANNEL_WHITELIST || []).map(k => Utils.generateCnRegex(k)).filter(Boolean);
+        loaded.compiledKeywordWhitelist = (loaded.KEYWORD_WHITELIST || []).map(k => Utils.generateCnRegex(k)).filter(Boolean);
         loaded.compiledSections = (loaded.SECTION_TITLE_BLACKLIST || []).map(k => Utils.generateCnRegex(k)).filter(Boolean);
 
         return loaded;
@@ -90,6 +96,9 @@ export class ConfigManager {
         }
         if (key === 'CHANNEL_WHITELIST') {
             this.state.compiledWhitelist = value.map(k => Utils.generateCnRegex(k)).filter(Boolean);
+        }
+        if (key === 'KEYWORD_WHITELIST') {
+            this.state.compiledKeywordWhitelist = value.map(k => Utils.generateCnRegex(k)).filter(Boolean);
         }
         if (key === 'SECTION_TITLE_BLACKLIST') {
             this.state.compiledSections = value.map(k => Utils.generateCnRegex(k)).filter(Boolean);

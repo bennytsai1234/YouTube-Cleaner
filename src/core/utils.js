@@ -19,7 +19,7 @@ const MULTIPLIERS = {
 // Pre-compiled regexes
 const RX_NUMERIC = /([\d.]+)\s*([kmb千萬万億亿])?/i;
 const RX_TIME_AGO_CHECK = /(ago|前|hour|minute|day|week|month|year|秒|分|時|天|週|月|年)/i;
-const RX_TIME_AGO_PARSE = /([\d.]+)\s*(second|minute|min|hour|hr|day|week|month|year|秒|分|小時|時|天|日|週|周|月|年)/i;
+const RX_TIME_AGO_PARSE = /([\d.]+)\s*(second|minute|min|hour|hr|day|week|month|year|秒|分|小時|時|天|日|週|周|月|年)s?/i;
 const RX_ZERO_TIME = /second|秒/i;
 
 const TIME_UNIT_KEYS = {

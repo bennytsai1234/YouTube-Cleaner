@@ -42,6 +42,7 @@ export const I18N = {
             adv_channel_filter: '頻道過濾',
             adv_channel_list: '✏️ 頻道黑名單',
             adv_channel_whitelist: '🛡️ 頻道白名單 (例外放行)',
+            adv_keyword_whitelist: '🛡️ 關鍵字白名單 (例外放行)',
             adv_section_filter: '欄位過濾',
             adv_section_list: '✏️ 欄位標題清單',
             adv_duration_filter: '長度過濾',
@@ -50,7 +51,8 @@ export const I18N = {
             adv_max: '最長(分):',
             adv_add: '新增',
             adv_remove: '刪除',
-            adv_clear: '清空',
+            adv_clear: '🧹 清空全部',
+            adv_restore: '✨ 恢復預設',
             adv_region_convert: '繁簡通用過濾',
             adv_disable_channel: '頻道頁面停止過濾 (保留內容)'
         },
@@ -100,7 +102,8 @@ export const I18N = {
             adv_max: '最长(分):',
             adv_add: '新增',
             adv_remove: '删除',
-            adv_clear: '清空',
+            adv_clear: '🧹 清空全部',
+            adv_restore: '✨ 恢复默认',
             adv_region_convert: '繁简通用过滤',
             adv_disable_channel: '频道页面停止过滤 (保留内容)'
         },
@@ -142,6 +145,7 @@ export const I18N = {
             adv_channel_filter: 'Channel Filter',
             adv_channel_list: '✏️ Channel Blacklist',
             adv_channel_whitelist: '🛡️ Channel Whitelist',
+            adv_keyword_whitelist: '🛡️ Keyword Whitelist',
             adv_section_filter: 'Section Filter',
             adv_section_list: '✏️ Section Title List',
             adv_duration_filter: 'Duration Filter',
@@ -150,9 +154,62 @@ export const I18N = {
             adv_max: 'Max (min):',
             adv_add: 'Add',
             adv_remove: 'Remove',
-            adv_clear: 'Clear',
+            adv_clear: '🧹 Clear All',
+            adv_restore: '✨ Restore Defaults',
             adv_region_convert: 'Region Agnostic Filter',
             adv_disable_channel: 'Disable on Channel Pages'
+        },
+        'ja': {
+            title: 'YouTube 浄化大師',
+            menu_rules: '📂 フィルタールール設定',
+            menu_low_view: '低視聴回数フィルター (ライブ含む)',
+            menu_threshold: '🔢 閾値を設定',
+            menu_grace: '⏳ 猶予期間を設定',
+            menu_advanced: '🚫 詳細設定',
+            menu_new_tab: '強制新タブ (動画)',
+            menu_notification_new_tab: '強制新タブ (通知)',
+            menu_debug: 'デバッグ',
+            menu_reset: '🔄 デフォルトに戻す',
+            menu_stats: '📊 統計情報',
+            menu_export: '💾 設定のエクスポート/インポート',
+            menu_lang: '🌐 言語',
+            menu_input: '選んでください:',
+            stats_title: '【 統計情報 】',
+            stats_empty: 'まだ何もフィルタリングされていません',
+            stats_filtered: '{0} 個の項目をフィルタリングしました',
+            export_title: '【 設定管理 】',
+            export_export: '📤 設定をエクスポート',
+            export_import: '📥 設定をインポート',
+            export_success: '✅ 設定をクリップボードにコピーしました！',
+            export_copy: '以下の設定をコピーしてください (Ctrl+C):',
+            import_prompt: '設定 JSON を貼り付けてください:',
+            import_success: '✅ 設定をインポートしました！',
+            import_fail: '❌ インポート失敗: ',
+            rules_title: '【 フィルタールール 】',
+            rules_back: '(0 戻る)',
+            threshold_prompt: '「視聴回数閾値」を入力してください (これ未満は非表示):',
+            grace_prompt: '「猶予期間 (時間)」を入力してください (0 は猶予なし):',
+            reset_confirm: 'リセットしますか？',
+            lang_title: '【 言語を選択 】',
+            back: '戻る',
+            adv_keyword_filter: 'キーワードフィルター',
+            adv_keyword_list: '✏️ キーワードリスト',
+            adv_channel_filter: 'チャンネルフィルター',
+            adv_channel_list: '✏️ チャンネルブラックリスト',
+            adv_channel_whitelist: '🛡️ チャンネルホワイトリスト',
+            adv_keyword_whitelist: '🛡️ キーワードホワイトリスト',
+            adv_section_filter: 'セクションフィルター',
+            adv_section_list: '✏️ セクションタイトルリスト',
+            adv_duration_filter: '動画の長さフィルター',
+            adv_duration_set: '⏱️ 長さを設定',
+            adv_min: '最短(分):',
+            adv_max: '最長(分):',
+            adv_add: '追加',
+            adv_remove: '削除',
+            adv_clear: '🧹 全てクリア',
+            adv_restore: '✨ デフォルトに戻す',
+            adv_region_convert: '繁体字/簡体字共通フィルター',
+            adv_disable_channel: 'チャンネルページではフィルターを無効にする'
         }
     },
 
@@ -229,6 +286,30 @@ export const I18N = {
             explore_topics: 'Explore Topics',
             recommended_playlists: 'Recommended Playlists',
             members_early_access: 'Members Early Access'
+        },
+        'ja': {
+            ad_block_popup: '広告ブロックポップアップ',
+            ad_sponsor: '広告/スポンサー',
+            members_only: 'メンバー限定',
+            shorts_item: 'Shorts 項目',
+            mix_only: 'ミックスリスト',
+            premium_banner: 'Premium バナー',
+            news_block: 'ニュースセクション',
+            shorts_block: 'Shorts セクション',
+            posts_block: 'コミュニティ投稿',
+            playables_block: 'プレイアブル',
+            fundraiser_block: '募金活動',
+            shorts_grid_shelf: 'Shorts グリッド',
+            movies_shelf: '映画の推奨',
+            youtube_featured_shelf: 'YouTube 特選',
+            popular_gaming_shelf: '人気のゲーム',
+            more_from_game_shelf: 'このゲームの関連コンテンツ',
+            trending_playlist: '急上昇プレイリスト',
+            inline_survey: 'アンケート',
+            clarify_box: '情報パネル',
+            explore_topics: 'トピックを探索',
+            recommended_playlists: 'おすすめのプレイリスト',
+            members_early_access: 'メンバー限定先行公開'
         }
     },
 
@@ -240,6 +321,7 @@ export const I18N = {
         const ytLang = document.documentElement.lang || navigator.language || 'zh-TW';
         if (ytLang.startsWith('zh-CN') || ytLang.startsWith('zh-Hans')) return 'zh-CN';
         if (ytLang.startsWith('zh')) return 'zh-TW';
+        if (ytLang.startsWith('ja')) return 'ja';
         return 'en';
     },
 
@@ -264,7 +346,8 @@ export const I18N = {
         return {
             'zh-TW': '繁體中文',
             'zh-CN': '简体中文',
-            'en': 'English'
+            'en': 'English',
+            'ja': '日本語'
         };
     }
 };

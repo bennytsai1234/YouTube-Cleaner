@@ -5,6 +5,22 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.0.0] - 2026-02-05
+
+### 🚀 Major Architecture Overhaul
+- **Decoupled Core Logic**: Refactored the monolithic `App` controller into focused modules.
+    - Moved `AdBlockGuard` configuration patching to its own module.
+    - Encapsulated `MutationObserver` logic within `VideoFilter` (`start`/`stop` methods).
+- **Selector Health Check (Debug)**: Added a new "Self-Healing" diagnostic tool.
+    - In Debug Mode, the script now automatically validates if critical CSS selectors (Titles, Metadata) are finding elements on the page.
+    - Logs specific warnings if YouTube's DOM structure has changed, enabling faster fixes.
+
+### Changed
+- **Robustness**: Improved the initialization sequence to ensure `AdBlockGuard` patches YouTube's config *before* any other logic runs.
+- **Maintenance**: Cleaned up `main.js` to serve as a pure composition root.
+
+---
+
 ## [1.9.3] - 2026-01-28
 
 ### Added
