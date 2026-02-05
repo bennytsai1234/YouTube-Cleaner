@@ -95,13 +95,8 @@ export const Utils = {
         const match = text.match(RX_TIME_AGO_PARSE);
         if (!match) return null;
 
-        const val = parseInt(match[1], 10);
+        const val = parseFloat(match[1]);
         const unitStr = match[2].toLowerCase();
-
-        // Find multiplier
-        // Simple iteration or lookup. Since we have mixed keys (minute, 分), lookup is best.
-        // We need to normalize or check partial matches if we want to be robust,
-        // but the regex captures specific known units.
 
         // Check exact match first
         if (TIME_UNIT_KEYS[unitStr]) return val * TIME_UNIT_KEYS[unitStr];

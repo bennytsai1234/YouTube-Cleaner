@@ -87,7 +87,7 @@ export class AdBlockGuard {
     isAdBlockPopup(dialog) {
         if (dialog.tagName === 'YTD-ENFORCEMENT-MESSAGE-VIEW-MODEL') return true;
         if (dialog.querySelector('ytd-enforcement-message-view-model')) return true;
-        if (dialog.innerText && this.keywords.some(k => dialog.innerText.includes(k))) return true;
+        if (dialog.textContent && this.keywords.some(k => dialog.textContent.includes(k))) return true;
         return false;
     }
 

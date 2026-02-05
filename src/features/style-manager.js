@@ -28,7 +28,7 @@ export class StyleManager {
                 }
 
                 ytd-app[aria-hidden="true"]:has(ytd-enforcement-message-view-model) {
-                    aria-hidden: false !important; display: block !important;
+                    display: block !important;
                 }
 
                 ytd-app { --ytd-app-scroll-offset: 0 !important; }
@@ -59,7 +59,6 @@ export class StyleManager {
 
         // 5.4 Advanced :has() Rules
         // ★ Add new Container rules here
-        const VIDEO_CONTAINERS = 'ytd-rich-item-renderer, ytd-video-renderer, ytd-compact-video-renderer, ytd-grid-video-renderer, yt-lockup-view-model';
         const hasRules = [
             { key: 'ad_sponsor', selector: '[aria-label*="廣告"], [aria-label*="Sponsor"], [aria-label="贊助商廣告"], ad-badge-view-model, feed-ad-metadata-view-model' },
             { key: 'members_only', selector: '[aria-label*="會員專屬"]' },
@@ -69,8 +68,8 @@ export class StyleManager {
 
         hasRules.forEach(({ key, selector }) => {
             if (enables[key]) {
-                const containers = VIDEO_CONTAINERS.split(',').map(s => s.trim());
-                containers.forEach(c => rules.push(`${c}:has(${selector}) { display: none !important; }`));
+                const containersList = SELECTORS.VIDEO_CONTAINERS || [];
+                containersList.forEach(c => rules.push(`${c}:has(${selector}) { display: none !important; }`));
             }
         });
 

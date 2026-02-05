@@ -6,7 +6,8 @@ const VIDEO_CONTAINERS = [
     'ytd-grid-video-renderer',
     'yt-lockup-view-model',
     'ytd-compact-radio-renderer',   // 播放頁自動播放清單
-    'ytd-playlist-panel-video-renderer'  // 播放清單面板
+    'ytd-playlist-panel-video-renderer', // 播放清單面板
+    'ytd-playlist-video-renderer'   // 播放清單頁面中的影片項目
 ];
 
 const SECTION_CONTAINERS = [

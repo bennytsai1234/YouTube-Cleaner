@@ -94,7 +94,7 @@
             if (RX_ZERO_TIME.test(text)) return 0;
             const match = text.match(RX_TIME_AGO_PARSE);
             if (!match) return null;
-            const val = parseInt(match[1], 10);
+            const val = parseFloat(match[1]);
             const unitStr = match[2].toLowerCase();
             if (TIME_UNIT_KEYS[unitStr]) return val * TIME_UNIT_KEYS[unitStr];
             for (const [key, multiplier] of Object.entries(TIME_UNIT_KEYS)) {
@@ -209,9 +209,8 @@
             }
             loaded.compiledKeywords = (loaded.KEYWORD_BLACKLIST || []).map(k => Utils.generateCnRegex(k)).filter(Boolean);
             loaded.compiledChannels = (loaded.CHANNEL_BLACKLIST || []).map(k => Utils.generateCnRegex(k)).filter(Boolean);
-            loaded.compiledWhitelist = (loaded.CHANNEL_WHITELIST || []).map(k => Utils.generateCnRegex(k)).filter(Boolean);
             loaded.compiledKeywordWhitelist = (loaded.KEYWORD_WHITELIST || []).map(k => Utils.generateCnRegex(k)).filter(Boolean);
-            loaded.compiledSections = (loaded.SECTION_TITLE_BLACKLIST || []).map(k => Utils.generateCnRegex(k)).filter(Boolean);
+            loaded.compiledSectionBlacklist = (loaded.SECTION_TITLE_BLACKLIST || []).map(k => Utils.generateCnRegex(k)).filter(Boolean);
             return loaded;
         }
         get(key) { return this.state[key]; }
@@ -226,14 +225,11 @@
             if (key === 'CHANNEL_BLACKLIST') {
                 this.state.compiledChannels = value.map(k => Utils.generateCnRegex(k)).filter(Boolean);
             }
-            if (key === 'CHANNEL_WHITELIST') {
-                this.state.compiledWhitelist = value.map(k => Utils.generateCnRegex(k)).filter(Boolean);
-            }
             if (key === 'KEYWORD_WHITELIST') {
                 this.state.compiledKeywordWhitelist = value.map(k => Utils.generateCnRegex(k)).filter(Boolean);
             }
             if (key === 'SECTION_TITLE_BLACKLIST') {
-                this.state.compiledSections = value.map(k => Utils.generateCnRegex(k)).filter(Boolean);
+                this.state.compiledSectionBlacklist = value.map(k => Utils.generateCnRegex(k)).filter(Boolean);
             }
         }
         toggleRule(ruleId) {
@@ -271,7 +267,7 @@
                 }
 
                 ytd-app[aria-hidden="true"]:has(ytd-enforcement-message-view-model) {
-                    aria-hidden: false !important; display: block !important;
+                    display: block !important;
                 }
 
                 ytd-app { --ytd-app-scroll-offset: 0 !important; }
@@ -295,7 +291,6 @@
             for (const [key, selectors] of Object.entries(map)) {
                 if (enables[key]) rules.push(`${selectors.join(', ')} { display: none !important; }`);
             }
-            const VIDEO_CONTAINERS = 'ytd-rich-item-renderer, ytd-video-renderer, ytd-compact-video-renderer, ytd-grid-video-renderer, yt-lockup-view-model';
             const hasRules = [
                 { key: 'ad_sponsor', selector: '[aria-label*="廣告"], [aria-label*="Sponsor"], [aria-label="贊助商廣告"], ad-badge-view-model, feed-ad-metadata-view-model' },
                 { key: 'members_only', selector: '[aria-label*="會員專屬"]' },
@@ -304,8 +299,8 @@
             ];
             hasRules.forEach(({ key, selector }) => {
                 if (enables[key]) {
-                    const containers = VIDEO_CONTAINERS.split(',').map(s => s.trim());
-                    containers.forEach(c => rules.push(`${c}:has(${selector}) { display: none !important; }`));
+                    const containersList = SELECTORS.VIDEO_CONTAINERS || [];
+                    containersList.forEach(c => rules.push(`${c}:has(${selector}) { display: none !important; }`));
                 }
             });
             let styleEl = document.getElementById('yt-cleaner-css');
@@ -380,7 +375,7 @@
         isAdBlockPopup(dialog) {
             if (dialog.tagName === 'YTD-ENFORCEMENT-MESSAGE-VIEW-MODEL') return true;
             if (dialog.querySelector('ytd-enforcement-message-view-model')) return true;
-            if (dialog.innerText && this.keywords.some(k => dialog.innerText.includes(k))) return true;
+            if (dialog.textContent && this.keywords.some(k => dialog.textContent.includes(k))) return true;
             return false;
         }
         checkAndClean() {
@@ -426,7 +421,8 @@
         'ytd-grid-video-renderer',
         'yt-lockup-view-model',
         'ytd-compact-radio-renderer',
-        'ytd-playlist-panel-video-renderer'
+        'ytd-playlist-panel-video-renderer',
+        'ytd-playlist-video-renderer'
     ];
     const SECTION_CONTAINERS = [
         'ytd-rich-section-renderer',
@@ -435,7 +431,7 @@
         'grid-shelf-view-model'
     ];
     const ALL_CONTAINERS_STR = [...VIDEO_CONTAINERS, ...SECTION_CONTAINERS].join(', ');
-    const SELECTORS = {
+    const SELECTORS$1 = {
         METADATA: {
             TEXT: '.inline-metadata-item, #metadata-line span, .yt-content-metadata-view-model__metadata-text, yt-content-metadata-view-model .yt-core-attributed-string',
             TITLE_LINKS: [
@@ -547,14 +543,14 @@
         }
         get title() {
             if (this._title === null) {
-                const el = this.el.querySelector(SELECTORS.METADATA.TITLE);
+                const el = this.el.querySelector(SELECTORS$1.METADATA.TITLE);
                 this._title = el?.title?.trim() || el?.textContent?.trim() || '';
             }
             return this._title;
         }
         get channel() {
             if (this._channel === null) {
-                this._channel = this.el.querySelector(SELECTORS.METADATA.CHANNEL)?.textContent?.trim() || '';
+                this._channel = this.el.querySelector(SELECTORS$1.METADATA.CHANNEL)?.textContent?.trim() || '';
             }
             return this._channel;
         }
@@ -567,9 +563,9 @@
         }
         _parseMetadata() {
             if (this._viewCount !== undefined) return;
-            const texts = Array.from(this.el.querySelectorAll(SELECTORS.METADATA.TEXT));
+            const texts = Array.from(this.el.querySelectorAll(SELECTORS$1.METADATA.TEXT));
             let aria = '';
-            for (const sel of SELECTORS.METADATA.TITLE_LINKS) {
+            for (const sel of SELECTORS$1.METADATA.TITLE_LINKS) {
                 const el = this.el.querySelector(`:scope ${sel}`);
                 if (el?.ariaLabel) { aria = el.ariaLabel; break; }
             }
@@ -594,21 +590,21 @@
         get timeAgo() { this._parseMetadata(); return this._timeAgo; }
         get duration() {
             if (this._duration === undefined) {
-                const el = this.el.querySelector(SELECTORS.METADATA.DURATION);
+                const el = this.el.querySelector(SELECTORS$1.METADATA.DURATION);
                 this._duration = el ? Utils.parseDuration(el.textContent) : null;
             }
             return this._duration;
         }
         get isShorts() {
             if (this._isShorts === undefined) {
-                 this._isShorts = !!this.el.querySelector(SELECTORS.BADGES.SHORTS);
+                 this._isShorts = !!this.el.querySelector(SELECTORS$1.BADGES.SHORTS);
             }
             return this._isShorts;
         }
         get isLive() { return this._liveViewers !== null; }
         get isMembers() {
             if (this._isMembers === undefined) {
-                this._isMembers = !!this.el.querySelector(SELECTORS.BADGES.MEMBERS) ||
+                this._isMembers = !!this.el.querySelector(SELECTORS$1.BADGES.MEMBERS) ||
                     /會員專屬|Members only/.test(this.el.innerText);
             }
             return this._isMembers;
@@ -619,7 +615,7 @@
                 if (link && /list=(LL|WL|FL)/.test(link.href)) {
                     this._isUserPlaylist = true;
                 } else {
-                    const texts = Array.from(this.el.querySelectorAll(SELECTORS.METADATA.TEXT));
+                    const texts = Array.from(this.el.querySelectorAll(SELECTORS$1.METADATA.TEXT));
                     const ownershipKeywords = /Private|Unlisted|Public|私人|不公開|不公开|公開|公开/i;
                     this._isUserPlaylist = texts.some(t => ownershipKeywords.test(t.textContent));
                 }
@@ -633,7 +629,7 @@
                     this._isPlaylist = true;
                     return true;
                 }
-                if (this.el.querySelector(SELECTORS.BADGES.MIX)) {
+                if (this.el.querySelector(SELECTORS$1.BADGES.MIX)) {
                     this._isPlaylist = true;
                     return true;
                 }
@@ -673,12 +669,12 @@
                 /VIDEO|LOCKUP|RICH-ITEM/.test(el.tagName) &&
                 !el.hidden &&
                 el.offsetParent !== null &&
-                el.querySelector(SELECTORS.METADATA.TITLE)
+                el.querySelector(SELECTORS$1.METADATA.TITLE)
             );
             if (!sample) return;
             this.hasValidatedSelectors = true;
             let issues = [];
-            if (!sample.querySelector(SELECTORS.METADATA.CHANNEL)) issues.push('METADATA.CHANNEL');
+            if (!sample.querySelector(SELECTORS$1.METADATA.CHANNEL)) issues.push('METADATA.CHANNEL');
             if (issues.length > 0) {
                 Logger.warn(`⚠️ Selector Health Check Failed: ${issues.join(', ')} not found in active element`, sample);
             } else {
@@ -700,14 +696,14 @@
             for (const mutation of mutations) {
                 for (const node of mutation.addedNodes) {
                     if (node.nodeType !== 1) continue;
-                    if (node.matches?.(SELECTORS.allContainers)) candidates.add(node);
-                    node.querySelectorAll?.(SELECTORS.allContainers).forEach(c => candidates.add(c));
+                    if (node.matches?.(SELECTORS$1.allContainers)) candidates.add(node);
+                    node.querySelectorAll?.(SELECTORS$1.allContainers).forEach(c => candidates.add(c));
                 }
             }
             if (candidates.size > 0) this._processBatch(Array.from(candidates), 0);
         }
         processPage() {
-            const elements = Array.from(document.querySelectorAll(SELECTORS.allContainers));
+            const elements = Array.from(document.querySelectorAll(SELECTORS$1.allContainers));
             this._validateSelectors(elements);
             const unprocessed = elements.filter(el => !el.dataset.ypChecked);
             if (unprocessed.length === 0) return;
@@ -782,7 +778,7 @@
             if (!/RICH-SECTION|REEL-SHELF|SHELF-RENDERER/.test(element.tagName)) return false;
             if (!this.config.get('ENABLE_SECTION_FILTER')) return false;
             let titleText = '';
-            for (const sel of SELECTORS.SHELF_TITLE) {
+            for (const sel of SELECTORS$1.SHELF_TITLE) {
                 const titleEl = element.querySelector(sel);
                 if (titleEl) {
                     titleText = titleEl.textContent.trim();
@@ -914,7 +910,7 @@
         }
         findPrimaryLink(container) {
             if (!container) return null;
-            for (const sel of SELECTORS.LINK_CANDIDATES) {
+            for (const sel of SELECTORS$1.LINK_CANDIDATES) {
                 const a = container.querySelector(sel);
                 if (a?.href) return a;
             }
@@ -937,13 +933,13 @@
                 }
                 if (!this.config.get('OPEN_IN_NEW_TAB')) return;
                 if (e.button !== 0 || e.ctrlKey || e.metaKey || e.shiftKey || e.altKey) return;
-                if (e.target.closest(SELECTORS.INTERACTION_EXCLUDE)) return;
+                if (e.target.closest(SELECTORS$1.INTERACTION_EXCLUDE)) return;
                 let targetLink = null;
-                const previewPlayer = e.target.closest(SELECTORS.PREVIEW_PLAYER);
+                const previewPlayer = e.target.closest(SELECTORS$1.PREVIEW_PLAYER);
                 if (previewPlayer) {
-                    targetLink = this.findPrimaryLink(previewPlayer) || this.findPrimaryLink(previewPlayer.closest(SELECTORS.CLICKABLE.join(',')));
+                    targetLink = this.findPrimaryLink(previewPlayer) || this.findPrimaryLink(previewPlayer.closest(SELECTORS$1.CLICKABLE.join(',')));
                 } else {
-                    const container = e.target.closest(SELECTORS.CLICKABLE.join(', '));
+                    const container = e.target.closest(SELECTORS$1.CLICKABLE.join(', '));
                     if (!container) return;
                     const channelLink = e.target.closest('a#avatar-link, .ytd-channel-name a, a[href^="/@"], a[href^="/channel/"]');
                     targetLink = channelLink?.href ? channelLink : this.findPrimaryLink(container);
@@ -1049,6 +1045,7 @@
                 rules_back: '(0 返回)',
                 threshold_prompt: '请输入「观看数阈值」 (低于此数将被过滤):',
                 grace_prompt: '请输入「豁免时间 (小时)」 (设为 0 则不豁免):',
+                adv_exact_prompt: '是否需精準匹配频道名称？ (1. 是 / 2. 否)\n\n※精準匹配：必须完全一致\n※模糊匹配：包含关键字即可',
                 reset_confirm: '重置?',
                 lang_title: '【 选择语言 】',
                 back: '返回',
@@ -1057,6 +1054,8 @@
                 adv_channel_filter: '频道过滤',
                 adv_channel_list: '✏️ 频道黑名单',
                 adv_channel_whitelist: '🛡️ 频道白名单 (例外放行)',
+                adv_exact_match: '🎯 频道白名单需精准匹配',
+                adv_keyword_whitelist: '🛡️ 关键字白名单 (例外放行)',
                 adv_section_filter: '栏位过滤',
                 adv_section_list: '✏️ 栏位标题列表',
                 adv_duration_filter: '时长过滤',
@@ -1073,11 +1072,11 @@
             'en': {
                 title: 'YouTube Cleaner',
                 menu_rules: '📂 Filter Rules',
-                menu_low_view: '低觀看數過濾 (含直播)',
-                menu_threshold: '🔢 設定閾值',
-                menu_grace: '⏳ 設定豁免期',
-                menu_advanced: '🚫 進階過濾',
-                menu_new_tab: '強制新分頁 (影片)',
+                menu_low_view: 'Low View Count Filter (Live included)',
+                menu_threshold: '🔢 Set Threshold',
+                menu_grace: '⏳ Set Grace Period',
+                menu_advanced: '🚫 Advanced Filtering',
+                menu_new_tab: 'Force New Tab (Video)',
                 menu_notification_new_tab: 'Force New Tab (Notif)',
                 menu_debug: 'Debug',
                 menu_reset: '🔄 Reset to Default',
@@ -1312,64 +1311,180 @@
     };
 
     class UIManager {
-        constructor(config, onRefresh) { this.config = config; this.onRefresh = onRefresh; }
-        t(key, ...args) { return I18N.t(key, ...args); }
+        constructor(config, onRefresh) {
+            this.config = config;
+            this.onRefresh = onRefresh;
+        }
+        t(key, ...args) {
+            return I18N.t(key, ...args);
+        }
+        _renderMenu(title, items, backAction = null) {
+            const visibleItems = items.filter(item => item.show !== false);
+            const menuString = visibleItems
+                .map((item, idx) => `${idx + 1}. ${item.label}`)
+                .join('\n');
+            const footer = backAction ? `\n0. ${this.t('back')}` : '';
+            const promptText = `【 ${title} 】\n\n${menuString}${footer}\n\n${this.t('menu_input')}`;
+            const choice = prompt(promptText);
+            if (choice === '0' && backAction) {
+                backAction();
+                return;
+            }
+            const selected = visibleItems[parseInt(choice) - 1];
+            if (selected && selected.action) {
+                selected.action();
+            }
+        }
         showMainMenu() {
             const i = (k) => this.config.get(k) ? '✅' : '❌';
             const statsInfo = FilterStats.session.total > 0 ? ` (${FilterStats.session.total})` : '';
             const langName = I18N.availableLanguages[I18N.lang];
-            const choice = prompt(
-                `【 ${this.t('title')} v${GM_info.script.version} 】\n\n` +
-                `1. ${this.t('menu_rules')}\n` +
-                `2. ${i('ENABLE_LOW_VIEW_FILTER')} ${this.t('menu_low_view')}\n` +
-                `3. ${this.t('menu_threshold')} (${this.config.get('LOW_VIEW_THRESHOLD')})\n` +
-                `4. ${this.t('menu_grace')} (${this.config.get('GRACE_PERIOD_HOURS')}h)\n` +
-                `5. ${this.t('menu_advanced')}\n` +
-                `6. ${i('OPEN_IN_NEW_TAB')} ${this.t('menu_new_tab')}\n` +
-                `7. ${i('OPEN_NOTIFICATIONS_IN_NEW_TAB')} ${this.t('menu_notification_new_tab')}\n` +
-                `8. ${i('DEBUG_MODE')} ${this.t('menu_debug')}\n` +
-                `9. ${this.t('menu_reset')}\n` +
-                `10. ${this.t('menu_stats')}${statsInfo}\n` +
-                `11. ${this.t('menu_export')}\n` +
-                `12. ${this.t('menu_lang')} [${langName}]\n\n` +
-                this.t('menu_input')
-            );
-            if (choice) this.handleMenu(choice);
+            const items = [
+                { label: this.t('menu_rules'), action: () => this.showRuleMenu() },
+                { label: `${i('ENABLE_LOW_VIEW_FILTER')} ${this.t('menu_low_view')}`, action: () => this.toggle('ENABLE_LOW_VIEW_FILTER') },
+                { label: `${this.t('menu_threshold')} (${this.config.get('LOW_VIEW_THRESHOLD')})`, action: () => this.promptNumber('LOW_VIEW_THRESHOLD', 'threshold_prompt') },
+                { label: `${this.t('menu_grace')} (${this.config.get('GRACE_PERIOD_HOURS')}h)`, action: () => this.promptNumber('GRACE_PERIOD_HOURS', 'grace_prompt') },
+                { label: this.t('menu_advanced'), action: () => this.showAdvancedMenu() },
+                { label: `${i('OPEN_IN_NEW_TAB')} ${this.t('menu_new_tab')}`, action: () => this.toggle('OPEN_IN_NEW_TAB') },
+                { label: `${i('OPEN_NOTIFICATIONS_IN_NEW_TAB')} ${this.t('menu_notification_new_tab')}`, action: () => this.toggle('OPEN_NOTIFICATIONS_IN_NEW_TAB') },
+                { label: `${i('DEBUG_MODE')} ${this.t('menu_debug')}`, action: () => this.toggle('DEBUG_MODE') },
+                { label: this.t('menu_reset'), action: () => this.resetSettings() },
+                { label: `${this.t('menu_stats')}${statsInfo}`, action: () => this.showStats() },
+                { label: this.t('menu_export'), action: () => this.showExportImportMenu() },
+                { label: `${this.t('menu_lang')} [${langName}]`, action: () => this.showLanguageMenu() }
+            ];
+            this._renderMenu(`${this.t('title')} v${GM_info.script.version}`, items);
         }
-        handleMenu(c) {
-            switch (c.trim()) {
-                case '1': this.showRuleMenu(); break;
-                case '2': this.toggle('ENABLE_LOW_VIEW_FILTER'); break;
-                case '3': {
-                    const v = prompt(this.t('threshold_prompt'), this.config.get('LOW_VIEW_THRESHOLD'));
-                    const num = Number(v);
-                    if (v !== null && !isNaN(num)) this.update('LOW_VIEW_THRESHOLD', num);
-                    else if (v !== null) alert('❌ 請輸入有效的數字');
-                    this.showMainMenu();
-                    break;
+        showAdvancedMenu() {
+            const i = (k) => this.config.get(k) ? '✅' : '❌';
+            const items = [
+                { label: `${i('ENABLE_KEYWORD_FILTER')} ${this.t('adv_keyword_filter')}`, action: () => this.toggle('ENABLE_KEYWORD_FILTER', true) },
+                { label: this.t('adv_keyword_list'), action: () => this.manage('KEYWORD_BLACKLIST') },
+                { label: `${i('ENABLE_CHANNEL_FILTER')} ${this.t('adv_channel_filter')}`, action: () => this.toggle('ENABLE_CHANNEL_FILTER', true) },
+                { label: this.t('adv_channel_list'), action: () => this.manage('CHANNEL_BLACKLIST') },
+                { label: this.t('adv_channel_whitelist'), action: () => this.manage('CHANNEL_WHITELIST') },
+                { label: `${i('EXACT_CHANNEL_WHITELIST')} ${this.t('adv_exact_match')}`, action: () => this.toggle('EXACT_CHANNEL_WHITELIST', true) },
+                { label: this.t('adv_keyword_whitelist'), action: () => this.manage('KEYWORD_WHITELIST') },
+                { label: `${i('ENABLE_SECTION_FILTER')} ${this.t('adv_section_filter')}`, action: () => this.toggle('ENABLE_SECTION_FILTER', true) },
+                { label: this.t('adv_section_list'), action: () => this.manage('SECTION_TITLE_BLACKLIST') },
+                { label: `${i('ENABLE_DURATION_FILTER')} ${this.t('adv_duration_filter')}`, action: () => this.toggle('ENABLE_DURATION_FILTER', true) },
+                { label: this.t('adv_duration_set'), action: () => this.promptDuration() },
+                { label: `${i('ENABLE_REGION_CONVERT')} ${this.t('adv_region_convert')}`, action: () => this.toggle('ENABLE_REGION_CONVERT', true) },
+                { label: `${i('DISABLE_FILTER_ON_CHANNEL')} ${this.t('adv_disable_channel')}`, action: () => this.toggle('DISABLE_FILTER_ON_CHANNEL', true) }
+            ];
+            this._renderMenu(this.t('menu_advanced'), items, () => this.showMainMenu());
+        }
+        showRuleMenu() {
+            const r = this.config.get('RULE_ENABLES');
+            const keys = Object.keys(r);
+            const items = keys.map(key => ({
+                label: `[${r[key] ? '✅' : '❌'}] ${I18N.getRuleName(key)}`,
+                action: () => {
+                    this.config.toggleRule(key);
+                    this.onRefresh();
+                    this.showRuleMenu();
                 }
-                case '4': {
-                    const v = prompt(this.t('grace_prompt'), this.config.get('GRACE_PERIOD_HOURS'));
-                    const num = Number(v);
-                    if (v !== null && !isNaN(num)) this.update('GRACE_PERIOD_HOURS', num);
-                    else if (v !== null) alert('❌ 請輸入有效的數字');
-                    this.showMainMenu();
-                    break;
-                }
-                case '5': this.showAdvancedMenu(); break;
-                case '6': this.toggle('OPEN_IN_NEW_TAB'); break;
-                case '7': this.toggle('OPEN_NOTIFICATIONS_IN_NEW_TAB'); break;
-                case '8': this.toggle('DEBUG_MODE'); break;
-                case '9':
-                    if (confirm(this.t('reset_confirm'))) {
-                        Object.keys(this.config.defaults).forEach(k => this.config.set(k, this.config.defaults[k]));
-                        this.update('', null);
-                    }
-                    break;
-                case '10': this.showStats(); break;
-                case '11': this.showExportImportMenu(); break;
-                case '12': this.showLanguageMenu(); break;
+            }));
+            this._renderMenu(this.t('rules_title'), items, () => this.showMainMenu());
+        }
+        manage(k) {
+            const l = this.config.get(k);
+            const title = `[ ${k} ]\n${l.join(', ') || '(Empty)'}`;
+            const items = [
+                { label: this.t('adv_add'), action: () => this.addItem(k, l) },
+                { label: this.t('adv_remove'), action: () => this.removeItem(k, l) },
+                { label: this.t('adv_clear'), action: () => this.clearList(k) },
+                { label: this.t('adv_restore'), action: () => this.restoreDefaults(k) }
+            ];
+            this._renderMenu(title, items, () => this.showAdvancedMenu());
+        }
+        toggle(k, isAdvanced = false) {
+            this.config.set(k, !this.config.get(k));
+            this.onRefresh();
+            isAdvanced ? this.showAdvancedMenu() : this.showMainMenu();
+        }
+        promptNumber(key, promptKey) {
+            const v = prompt(this.t(promptKey), this.config.get(key));
+            const num = Number(v);
+            if (v !== null && !isNaN(num)) {
+                this.config.set(key, num);
+                this.onRefresh();
+            } else if (v !== null) {
+                alert('❌ ' + this.t('invalid_number'));
             }
+            this.showMainMenu();
+        }
+        promptDuration() {
+            const min = prompt(this.t('adv_min'), this.config.get('DURATION_MIN') / 60);
+            const max = prompt(this.t('adv_max'), this.config.get('DURATION_MAX') / 60);
+            if (min !== null) {
+                const m = Number(min);
+                if (!isNaN(m)) this.config.set('DURATION_MIN', m * 60);
+            }
+            if (max !== null) {
+                const m = Number(max);
+                if (!isNaN(m)) this.config.set('DURATION_MAX', m * 60);
+            }
+            this.onRefresh();
+            this.showAdvancedMenu();
+        }
+        addItem(k, currentList) {
+            const v = prompt(`${this.t('adv_add')}:`);
+            if (!v) { this.manage(k); return; }
+            let itemsToAdd = v.split(',').map(s => s.trim()).filter(Boolean);
+            if (k === 'CHANNEL_WHITELIST' && itemsToAdd.length > 0) {
+                const mode = prompt(this.t('adv_exact_prompt'), '1');
+                if (mode === '1') itemsToAdd = itemsToAdd.map(item => '=' + item);
+            }
+            this.config.set(k, [...new Set([...currentList, ...itemsToAdd])]);
+            this.onRefresh();
+            this.manage(k);
+        }
+        removeItem(k, currentList) {
+            const v = prompt(`${this.t('adv_remove')}:`);
+            if (v) {
+                this.config.set(k, currentList.filter(i => i !== v.trim()));
+                this.onRefresh();
+            }
+            this.manage(k);
+        }
+        clearList(k) {
+            if (confirm(this.t('adv_clear') + '?')) {
+                this.config.set(k, []);
+                this.onRefresh();
+            }
+            this.manage(k);
+        }
+        restoreDefaults(k) {
+            if (confirm(this.t('adv_restore') + '?')) {
+                const allDefaults = this.config.defaults[k];
+                if (Array.isArray(allDefaults) && k === 'SECTION_TITLE_BLACKLIST') {
+                    const currentLang = I18N.lang;
+                    const filtered = allDefaults.filter(item => {
+                        const isEnglish = /[a-zA-Z]/.test(item);
+                        const isChinese = /[\u4e00-\u9fa5]/.test(item);
+                        const isJapanese = /[\u3040-\u30ff]/.test(item);
+                        if (currentLang.startsWith('zh')) return isChinese || isEnglish;
+                        if (currentLang === 'ja') return isJapanese || isEnglish;
+                        return isEnglish;
+                    });
+                    this.config.set(k, filtered);
+                } else {
+                    this.config.set(k, [...allDefaults]);
+                }
+                this.onRefresh();
+            }
+            this.manage(k);
+        }
+        resetSettings() {
+            if (confirm(this.t('reset_confirm'))) {
+                Object.keys(this.config.defaults).forEach(k => {
+                    this.config.set(k, this.config.defaults[k]);
+                });
+                this.onRefresh();
+                alert('✅ ' + this.t('import_success'));
+            }
+            this.showMainMenu();
         }
         showStats() {
             const summary = FilterStats.getSummary();
@@ -1380,22 +1495,22 @@
             const langs = I18N.availableLanguages;
             const keys = Object.keys(langs);
             const current = I18N.lang;
-            const menu = keys.map((k, i) => `${i + 1}. ${k === current ? '✅' : '⬜'} ${langs[k]}`).join('\n');
-            const c = prompt(`${this.t('lang_title')}\n\n${menu}\n\n0. ${this.t('back')}`);
-            if (c && c !== '0') {
-                const idx = parseInt(c) - 1;
-                if (keys[idx]) {
-                    I18N.lang = keys[idx];
-                    alert(`✅ ${langs[keys[idx]]}`);
+            const items = keys.map(k => ({
+                label: `${k === current ? '✅' : '⬜'} ${langs[k]}`,
+                action: () => {
+                    I18N.lang = k;
+                    alert(`✅ ${langs[k]}`);
+                    this.showMainMenu();
                 }
-            }
-            this.showMainMenu();
+            }));
+            this._renderMenu(this.t('lang_title'), items, () => this.showMainMenu());
         }
         showExportImportMenu() {
-            const c = prompt(`${this.t('export_title')}\n\n1. ${this.t('export_export')}\n2. ${this.t('export_import')}\n0. ${this.t('back')}`);
-            if (c === '1') this.exportSettings();
-            else if (c === '2') this.importSettings();
-            else if (c === '0') this.showMainMenu();
+            const items = [
+                { label: this.t('export_export'), action: () => this.exportSettings() },
+                { label: this.t('export_import'), action: () => this.importSettings() }
+            ];
+            this._renderMenu(this.t('export_title'), items, () => this.showMainMenu());
         }
         exportSettings() {
             const exportData = {
@@ -1431,123 +1546,6 @@
                 alert(this.t('import_fail') + e.message);
             }
             this.showExportImportMenu();
-        }
-        showRuleMenu() {
-            const r = this.config.get('RULE_ENABLES');
-            const k = Object.keys(r);
-            const c = prompt(`${this.t('rules_title')} ${this.t('rules_back')}\n` + k.map((key, i) => `${i + 1}. [${r[key] ? '✅' : '❌'}] ${I18N.getRuleName(key)}`).join('\n'));
-            if (c && c !== '0') {
-                this.config.toggleRule(k[parseInt(c) - 1]);
-                this.onRefresh();
-                this.showRuleMenu();
-            } else if (c === '0') {
-                this.showMainMenu();
-            }
-        }
-        showAdvancedMenu() {
-            const i = (k) => this.config.get(k) ? '✅' : '❌';
-            const c = prompt(
-                `1. ${i('ENABLE_KEYWORD_FILTER')} ${this.t('adv_keyword_filter')}\n` +
-                `2. ${this.t('adv_keyword_list')}\n` +
-                `3. ${i('ENABLE_CHANNEL_FILTER')} ${this.t('adv_channel_filter')}\n` +
-                `4. ${this.t('adv_channel_list')}\n` +
-                            `5. ${this.t('adv_channel_whitelist')}\n` +
-                            `6. ${i('EXACT_CHANNEL_WHITELIST')} ${this.t('adv_exact_match')}\n` +
-                            `7. ${this.t('adv_keyword_whitelist')}\n` +
-                            `8. ${i('ENABLE_SECTION_FILTER')} ${this.t('adv_section_filter')}\n` +
-                            `9. ${this.t('adv_section_list')}\n` +
-                            `10. ${i('ENABLE_DURATION_FILTER')} ${this.t('adv_duration_filter')}\n` +
-                            `11. ${this.t('adv_duration_set')}\n` +
-                            `12. ${i('ENABLE_REGION_CONVERT')} ${this.t('adv_region_convert')}\n` +
-                            `13. ${i('DISABLE_FILTER_ON_CHANNEL')} ${this.t('adv_disable_channel')}\n` +
-                            `0. ${this.t('back')}`
-                        );
-                                if (c === '1') this.toggle('ENABLE_KEYWORD_FILTER', true);
-                                else if (c === '2') this.manage('KEYWORD_BLACKLIST');
-                                else if (c === '3') this.toggle('ENABLE_CHANNEL_FILTER', true);
-                                else if (c === '4') this.manage('CHANNEL_BLACKLIST');
-                                else if (c === '5') this.manage('CHANNEL_WHITELIST');
-                                else if (c === '6') this.manage('KEYWORD_WHITELIST');
-                                else if (c === '7') this.toggle('ENABLE_SECTION_FILTER', true);                    else if (c === '9') this.manage('SECTION_TITLE_BLACKLIST');
-                        else if (c === '10') this.toggle('ENABLE_DURATION_FILTER', true);
-                        else if (c === '11') {
-                            const min = prompt(this.t('adv_min'), this.config.get('DURATION_MIN') / 60);
-                            const max = prompt(this.t('adv_max'), this.config.get('DURATION_MAX') / 60);
-                            if (min !== null) {
-                                const m = Number(min);
-                                if (!isNaN(m)) this.config.set('DURATION_MIN', m * 60);
-                            }
-                            if (max !== null) {
-                                const m = Number(max);
-                                if (!isNaN(m)) this.config.set('DURATION_MAX', m * 60);
-                            }
-                            this.onRefresh(); this.showAdvancedMenu();
-                        }
-                        else if (c === '12') this.toggle('ENABLE_REGION_CONVERT', true);
-                        else if (c === '13') this.toggle('DISABLE_FILTER_ON_CHANNEL', true);
-                        else if (c === '0') this.showMainMenu();
-                    }
-                    manage(k) {
-                        const l = this.config.get(k);
-                        const choice = prompt(
-                            `[ ${k} ]\n${l.join(', ') || '(Empty)'}\n\n` +
-                            `1. ${this.t('adv_add')}  2. ${this.t('adv_remove')}\n` +
-                            `3. ${this.t('adv_clear')}  4. ${this.t('adv_restore')}\n` +
-                            `0. ${this.t('back')}`
-                        );
-                        if (!choice) return;
-                        const c = choice.trim();
-                        if (c === '0') { this.showAdvancedMenu(); return; }
-                                if (c === '1') {
-                                    const v = prompt(`${this.t('adv_add')}:`);
-                                    if (v) {
-                                        let itemsToAdd = v.split(',').map(s => s.trim()).filter(Boolean);
-                                        if (k === 'CHANNEL_WHITELIST' && itemsToAdd.length > 0) {
-                                            const mode = prompt(this.t('adv_exact_prompt'), '1');
-                                            if (mode === '1') {
-                                                itemsToAdd = itemsToAdd.map(item => '=' + item);
-                                            }
-                                        }
-                                        this.config.set(k, [...new Set([...l, ...itemsToAdd])]);
-                                    }
-                                }                    if (c === '2') {
-                            const v = prompt(`${this.t('adv_remove')}:`);
-                            if (v) this.config.set(k, l.filter(i => i !== v.trim()));
-                        }
-                        if (c === '3') {
-                            if (confirm(this.t('adv_clear') + '?')) this.config.set(k, []);
-                        }
-                        if (c === '4') {
-                            if (confirm(this.t('adv_restore') + '?')) {
-                                const allDefaults = this.config.defaults[k];
-                                if (Array.isArray(allDefaults) && k === 'SECTION_TITLE_BLACKLIST') {
-                                    const currentLang = I18N.lang;
-                                    const filtered = allDefaults.filter(item => {
-                                        const isEnglish = /[a-zA-Z]/.test(item);
-                                        const isChinese = /[\u4e00-\u9fa5]/.test(item);
-                                        const isJapanese = /[\u3040-\u30ff]/.test(item);
-                                        if (currentLang.startsWith('zh')) return isChinese || isEnglish;
-                                        if (currentLang === 'ja') return isJapanese || isEnglish;
-                                        return isEnglish;
-                                    });
-                                    this.config.set(k, filtered);
-                                } else {
-                                    this.config.set(k, [...allDefaults]);
-                                }
-                            }
-                        }
-                        this.onRefresh();
-                        this.manage(k);
-                    }
-        toggle(k, adv) {
-            this.config.set(k, !this.config.get(k));
-            this.onRefresh();
-            adv ? this.showAdvancedMenu() : this.showMainMenu();
-        }
-        update(k, v) {
-            if (k) this.config.set(k, v);
-            this.onRefresh();
-            this.showMainMenu();
         }
     }
 
