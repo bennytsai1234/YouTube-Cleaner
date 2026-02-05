@@ -83,20 +83,35 @@ export class UIManager {
         this._renderMenu(this.t('menu_advanced'), items, () => this.showMainMenu());
     }
 
-    showRuleMenu() {
+    showRuleMenu(page = 0) {
         const r = this.config.get('RULE_ENABLES');
         const keys = Object.keys(r);
+        const PAGE_SIZE = 10;
+        const totalPages = Math.ceil(keys.length / PAGE_SIZE);
         
-        const items = keys.map(key => ({
+        const start = page * PAGE_SIZE;
+        const end = Math.min(start + PAGE_SIZE, keys.length);
+        const pageKeys = keys.slice(start, end);
+        
+        const items = pageKeys.map(key => ({
             label: `[${r[key] ? '✅' : '❌'}] ${I18N.getRuleName(key)}`,
             action: () => {
                 this.config.toggleRule(key);
                 this.onRefresh();
-                this.showRuleMenu();
+                this.showRuleMenu(page);
             }
         }));
 
-        this._renderMenu(this.t('rules_title'), items, () => this.showMainMenu());
+        // 分頁導覽按鈕
+        if (page < totalPages - 1) {
+            items.push({ label: `➡️ ${this.t('next_page')} (${page + 2}/${totalPages})`, action: () => this.showRuleMenu(page + 1) });
+        }
+        if (page > 0) {
+            items.push({ label: `⬅️ ${this.t('prev_page')} (${page}/${totalPages})`, action: () => this.showRuleMenu(page - 1) });
+        }
+
+        const title = `${this.t('rules_title')} (${page + 1}/${totalPages})`;
+        this._renderMenu(title, items, () => this.showMainMenu());
     }
 
     manage(k) {

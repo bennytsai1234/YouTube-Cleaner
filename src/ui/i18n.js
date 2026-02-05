@@ -55,7 +55,9 @@ export const I18N = {
             adv_clear: '🧹 清空全部',
             adv_restore: '✨ 恢復預設',
             adv_region_convert: '繁簡通用過濾',
-            adv_disable_channel: '頻道頁面停止過濾 (保留內容)'
+            adv_disable_channel: '頻道頁面停止過濾 (保留內容)',
+            next_page: '下一頁',
+            prev_page: '上一頁'
         },
         'zh-CN': {
             title: 'YouTube 净化大师',
@@ -108,7 +110,9 @@ export const I18N = {
             adv_clear: '🧹 清空全部',
             adv_restore: '✨ 恢复默认',
             adv_region_convert: '繁简通用过滤',
-            adv_disable_channel: '频道页面停止过滤 (保留内容)'
+            adv_disable_channel: '频道页面停止过滤 (保留内容)',
+            next_page: '下一页',
+            prev_page: '上一页'
         },
         'en': {
             title: 'YouTube Cleaner',
@@ -161,7 +165,9 @@ export const I18N = {
             adv_clear: '🧹 Clear All',
             adv_restore: '✨ Restore Defaults',
             adv_region_convert: 'Region Agnostic Filter',
-            adv_disable_channel: 'Disable on Channel Pages'
+            adv_disable_channel: 'Disable on Channel Pages',
+            next_page: 'Next Page',
+            prev_page: 'Prev Page'
         },
         'ja': {
             title: 'YouTube 浄化大師',
@@ -214,7 +220,9 @@ export const I18N = {
             adv_clear: '🧹 全てクリア',
             adv_restore: '✨ デフォルトに戻す',
             adv_region_convert: '繁体字/簡体字共通フィルター',
-            adv_disable_channel: 'チャンネルページではフィルターを無効にする'
+            adv_disable_channel: 'チャンネルページではフィルターを無効にする',
+            next_page: '次へ',
+            prev_page: '前へ'
         }
     },
 
