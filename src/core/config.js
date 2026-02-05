@@ -23,7 +23,6 @@ export class ConfigManager {
             ENABLE_CHANNEL_FILTER: true,
             CHANNEL_BLACKLIST: [],
             CHANNEL_WHITELIST: [],
-            EXACT_CHANNEL_WHITELIST: false, // 新增：是否精準匹配頻道名稱
             KEYWORD_WHITELIST: [], // 新增：關鍵字白名單
             ENABLE_SECTION_FILTER: true,
             SECTION_TITLE_BLACKLIST: [
@@ -53,6 +52,15 @@ export class ConfigManager {
         this.state = this._load();
     }
 
+    _compileList(list) {
+        return (list || []).map(k => {
+            if (k.startsWith('=')) {
+                return Utils.generateCnRegex(k.substring(1), true);
+            }
+            return Utils.generateCnRegex(k);
+        }).filter(Boolean);
+    }
+
     _load() {
         const get = (k, d) => GM_getValue(k, d);
         const snake = str => str.replace(/[A-Z]/g, l => `_${l.toLowerCase()}`);
@@ -71,11 +79,11 @@ export class ConfigManager {
         }
 
         // Pre-compile Regexes
-        loaded.compiledKeywords = (loaded.KEYWORD_BLACKLIST || []).map(k => Utils.generateCnRegex(k)).filter(Boolean);
-        loaded.compiledChannels = (loaded.CHANNEL_BLACKLIST || []).map(k => Utils.generateCnRegex(k)).filter(Boolean);
-        loaded.compiledChannelWhitelist = (loaded.CHANNEL_WHITELIST || []).map(k => Utils.generateCnRegex(k)).filter(Boolean);
-        loaded.compiledKeywordWhitelist = (loaded.KEYWORD_WHITELIST || []).map(k => Utils.generateCnRegex(k)).filter(Boolean);
-        loaded.compiledSectionBlacklist = (loaded.SECTION_TITLE_BLACKLIST || []).map(k => Utils.generateCnRegex(k)).filter(Boolean);
+        loaded.compiledKeywords = this._compileList(loaded.KEYWORD_BLACKLIST);
+        loaded.compiledChannels = this._compileList(loaded.CHANNEL_BLACKLIST);
+        loaded.compiledChannelWhitelist = this._compileList(loaded.CHANNEL_WHITELIST);
+        loaded.compiledKeywordWhitelist = this._compileList(loaded.KEYWORD_WHITELIST);
+        loaded.compiledSectionBlacklist = this._compileList(loaded.SECTION_TITLE_BLACKLIST);
 
         return loaded;
     }
@@ -89,20 +97,16 @@ export class ConfigManager {
         else GM_setValue(snake(key), value);
 
         // Update compiled regexes if list changes
-        if (key === 'KEYWORD_BLACKLIST') {
-            this.state.compiledKeywords = value.map(k => Utils.generateCnRegex(k)).filter(Boolean);
-        }
-        if (key === 'CHANNEL_BLACKLIST') {
-            this.state.compiledChannels = value.map(k => Utils.generateCnRegex(k)).filter(Boolean);
-        }
-        if (key === 'CHANNEL_WHITELIST') {
-            this.state.compiledChannelWhitelist = value.map(k => Utils.generateCnRegex(k)).filter(Boolean);
-        }
-        if (key === 'KEYWORD_WHITELIST') {
-            this.state.compiledKeywordWhitelist = value.map(k => Utils.generateCnRegex(k)).filter(Boolean);
-        }
-        if (key === 'SECTION_TITLE_BLACKLIST') {
-            this.state.compiledSectionBlacklist = value.map(k => Utils.generateCnRegex(k)).filter(Boolean);
+        const compileMap = {
+            'KEYWORD_BLACKLIST': 'compiledKeywords',
+            'CHANNEL_BLACKLIST': 'compiledChannels',
+            'CHANNEL_WHITELIST': 'compiledChannelWhitelist',
+            'KEYWORD_WHITELIST': 'compiledKeywordWhitelist',
+            'SECTION_TITLE_BLACKLIST': 'compiledSectionBlacklist'
+        };
+
+        if (compileMap[key]) {
+            this.state[compileMap[key]] = this._compileList(value);
         }
     }
 

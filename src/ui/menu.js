@@ -71,7 +71,6 @@ export class UIManager {
             { label: `${i('ENABLE_CHANNEL_FILTER')} ${this.t('adv_channel_filter')}`, action: () => this.toggle('ENABLE_CHANNEL_FILTER', true) },
             { label: this.t('adv_channel_list'), action: () => this.manage('CHANNEL_BLACKLIST') },
             { label: this.t('adv_channel_whitelist'), action: () => this.manage('CHANNEL_WHITELIST') },
-            { label: `${i('EXACT_CHANNEL_WHITELIST')} ${this.t('adv_exact_match')}`, action: () => this.toggle('EXACT_CHANNEL_WHITELIST', true) },
             { label: this.t('adv_keyword_whitelist'), action: () => this.manage('KEYWORD_WHITELIST') },
             { label: `${i('ENABLE_SECTION_FILTER')} ${this.t('adv_section_filter')}`, action: () => this.toggle('ENABLE_SECTION_FILTER', true) },
             { label: this.t('adv_section_list'), action: () => this.manage('SECTION_TITLE_BLACKLIST') },

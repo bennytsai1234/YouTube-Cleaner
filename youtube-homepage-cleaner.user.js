@@ -126,23 +126,24 @@
             }
             return str;
         },
-        generateCnRegex: (text) => {
+        generateCnRegex: (text, exact = false) => {
             if (!text) return null;
             const escape = s => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+            const wrap = s => exact ? `^${s}$` : s;
             if (Utils._initOpenCC()) {
                 const simp = Utils._openccToSimp(text);
                 const trad = Utils._openccToTrad(text);
                 const escSimp = escape(simp);
                 const escTrad = escape(trad);
                 try {
-                    if (escSimp === escTrad) return new RegExp(escSimp, 'i');
-                    return new RegExp(`(?:${escSimp}|${escTrad})`, 'i');
+                    if (escSimp === escTrad) return new RegExp(wrap(escSimp), 'i');
+                    return new RegExp(wrap(`(?:${escSimp}|${escTrad})`), 'i');
                 } catch (e) {
                     return null;
                 }
             }
             try {
-                return new RegExp(escape(text), 'i');
+                return new RegExp(wrap(escape(text)), 'i');
             } catch (e) {
                 return null;
             }
@@ -167,7 +168,6 @@
                 ENABLE_CHANNEL_FILTER: true,
                 CHANNEL_BLACKLIST: [],
                 CHANNEL_WHITELIST: [],
-                EXACT_CHANNEL_WHITELIST: false,
                 KEYWORD_WHITELIST: [],
                 ENABLE_SECTION_FILTER: true,
                 SECTION_TITLE_BLACKLIST: [
@@ -192,6 +192,14 @@
             };
             this.state = this._load();
         }
+        _compileList(list) {
+            return (list || []).map(k => {
+                if (k.startsWith('=')) {
+                    return Utils.generateCnRegex(k.substring(1), true);
+                }
+                return Utils.generateCnRegex(k);
+            }).filter(Boolean);
+        }
         _load() {
             const get = (k, d) => GM_getValue(k, d);
             const snake = str => str.replace(/[A-Z]/g, l => `_${l.toLowerCase()}`);
@@ -207,11 +215,11 @@
                     }
                 }
             }
-            loaded.compiledKeywords = (loaded.KEYWORD_BLACKLIST || []).map(k => Utils.generateCnRegex(k)).filter(Boolean);
-            loaded.compiledChannels = (loaded.CHANNEL_BLACKLIST || []).map(k => Utils.generateCnRegex(k)).filter(Boolean);
-            loaded.compiledChannelWhitelist = (loaded.CHANNEL_WHITELIST || []).map(k => Utils.generateCnRegex(k)).filter(Boolean);
-            loaded.compiledKeywordWhitelist = (loaded.KEYWORD_WHITELIST || []).map(k => Utils.generateCnRegex(k)).filter(Boolean);
-            loaded.compiledSectionBlacklist = (loaded.SECTION_TITLE_BLACKLIST || []).map(k => Utils.generateCnRegex(k)).filter(Boolean);
+            loaded.compiledKeywords = this._compileList(loaded.KEYWORD_BLACKLIST);
+            loaded.compiledChannels = this._compileList(loaded.CHANNEL_BLACKLIST);
+            loaded.compiledChannelWhitelist = this._compileList(loaded.CHANNEL_WHITELIST);
+            loaded.compiledKeywordWhitelist = this._compileList(loaded.KEYWORD_WHITELIST);
+            loaded.compiledSectionBlacklist = this._compileList(loaded.SECTION_TITLE_BLACKLIST);
             return loaded;
         }
         get(key) { return this.state[key]; }
@@ -220,20 +228,15 @@
             const snake = str => str.replace(/[A-Z]/g, l => `_${l.toLowerCase()}`);
             if (key === 'RULE_ENABLES') GM_setValue('ruleEnables', value);
             else GM_setValue(snake(key), value);
-            if (key === 'KEYWORD_BLACKLIST') {
-                this.state.compiledKeywords = value.map(k => Utils.generateCnRegex(k)).filter(Boolean);
-            }
-            if (key === 'CHANNEL_BLACKLIST') {
-                this.state.compiledChannels = value.map(k => Utils.generateCnRegex(k)).filter(Boolean);
-            }
-            if (key === 'CHANNEL_WHITELIST') {
-                this.state.compiledChannelWhitelist = value.map(k => Utils.generateCnRegex(k)).filter(Boolean);
-            }
-            if (key === 'KEYWORD_WHITELIST') {
-                this.state.compiledKeywordWhitelist = value.map(k => Utils.generateCnRegex(k)).filter(Boolean);
-            }
-            if (key === 'SECTION_TITLE_BLACKLIST') {
-                this.state.compiledSectionBlacklist = value.map(k => Utils.generateCnRegex(k)).filter(Boolean);
+            const compileMap = {
+                'KEYWORD_BLACKLIST': 'compiledKeywords',
+                'CHANNEL_BLACKLIST': 'compiledChannels',
+                'CHANNEL_WHITELIST': 'compiledChannelWhitelist',
+                'KEYWORD_WHITELIST': 'compiledKeywordWhitelist',
+                'SECTION_TITLE_BLACKLIST': 'compiledSectionBlacklist'
+            };
+            if (compileMap[key]) {
+                this.state[compileMap[key]] = this._compileList(value);
             }
         }
         toggleRule(ruleId) {
@@ -1038,7 +1041,6 @@
                 adv_channel_filter: '頻道過濾',
                 adv_channel_list: '✏️ 頻道黑名單',
                 adv_channel_whitelist: '🛡️ 頻道白名單 (例外放行)',
-                adv_exact_match: '🎯 頻道白名單需精準匹配',
                 adv_keyword_whitelist: '🛡️ 關鍵字白名單 (例外放行)',
                 adv_section_filter: '欄位過濾',
                 adv_section_list: '✏️ 欄位標題清單',
@@ -1089,11 +1091,10 @@
                 back: '返回',
                 adv_keyword_filter: '关键字过滤',
                 adv_keyword_list: '✏️ 关键字列表',
-                adv_channel_filter: '频道过滤',
-                adv_channel_list: '✏️ 频道黑名单',
-                adv_channel_whitelist: '🛡️ 频道白名单 (例外放行)',
-                adv_exact_match: '🎯 频道白名单需精准匹配',
-                adv_keyword_whitelist: '🛡️ 关键字白名单 (例外放行)',
+                adv_channel_filter: '頻道過濾',
+                adv_channel_list: '✏️ 頻道黑名單',
+                adv_channel_whitelist: '🛡️ 頻道白名單 (例外放行)',
+                adv_keyword_whitelist: '🛡️ 關鍵字白名單 (例外放行)',
                 adv_section_filter: '栏位过滤',
                 adv_section_list: '✏️ 栏位标题列表',
                 adv_duration_filter: '时长过滤',
@@ -1146,7 +1147,6 @@
                 adv_channel_filter: 'Channel Filter',
                 adv_channel_list: '✏️ Channel Blacklist',
                 adv_channel_whitelist: '🛡️ Channel Whitelist',
-                adv_exact_match: '🎯 Exact Channel Match',
                 adv_keyword_whitelist: '🛡️ Keyword Whitelist',
                 adv_section_filter: 'Section Filter',
                 adv_section_list: '✏️ Section Title List',
@@ -1200,7 +1200,6 @@
                 adv_channel_filter: 'チャンネルフィルター',
                 adv_channel_list: '✏️ チャンネルブラックリスト',
                 adv_channel_whitelist: '🛡️ チャンネルホワイトリスト',
-                adv_exact_match: '🎯 チャンネル名の完全一致が必要',
                 adv_keyword_whitelist: '🛡️ キーワードホワイトリスト',
                 adv_section_filter: 'セクションフィルター',
                 adv_section_list: '✏️ セクションタイトルリスト',
@@ -1401,7 +1400,6 @@
                 { label: `${i('ENABLE_CHANNEL_FILTER')} ${this.t('adv_channel_filter')}`, action: () => this.toggle('ENABLE_CHANNEL_FILTER', true) },
                 { label: this.t('adv_channel_list'), action: () => this.manage('CHANNEL_BLACKLIST') },
                 { label: this.t('adv_channel_whitelist'), action: () => this.manage('CHANNEL_WHITELIST') },
-                { label: `${i('EXACT_CHANNEL_WHITELIST')} ${this.t('adv_exact_match')}`, action: () => this.toggle('EXACT_CHANNEL_WHITELIST', true) },
                 { label: this.t('adv_keyword_whitelist'), action: () => this.manage('KEYWORD_WHITELIST') },
                 { label: `${i('ENABLE_SECTION_FILTER')} ${this.t('adv_section_filter')}`, action: () => this.toggle('ENABLE_SECTION_FILTER', true) },
                 { label: this.t('adv_section_list'), action: () => this.manage('SECTION_TITLE_BLACKLIST') },

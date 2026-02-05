@@ -137,9 +137,10 @@ export const Utils = {
         return str;
     },
 
-    generateCnRegex: (text) => {
+    generateCnRegex: (text, exact = false) => {
         if (!text) return null;
         const escape = s => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+        const wrap = s => exact ? `^${s}$` : s;
 
         if (Utils._initOpenCC()) {
             const simp = Utils._openccToSimp(text);
@@ -148,16 +149,15 @@ export const Utils = {
             const escTrad = escape(trad);
 
             try {
-                // If compiled logic is same, return simple regex
-                if (escSimp === escTrad) return new RegExp(escSimp, 'i');
-                return new RegExp(`(?:${escSimp}|${escTrad})`, 'i');
+                if (escSimp === escTrad) return new RegExp(wrap(escSimp), 'i');
+                return new RegExp(wrap(`(?:${escSimp}|${escTrad})`), 'i');
             } catch (e) {
                 return null;
             }
         }
 
         try {
-            return new RegExp(escape(text), 'i');
+            return new RegExp(wrap(escape(text)), 'i');
         } catch (e) {
             return null;
         }
