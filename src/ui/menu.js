@@ -279,10 +279,17 @@ export class UIManager {
     }
 
     exportSettings() {
+        const cleanSettings = {};
+        for (const key in this.config.state) {
+            if (!key.startsWith('compiled')) {
+                cleanSettings[key] = this.config.state[key];
+            }
+        }
+
         const exportData = {
             version: GM_info.script.version,
             timestamp: new Date().toISOString(),
-            settings: this.config.state,
+            settings: cleanSettings,
             language: I18N.lang
         };
         const json = JSON.stringify(exportData, null, 2);

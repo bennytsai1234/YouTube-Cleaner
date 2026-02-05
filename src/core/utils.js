@@ -1,5 +1,5 @@
 /* global OpenCC */
-import { I18N } from '../ui/i18n.js';
+import { CLEANING_RULES } from './constants.js';
 
 // --- 常數定義 ---
 const TIME_UNITS = {
@@ -13,6 +13,7 @@ const TIME_UNITS = {
 
 const MULTIPLIERS = {
     'k': 1e3, 'm': 1e6, 'b': 1e9,
+    'K': 1e3, 'M': 1e6, 'B': 1e9,
     '千': 1e3, '萬': 1e4, '億': 1e8,
     '万': 1e4, '亿': 1e8
 };
@@ -37,6 +38,7 @@ export const Utils = {
     // 快取 OpenCC 轉換器
     _openccToSimp: null,
     _openccToTrad: null,
+    _channelCleanerRX: null,
 
     debounce: (func, delay) => {
         let t;
@@ -57,8 +59,6 @@ export const Utils = {
 
     parseNumeric: (text, type = 'any') => {
         if (!text) return null;
-
-        // Fast fail for view type if it looks like a date
         if (type === 'view' && RX_TIME_AGO_CHECK.test(text)) return null;
 
         const clean = text.replace(/,/g, '').trim();
@@ -66,10 +66,12 @@ export const Utils = {
         if (!match) return null;
 
         let num = parseFloat(match[1]);
-        const unit = match[2]?.toLowerCase();
+        const unit = match[2]; // 不使用 toLowerCase 以支援原件比對，雖然 MULTIPLIERS 有處理
 
         if (unit && MULTIPLIERS[unit]) {
             num *= MULTIPLIERS[unit];
+        } else if (unit && MULTIPLIERS[unit.toLowerCase()]) {
+            num *= MULTIPLIERS[unit.toLowerCase()];
         }
 
         return Math.floor(num);
@@ -79,34 +81,23 @@ export const Utils = {
         if (!text) return null;
         const parts = text.trim().split(':').map(Number);
         if (parts.some(isNaN)) return null;
-        // 處理 "MM:SS" 或 "HH:MM:SS"
         if (parts.length === 3) return parts[0] * 3600 + parts[1] * 60 + parts[2];
         if (parts.length === 2) return parts[0] * 60 + parts[1];
-        // 處理純秒數 (雖然 YouTube 目前少見)
         if (parts.length === 1) return parts[0];
         return null;
     },
 
     parseTimeAgo: (text) => {
         if (!text) return null;
-
-        // 0 seconds check
         if (RX_ZERO_TIME.test(text)) return 0;
-
         const match = text.match(RX_TIME_AGO_PARSE);
         if (!match) return null;
-
         const val = parseFloat(match[1]);
         const unitStr = match[2].toLowerCase();
-
-        // Check exact match first
         if (TIME_UNIT_KEYS[unitStr]) return val * TIME_UNIT_KEYS[unitStr];
-
-        // Fallback for partial matches (e.g. "minutes" -> "minute")
         for (const [key, multiplier] of Object.entries(TIME_UNIT_KEYS)) {
             if (unitStr.includes(key)) return val * multiplier;
         }
-
         return null;
     },
 
@@ -116,7 +107,6 @@ export const Utils = {
         return Utils.parseNumeric(text, 'any');
     },
 
-    // 初始化 OpenCC 轉換器 (懶載入)
     _initOpenCC: () => {
         if (Utils._openccToSimp) return true;
         if (typeof OpenCC === 'undefined') return false;
@@ -125,59 +115,48 @@ export const Utils = {
             Utils._openccToTrad = OpenCC.Converter({ from: 'cn', to: 'tw' });
             return true;
         } catch (e) {
-            console.warn('[YT Cleaner] OpenCC init failed');
             return false;
         }
     },
 
-    toSimplified: (str) => {
-        if (!str) return '';
-        if (Utils._initOpenCC()) {
-            try { return Utils._openccToSimp(str); } catch (e) { /* fallback */ }
-        }
-        return str;
-    },
-
     generateCnRegex: (text, exact = false) => {
-        // ... (existing)
+        if (!text) return null;
+        const escape = s => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+        const wrap = s => exact ? `^${s}$` : s;
+
+        if (Utils._initOpenCC()) {
+            try {
+                const simp = Utils._openccToSimp(text);
+                const trad = Utils._openccToTrad(text);
+                const escSimp = escape(simp);
+                const escTrad = escape(trad);
+                if (escSimp === escTrad) return new RegExp(wrap(escSimp), 'i');
+                return new RegExp(wrap(`(?:${escSimp}|${escTrad})`), 'i');
+            } catch (e) { /* fallback */ }
+        }
+
+        try {
+            return new RegExp(wrap(escape(text)), 'i');
+        } catch (e) {
+            return null;
+        }
     },
 
-    /**
-     * 清洗頻道名稱，從 I18N 字典中彙整所有語言的噪音字串並移除
-     */
     cleanChannelName: (name) => {
         if (!name) return '';
-        
-        // 1. 移除 Unicode 不可見字元與特殊空格 (如 ZWSP, NBSP)
         let clean = name.replace(/[\u200B-\u200D\uFEFF]/g, '').replace(/\u00A0/g, ' ');
-        
-        // 懶載入並編譯全語系清理正則
         if (!Utils._channelCleanerRX) {
-            const prefixes = [];
-            const suffixes = [];
-            
-            for (const lang in I18N.strings) {
-                const data = I18N.strings[lang];
-                if (data.channel_prefixes) prefixes.push(...data.channel_prefixes);
-                if (data.channel_suffixes) suffixes.push(...data.channel_suffixes);
-            }
-
             const esc = s => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-            const prePattern = prefixes.length > 0 ? `^(${prefixes.map(esc).join('|')})` : '';
-            const sufPattern = suffixes.length > 0 ? `(${suffixes.map(esc).join('|')})$` : '';
-            
+            const prePattern = `^(${CLEANING_RULES.PREFIXES.map(esc).join('|')})`;
+            const sufPattern = `(${CLEANING_RULES.SUFFIXES.map(esc).join('|')})$`;
             Utils._channelCleanerRX = {
-                prefix: prePattern ? new RegExp(prePattern, 'i') : null,
-                suffix: sufPattern ? new RegExp(sufPattern, 'i') : null
+                prefix: new RegExp(prePattern, 'i'),
+                suffix: new RegExp(sufPattern, 'i')
             };
         }
-
-        if (Utils._channelCleanerRX.prefix) clean = clean.replace(Utils._channelCleanerRX.prefix, '');
-        if (Utils._channelCleanerRX.suffix) clean = clean.replace(Utils._channelCleanerRX.suffix, '');
-        
-        // 2. 移除剩餘的引號與點綴字元
+        clean = clean.replace(Utils._channelCleanerRX.prefix, '');
+        clean = clean.replace(Utils._channelCleanerRX.suffix, '');
         clean = clean.replace(/[「」『』""'']/g, '');
-        
         return clean.replace(/·.*$/, '').trim();
     }
 };

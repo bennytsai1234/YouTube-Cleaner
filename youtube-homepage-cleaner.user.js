@@ -24,388 +24,15 @@
 (function () {
     'use strict';
 
-    const I18N = {
-        _lang: null,
-        strings: {
-            'zh-TW': {
-                title: 'YouTube 淨化大師',
-                menu_rules: '📂 設定過濾規則',
-                menu_low_view: '低觀看數過濾 (含直播)',
-                menu_threshold: '🔢 設定閾值',
-                menu_grace: '⏳ 設定豁免期',
-                menu_content: '🎥 過濾功能設定',
-                menu_lists: '🛡️ 黑/白名單管理',
-                menu_ux: '🖱️ 介面與體驗',
-                menu_system: '📊 系統與工具',
-                menu_whitelist: '🛡️ 管理白名單',
-                menu_new_tab: '強制新分頁 (影片)',
-                menu_notification_new_tab: '強制新分頁 (通知)',
-                menu_debug: 'Debug',
-                menu_reset: '🔄 恢復預設',
-                menu_stats: '📊 過濾統計',
-                menu_export: '💾 匯出/匯入設定',
-                menu_lang: '🌐 語言',
-                menu_input: '輸入選項:',
-                stats_title: '【 過濾統計 】',
-                stats_empty: '尚未過濾任何內容',
-                stats_filtered: '已過濾 {0} 個項目',
-                export_title: '【 設定管理 】',
-                export_export: '📤 匯出設定',
-                export_import: '📥 匯入設定',
-                export_success: '✅ 設定已複製到剪貼簿！',
-                export_copy: '請複製以下設定 (Ctrl+C):',
-                import_prompt: '請貼上設定 JSON:',
-                import_success: '✅ 設定已成功匯入！',
-                import_fail: '❌ 匯入失敗: ',
-                rules_title: '【 過濾規則 】',
-                rules_back: '(0 返回)',
-                threshold_prompt: '請輸入「觀看數閾值」 (低於此數將被過濾):',
-                grace_prompt: '請輸入「豁免時間 (小時)」 (設為 0 則不豁免):',
-                adv_exact_prompt: '是否需精準匹配頻道名稱？ (1. 是 / 2. 否)\n\n※精準匹配：必須完全一致\n※模糊匹配：包含關鍵字即可',
-                reset_confirm: '重設?',
-                lang_title: '【 選擇語言 】',
-                back: '返回',
-                adv_keyword_filter: '關鍵字過濾',
-                adv_keyword_list: '🚫 關鍵字黑名單',
-                adv_channel_filter: '頻道過濾',
-                adv_channel_list: '🚫 頻道黑名單',
-                adv_channel_whitelist: '🛡️ 頻道白名單 (常規影片)',
-                adv_members_whitelist: '🛡️ 會員白名單 (專屬影片)',
-                adv_keyword_whitelist: '🛡️ 關鍵字白名單',
-                adv_section_filter: '欄位過濾',
-                adv_section_list: '🚫 欄位標題黑名單',
-                adv_duration_filter: '長度過濾',
-                adv_duration_set: '⏱️ 設定長度',
-                adv_min: '最短(分):',
-                adv_max: '最長(分):',
-                adv_add: '新增',
-                adv_remove: '刪除',
-                adv_clear: '🧹 清空全部',
-                adv_restore: '✨ 恢復預設',
-                adv_region_convert: '繁簡通用過濾',
-                adv_disable_channel: '頻道頁面停止過濾 (保留內容)',
-                next_page: '下一頁',
-                prev_page: '上一頁',
-                channel_prefixes: ['前往頻道：', '輕觸即可觀看「', '前往頻道：'],
-                channel_suffixes: ['」頻道的直播']
-            },
-            'zh-CN': {
-                title: 'YouTube 净化大师',
-                menu_rules: '📂 设置过滤规则',
-                menu_low_view: '低观看数过滤 (含直播)',
-                menu_threshold: '🔢 设置阈值',
-                menu_grace: '⏳ 设置豁免期',
-                menu_content: '🎥 过滤功能设置',
-                menu_lists: '🛡️ 黑/白名单管理',
-                menu_ux: '🖱️ 界面與体验',
-                menu_system: '📊 系统與工具',
-                menu_whitelist: '🛡️ 管理白名单',
-                menu_new_tab: '强制新标签页 (视频)',
-                menu_notification_new_tab: '强制新标签页 (通知)',
-                menu_debug: 'Debug',
-                menu_reset: '🔄 恢复默认',
-                menu_stats: '📊 过滤统计',
-                menu_export: '💾 导出/导入设置',
-                menu_lang: '🌐 语言',
-                menu_input: '输入选项:',
-                stats_title: '【 过滤统计 】',
-                stats_empty: '尚未过滤任何内容',
-                stats_filtered: '已过滤 {0} 个项目',
-                export_title: '【 设置管理 】',
-                export_export: '📤 导出设置',
-                export_import: '📥 导入设置',
-                export_success: '✅ 设置已复制到剪贴板！',
-                export_copy: '请复制以下设置 (Ctrl+C):',
-                import_prompt: '请粘贴设置 JSON:',
-                import_success: '✅ 设置已成功导入！',
-                import_fail: '❌ 导入失败: ',
-                rules_title: '【 过滤规则 】',
-                rules_back: '(0 返回)',
-                threshold_prompt: '请输入「观看数阈值」 (低于此数将被过滤):',
-                grace_prompt: '请输入「豁免时间 (小时)」 (设为 0 则不豁免):',
-                adv_exact_prompt: '是否需精準匹配频道名称？ (1. 是 / 2. 否)\n\n※精準匹配：必须完全一致\n※模糊匹配：包含关键字即可',
-                reset_confirm: '重置?',
-                lang_title: '【 选择语言 】',
-                back: '返回',
-                adv_keyword_filter: '关键字过滤',
-                adv_keyword_list: '🚫 关键字黑名单',
-                adv_channel_filter: '频道过滤',
-                adv_channel_list: '🚫 频道黑名单',
-                adv_channel_whitelist: '🛡️ 频道白名单 (常规视频)',
-                adv_members_whitelist: '🛡️ 会员白名单 (专属视频)',
-                adv_keyword_whitelist: '🛡️ 关键字白名单',
-                adv_section_filter: '栏位过滤',
-                adv_section_list: '🚫 栏位标题黑名单',
-                adv_duration_filter: '时长过滤',
-                adv_duration_set: '⏱️ 设置时长',
-                adv_min: '最短(分):',
-                adv_max: '最长(分):',
-                adv_add: '新增',
-                adv_remove: '删除',
-                adv_clear: '🧹 清空全部',
-                adv_restore: '✨ 恢复默认',
-                adv_region_convert: '繁简通用过滤',
-                adv_disable_channel: '频道页面停止过滤 (保留内容)',
-                next_page: '下一页',
-                prev_page: '上一页',
-                channel_prefixes: ['前往频道：', '輕觸即可觀看「', '前往頻道：'],
-                channel_suffixes: ['」頻道的直播']
-            },
-            'en': {
-                title: 'YouTube Cleaner',
-                menu_rules: '📂 Filter Rules',
-                menu_low_view: 'Low View Count Filter (Live included)',
-                menu_threshold: '🔢 Set Threshold',
-                menu_grace: '⏳ Set Grace Period',
-                menu_content: '🎥 Filtering Settings',
-                menu_lists: '🛡️ List Management',
-                menu_ux: '🖱️ Interface & UX',
-                menu_system: '📊 System & Tools',
-                menu_whitelist: '🛡️ Manage Whitelists',
-                menu_new_tab: 'Force New Tab (Video)',
-                menu_notification_new_tab: 'Force New Tab (Notif)',
-                menu_debug: 'Debug',
-                menu_reset: '🔄 Reset to Default',
-                menu_stats: '📊 Filter Stats',
-                menu_export: '💾 Export/Import Settings',
-                menu_lang: '🌐 Language',
-                menu_input: 'Enter option:',
-                stats_title: '【 Filter Statistics 】',
-                stats_empty: 'No content filtered yet',
-                stats_filtered: 'Filtered {0} items',
-                export_title: '【 Settings Management 】',
-                export_export: '📤 Export Settings',
-                export_import: '📥 Import Settings',
-                export_success: '✅ Settings copied to clipboard!',
-                export_copy: 'Copy settings (Ctrl+C):',
-                import_prompt: 'Paste settings JSON:',
-                import_success: '✅ Settings imported successfully!',
-                import_fail: '❌ Import failed: ',
-                rules_title: '【 Filter Rules 】',
-                rules_back: '(0 Back)',
-                threshold_prompt: 'Enter View Threshold:',
-                grace_prompt: 'Enter Grace Period (Hours) (0 to disable):',
-                adv_exact_prompt: 'Use exact match for this channel? (1. Yes / 2. No)\n\n※Exact: Must be identical\n※Partial: Contains keyword',
-                reset_confirm: 'Reset?',
-                lang_title: '【 Select Language 】',
-                back: 'Back',
-                adv_keyword_filter: 'Keyword Filter',
-                adv_keyword_list: '🚫 Keyword Blacklist',
-                adv_channel_filter: 'Channel Filter',
-                adv_channel_list: '🚫 Channel Blacklist',
-                adv_channel_whitelist: '🛡️ Channel Whitelist (Regular)',
-                adv_members_whitelist: '🛡️ Members Whitelist (Exclusive)',
-                adv_keyword_whitelist: '🛡️ Keyword Whitelist',
-                adv_section_filter: 'Section Filter',
-                adv_section_list: '🚫 Section Blacklist',
-                adv_duration_filter: 'Duration Filter',
-                adv_duration_set: '⏱️ Set Duration',
-                adv_min: 'Min (min):',
-                adv_max: 'Max (min):',
-                adv_add: 'Add',
-                adv_remove: 'Remove',
-                adv_clear: '🧹 Clear All',
-                adv_restore: '✨ Restore Defaults',
-                adv_region_convert: 'Region Agnostic Filter',
-                adv_disable_channel: 'Disable on Channel Pages',
-                next_page: 'Next Page',
-                prev_page: 'Prev Page',
-                channel_prefixes: ['Go to channel:', 'Tap to watch 「'],
-                channel_suffixes: ["'s live stream", '」']
-            },
-            'ja': {
-                title: 'YouTube 浄化大師',
-                menu_rules: '📂 フィルタールール設定',
-                menu_low_view: '低視聴回数フィルター (ライブ含む)',
-                menu_threshold: '🔢 閾値を設定',
-                menu_grace: '⏳ 猶予期間を設定',
-                menu_content: '🎥 フィルター設定',
-                menu_lists: '🛡️ リスト管理',
-                menu_ux: '🖱️ インターフェース設定',
-                menu_system: '📊 システムとツール',
-                menu_whitelist: '🛡️ ホワイトリスト管理',
-                menu_new_tab: '強制新タブ (動画)',
-                menu_notification_new_tab: '強制新タブ (通知)',
-                menu_debug: 'デバッグ',
-                menu_reset: '🔄 デフォルトに戻す',
-                menu_stats: '📊 統計情報',
-                menu_export: '💾 設定のエクスポート/インポート',
-                menu_lang: '🌐 言語',
-                menu_input: '選んでください:',
-                stats_title: '【 統計情報 】',
-                stats_empty: 'まだ何もフィルタリングされていません',
-                stats_filtered: '{0} 個の項目をフィルタリングしました',
-                export_title: '【 設定管理 】',
-                export_export: '📤 設定をエクスポート',
-                export_import: '📥 設定をインポート',
-                export_success: '✅ 設定をクリップボードにコピーしました！',
-                export_copy: '以下の設定をコピーしてください (Ctrl+C):',
-                import_prompt: '設定 JSON を貼り付けてください:',
-                import_success: '✅ 設定をインポートしました！',
-                import_fail: '❌ インポート失敗: ',
-                rules_title: '【 フィルタールール 】',
-                rules_back: '(0 戻る)',
-                threshold_prompt: '「視聴回数閾値」を入力してください (これ未満は非表示):',
-                grace_prompt: '「猶予期間 (時間)」を入力してください (0 は猶予なし):',
-                adv_exact_prompt: 'このチャンネルを完全一致で追加しますか？ (1. はい / 2. いいえ)\n\n※完全一致：名前が完全に同じ\n※部分一致：名前の一部を含む',
-                reset_confirm: 'リセットしますか？',
-                lang_title: '【 言語を選択 】',
-                back: '戻る',
-                adv_keyword_filter: 'キーワードフィルター',
-                adv_keyword_list: '🚫 キーワードブラックリスト',
-                adv_channel_filter: 'チャンネルフィルター',
-                adv_channel_list: '🚫 チャンネルブラックリスト',
-                adv_channel_whitelist: '🛡️ チャンネルホワイトリスト (通常)',
-                adv_members_whitelist: '🛡️ メンバーホワイトリスト (限定)',
-                adv_keyword_whitelist: '🛡️ キーワードホワイトリスト',
-                adv_section_filter: 'セクションフィルター',
-                adv_section_list: '🚫 セクションブラックリスト',
-                adv_duration_filter: '動画の長さフィルター',
-                adv_duration_set: '⏱️ 長さを設定',
-                adv_min: '最短(分):',
-                adv_max: '最長(分):',
-                adv_add: '追加',
-                adv_remove: '削除',
-                adv_clear: '🧹 全てクリア',
-                adv_restore: '✨ デフォルトに戻す',
-                adv_region_convert: '繁体字/簡体字共通フィルター',
-                adv_disable_channel: 'チャンネルページではフィルターを無効にする',
-                next_page: '次へ',
-                prev_page: '前へ',
-                channel_prefixes: ['チャンネルへ移動:', 'タップして「', 'のチャンネルを表示'],
-                channel_suffixes: ['」のライブ配信を視聴', '」']
-            }
-        },
-        ruleNames: {
-            'zh-TW': {
-                ad_block_popup: '廣告阻擋彈窗',
-                ad_sponsor: '廣告/贊助',
-                members_only: '會員專屬',
-                shorts_item: 'Shorts 項目',
-                mix_only: '合輯',
-                premium_banner: 'Premium 橫幅',
-                news_block: '新聞區塊',
-                shorts_block: 'Shorts 區塊',
-                posts_block: '社群貼文',
-                playables_block: '可玩內容',
-                fundraiser_block: '募款活動',
-                shorts_grid_shelf: 'Shorts 網格',
-                movies_shelf: '電影推薦',
-                youtube_featured_shelf: 'YouTube 精選',
-                popular_gaming_shelf: '熱門遊戲',
-                more_from_game_shelf: '更多遊戲內容',
-                trending_playlist: '熱門播放清單',
-                inline_survey: '問卷調查',
-                clarify_box: '資訊框',
-                explore_topics: '探索主題',
-                recommended_playlists: '推薦播放清單',
-                members_early_access: '會員搶先看'
-            },
-            'zh-CN': {
-                ad_block_popup: '广告拦截弹窗',
-                ad_sponsor: '广告/赞助',
-                members_only: '会员专属',
-                shorts_item: 'Shorts 项目',
-                mix_only: '合辑',
-                premium_banner: 'Premium 横幅',
-                news_block: '新闻区块',
-                shorts_block: 'Shorts 区块',
-                posts_block: '社区帖子',
-                playables_block: '可玩内容',
-                fundraiser_block: '募款活动',
-                shorts_grid_shelf: 'Shorts 网格',
-                movies_shelf: '电影推荐',
-                youtube_featured_shelf: 'YouTube 精选',
-                popular_gaming_shelf: '热门游戏',
-                more_from_game_shelf: '更多游戏内容',
-                trending_playlist: '热门播放列表',
-                inline_survey: '问卷调查',
-                clarify_box: '信息框',
-                explore_topics: '探索主题',
-                recommended_playlists: '推荐播放列表',
-                members_early_access: '会员抢先看'
-            },
-            'en': {
-                ad_block_popup: 'Ad-block Popup',
-                ad_sponsor: 'Ads / Sponsors',
-                members_only: 'Members Only',
-                shorts_item: 'Shorts Items',
-                mix_only: 'Mix Playlists',
-                premium_banner: 'Premium Banner',
-                news_block: 'News Section',
-                shorts_block: 'Shorts Section',
-                posts_block: 'Community Posts',
-                playables_block: 'Playables',
-                fundraiser_block: 'Fundraiser',
-                shorts_grid_shelf: 'Shorts Grid',
-                movies_shelf: 'Movies Shelf',
-                youtube_featured_shelf: 'YouTube Featured',
-                popular_gaming_shelf: 'Popular Gaming',
-                more_from_game_shelf: 'More from Games',
-                trending_playlist: 'Trending Playlist',
-                inline_survey: 'Surveys',
-                clarify_box: 'Clarify Box',
-                explore_topics: 'Explore Topics',
-                recommended_playlists: 'Recommended Playlists',
-                members_early_access: 'Members Early Access'
-            },
-            'ja': {
-                ad_block_popup: '広告ブロックポップアップ',
-                ad_sponsor: '広告/スポンサー',
-                members_only: 'メンバー限定',
-                shorts_item: 'Shorts 項目',
-                mix_only: 'ミックスリスト',
-                premium_banner: 'Premium バナー',
-                news_block: 'ニュースセクション',
-                shorts_block: 'Shorts セクション',
-                posts_block: 'コミュニティ投稿',
-                playables_block: 'プレイアブル',
-                fundraiser_block: '募金活動',
-                shorts_grid_shelf: 'Shorts グリッド',
-                movies_shelf: '映画の推奨',
-                youtube_featured_shelf: 'YouTube 特選',
-                popular_gaming_shelf: '人気のゲーム',
-                more_from_game_shelf: 'このゲームの関連コンテンツ',
-                trending_playlist: '急上昇プレイリスト',
-                inline_survey: 'アンケート',
-                clarify_box: '情報パネル',
-                explore_topics: 'トピックを探索',
-                recommended_playlists: 'おすすめのプレイリスト',
-                members_early_access: 'メンバー限定先行公開'
-            }
-        },
-        getRuleName(ruleKey) {
-            return this.ruleNames[this.lang]?.[ruleKey] || this.ruleNames['en'][ruleKey] || ruleKey;
-        },
-        detectLanguage() {
-            const ytLang = document.documentElement.lang || navigator.language || 'zh-TW';
-            if (ytLang.startsWith('zh-CN') || ytLang.startsWith('zh-Hans')) return 'zh-CN';
-            if (ytLang.startsWith('zh')) return 'zh-TW';
-            if (ytLang.startsWith('ja')) return 'ja';
-            return 'en';
-        },
-        get lang() {
-            if (!this._lang) {
-                this._lang = GM_getValue('ui_language', null) || this.detectLanguage();
-            }
-            return this._lang;
-        },
-        set lang(value) {
-            this._lang = value;
-            GM_setValue('ui_language', value);
-        },
-        t(key, ...args) {
-            const str = this.strings[this.lang]?.[key] || this.strings['en'][key] || key;
-            return str.replace(/\{(\d+)\}/g, (_, i) => args[i] ?? '');
-        },
-        get availableLanguages() {
-            return {
-                'zh-TW': '繁體中文',
-                'zh-CN': '简体中文',
-                'en': 'English',
-                'ja': '日本語'
-            };
-        }
+    const CLEANING_RULES = {
+        PREFIXES: [
+            '前往頻道：', '前往频道：', 'Go to channel:', 'チャンネルへ移動:',
+            '輕觸即可觀看「', 'Tap to watch 「', 'タップして「', '前往頻道：'
+        ],
+        SUFFIXES: [
+            '」頻道的直播', " 's live stream", '」のライブ配信', '」のライブ配信を視聴',
+            '的頻道', '的频道', "'s channel", '」'
+        ]
     };
 
     const TIME_UNITS = {
@@ -418,6 +45,7 @@
     };
     const MULTIPLIERS = {
         'k': 1e3, 'm': 1e6, 'b': 1e9,
+        'K': 1e3, 'M': 1e6, 'B': 1e9,
         '千': 1e3, '萬': 1e4, '億': 1e8,
         '万': 1e4, '亿': 1e8
     };
@@ -436,6 +64,7 @@
     const Utils = {
         _openccToSimp: null,
         _openccToTrad: null,
+        _channelCleanerRX: null,
         debounce: (func, delay) => {
             let t;
             return (...args) => { clearTimeout(t); t = setTimeout(() => func(...args), delay); };
@@ -458,9 +87,11 @@
             const match = clean.match(RX_NUMERIC);
             if (!match) return null;
             let num = parseFloat(match[1]);
-            const unit = match[2]?.toLowerCase();
+            const unit = match[2];
             if (unit && MULTIPLIERS[unit]) {
                 num *= MULTIPLIERS[unit];
+            } else if (unit && MULTIPLIERS[unit.toLowerCase()]) {
+                num *= MULTIPLIERS[unit.toLowerCase()];
             }
             return Math.floor(num);
         },
@@ -499,40 +130,43 @@
                 Utils._openccToTrad = OpenCC.Converter({ from: 'cn', to: 'tw' });
                 return true;
             } catch (e) {
-                console.warn('[YT Cleaner] OpenCC init failed');
                 return false;
             }
         },
-        toSimplified: (str) => {
-            if (!str) return '';
-            if (Utils._initOpenCC()) {
-                try { return Utils._openccToSimp(str); } catch (e) {  }
-            }
-            return str;
-        },
         generateCnRegex: (text, exact = false) => {
+            if (!text) return null;
+            const escape = s => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+            const wrap = s => exact ? `^${s}$` : s;
+            if (Utils._initOpenCC()) {
+                try {
+                    const simp = Utils._openccToSimp(text);
+                    const trad = Utils._openccToTrad(text);
+                    const escSimp = escape(simp);
+                    const escTrad = escape(trad);
+                    if (escSimp === escTrad) return new RegExp(wrap(escSimp), 'i');
+                    return new RegExp(wrap(`(?:${escSimp}|${escTrad})`), 'i');
+                } catch (e) {  }
+            }
+            try {
+                return new RegExp(wrap(escape(text)), 'i');
+            } catch (e) {
+                return null;
+            }
         },
         cleanChannelName: (name) => {
             if (!name) return '';
             let clean = name.replace(/[\u200B-\u200D\uFEFF]/g, '').replace(/\u00A0/g, ' ');
             if (!Utils._channelCleanerRX) {
-                const prefixes = [];
-                const suffixes = [];
-                for (const lang in I18N.strings) {
-                    const data = I18N.strings[lang];
-                    if (data.channel_prefixes) prefixes.push(...data.channel_prefixes);
-                    if (data.channel_suffixes) suffixes.push(...data.channel_suffixes);
-                }
                 const esc = s => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-                const prePattern = prefixes.length > 0 ? `^(${prefixes.map(esc).join('|')})` : '';
-                const sufPattern = suffixes.length > 0 ? `(${suffixes.map(esc).join('|')})$` : '';
+                const prePattern = `^(${CLEANING_RULES.PREFIXES.map(esc).join('|')})`;
+                const sufPattern = `(${CLEANING_RULES.SUFFIXES.map(esc).join('|')})$`;
                 Utils._channelCleanerRX = {
-                    prefix: prePattern ? new RegExp(prePattern, 'i') : null,
-                    suffix: sufPattern ? new RegExp(sufPattern, 'i') : null
+                    prefix: new RegExp(prePattern, 'i'),
+                    suffix: new RegExp(sufPattern, 'i')
                 };
             }
-            if (Utils._channelCleanerRX.prefix) clean = clean.replace(Utils._channelCleanerRX.prefix, '');
-            if (Utils._channelCleanerRX.suffix) clean = clean.replace(Utils._channelCleanerRX.suffix, '');
+            clean = clean.replace(Utils._channelCleanerRX.prefix, '');
+            clean = clean.replace(Utils._channelCleanerRX.suffix, '');
             clean = clean.replace(/[「」『』""'']/g, '');
             return clean.replace(/·.*$/, '').trim();
         }
@@ -1415,6 +1049,384 @@
         }
     }
 
+    const I18N = {
+        _lang: null,
+        strings: {
+            'zh-TW': {
+                title: 'YouTube 淨化大師',
+                menu_rules: '📂 設定過濾規則',
+                menu_low_view: '低觀看數過濾 (含直播)',
+                menu_threshold: '🔢 設定閾值',
+                menu_grace: '⏳ 設定豁免期',
+                menu_content: '🎥 過濾功能設定',
+                menu_lists: '🛡️ 黑/白名單管理',
+                menu_ux: '🖱️ 介面與體驗',
+                menu_system: '📊 系統與工具',
+                menu_whitelist: '🛡️ 管理白名單',
+                menu_new_tab: '強制新分頁 (影片)',
+                menu_notification_new_tab: '強制新分頁 (通知)',
+                menu_debug: 'Debug',
+                menu_reset: '🔄 恢復預設',
+                menu_stats: '📊 過濾統計',
+                menu_export: '💾 匯出/匯入設定',
+                menu_lang: '🌐 語言',
+                menu_input: '輸入選項:',
+                stats_title: '【 過濾統計 】',
+                stats_empty: '尚未過濾任何內容',
+                stats_filtered: '已過濾 {0} 個項目',
+                export_title: '【 設定管理 】',
+                export_export: '📤 匯出設定',
+                export_import: '📥 匯入設定',
+                export_success: '✅ 設定已複製到剪貼簿！',
+                export_copy: '請複製以下設定 (Ctrl+C):',
+                import_prompt: '請貼上設定 JSON:',
+                import_success: '✅ 設定已成功匯入！',
+                import_fail: '❌ 匯入失敗: ',
+                rules_title: '【 過濾規則 】',
+                rules_back: '(0 返回)',
+                threshold_prompt: '請輸入「觀看數閾值」 (低於此數將被過濾):',
+                grace_prompt: '請輸入「豁免時間 (小時)」 (設為 0 則不豁免):',
+                adv_exact_prompt: '是否需精準匹配頻道名稱？ (1. 是 / 2. 否)\n\n※精準匹配：必須完全一致\n※模糊匹配：包含關鍵字即可',
+                reset_confirm: '重設?',
+                lang_title: '【 選擇語言 】',
+                back: '返回',
+                adv_keyword_filter: '關鍵字過濾',
+                adv_keyword_list: '🚫 關鍵字黑名單',
+                adv_channel_filter: '頻道過濾',
+                adv_channel_list: '🚫 頻道黑名單',
+                adv_channel_whitelist: '🛡️ 頻道白名單 (常規影片)',
+                adv_members_whitelist: '🛡️ 會員白名單 (專屬影片)',
+                adv_keyword_whitelist: '🛡️ 關鍵字白名單',
+                adv_section_filter: '欄位過濾',
+                adv_section_list: '🚫 欄位標題黑名單',
+                adv_duration_filter: '長度過濾',
+                adv_duration_set: '⏱️ 設定長度',
+                adv_min: '最短(分):',
+                adv_max: '最長(分):',
+                adv_add: '新增',
+                adv_remove: '刪除',
+                adv_clear: '🧹 清空全部',
+                adv_restore: '✨ 恢復預設',
+                adv_region_convert: '繁簡通用過濾',
+                adv_disable_channel: '頻道頁面停止過濾 (保留內容)',
+                next_page: '下一頁',
+                prev_page: '上一頁'
+            },
+            'zh-CN': {
+                title: 'YouTube 净化大师',
+                menu_rules: '📂 设置过滤规则',
+                menu_low_view: '低观看数过滤 (含直播)',
+                menu_threshold: '🔢 设置阈值',
+                menu_grace: '⏳ 设置豁免期',
+                menu_content: '🎥 过滤功能设置',
+                menu_lists: '🛡️ 黑/白名单管理',
+                menu_ux: '🖱️ 界面與体验',
+                menu_system: '📊 系统與工具',
+                menu_whitelist: '🛡️ 管理白名单',
+                menu_new_tab: '强制新标签页 (视频)',
+                menu_notification_new_tab: '强制新标签页 (通知)',
+                menu_debug: 'Debug',
+                menu_reset: '🔄 恢复默认',
+                menu_stats: '📊 过滤统计',
+                menu_export: '💾 导出/导入设置',
+                menu_lang: '🌐 语言',
+                menu_input: '输入选项:',
+                stats_title: '【 过滤统计 】',
+                stats_empty: '尚未过滤任何内容',
+                stats_filtered: '已过滤 {0} 个项目',
+                export_title: '【 设置管理 】',
+                export_export: '📤 导出设置',
+                export_import: '📥 导入设置',
+                export_success: '✅ 设置已复制到剪贴板！',
+                export_copy: '请复制以下设置 (Ctrl+C):',
+                import_prompt: '请粘贴设置 JSON:',
+                import_success: '✅ 设置已成功导入！',
+                import_fail: '❌ 导入失败: ',
+                rules_title: '【 过滤规则 】',
+                rules_back: '(0 返回)',
+                threshold_prompt: '请输入「观看数阈值」 (低于此数将被过滤):',
+                grace_prompt: '请输入「豁免时间 (小时)」 (设为 0 则不豁免):',
+                adv_exact_prompt: '是否需精準匹配频道名称？ (1. 是 / 2. 否)\n\n※精準匹配：必须完全一致\n※模糊匹配：包含关键字即可',
+                reset_confirm: '重置?',
+                lang_title: '【 选择语言 】',
+                back: '返回',
+                adv_keyword_filter: '关键字过滤',
+                adv_keyword_list: '🚫 关键字黑名单',
+                adv_channel_filter: '频道过滤',
+                adv_channel_list: '🚫 频道黑名单',
+                adv_channel_whitelist: '🛡️ 频道白名单 (常规视频)',
+                adv_members_whitelist: '🛡️ 会员白名单 (专属视频)',
+                adv_keyword_whitelist: '🛡️ 关键字白名单',
+                adv_section_filter: '栏位过滤',
+                adv_section_list: '🚫 栏位标题黑名单',
+                adv_duration_filter: '时长过滤',
+                adv_duration_set: '⏱️ 设置时长',
+                adv_min: '最短(分):',
+                adv_max: '最长(分):',
+                adv_add: '新增',
+                adv_remove: '删除',
+                adv_clear: '🧹 清空全部',
+                adv_restore: '✨ 恢复默认',
+                adv_region_convert: '繁简通用过滤',
+                adv_disable_channel: '频道页面停止过滤 (保留内容)',
+                next_page: '下一页',
+                prev_page: '上一页',
+                channel_prefixes: ['前往频道：', '輕觸即可觀看「', '前往頻道：'],
+                channel_suffixes: ['」頻道的直播']
+            },
+            'en': {
+                title: 'YouTube Cleaner',
+                menu_rules: '📂 Filter Rules',
+                menu_low_view: 'Low View Count Filter (Live included)',
+                menu_threshold: '🔢 Set Threshold',
+                menu_grace: '⏳ Set Grace Period',
+                menu_content: '🎥 Filtering Settings',
+                menu_lists: '🛡️ List Management',
+                menu_ux: '🖱️ Interface & UX',
+                menu_system: '📊 System & Tools',
+                menu_whitelist: '🛡️ Manage Whitelists',
+                menu_new_tab: 'Force New Tab (Video)',
+                menu_notification_new_tab: 'Force New Tab (Notif)',
+                menu_debug: 'Debug',
+                menu_reset: '🔄 Reset to Default',
+                menu_stats: '📊 Filter Stats',
+                menu_export: '💾 Export/Import Settings',
+                menu_lang: '🌐 Language',
+                menu_input: 'Enter option:',
+                stats_title: '【 Filter Statistics 】',
+                stats_empty: 'No content filtered yet',
+                stats_filtered: 'Filtered {0} items',
+                export_title: '【 Settings Management 】',
+                export_export: '📤 Export Settings',
+                export_import: '📥 Import Settings',
+                export_success: '✅ Settings copied to clipboard!',
+                export_copy: 'Copy settings (Ctrl+C):',
+                import_prompt: 'Paste settings JSON:',
+                import_success: '✅ Settings imported successfully!',
+                import_fail: '❌ Import failed: ',
+                rules_title: '【 Filter Rules 】',
+                rules_back: '(0 Back)',
+                threshold_prompt: 'Enter View Threshold:',
+                grace_prompt: 'Enter Grace Period (Hours) (0 to disable):',
+                adv_exact_prompt: 'Use exact match for this channel? (1. Yes / 2. No)\n\n※Exact: Must be identical\n※Partial: Contains keyword',
+                reset_confirm: 'Reset?',
+                lang_title: '【 Select Language 】',
+                back: 'Back',
+                adv_keyword_filter: 'Keyword Filter',
+                adv_keyword_list: '🚫 Keyword Blacklist',
+                adv_channel_filter: 'Channel Filter',
+                adv_channel_list: '🚫 Channel Blacklist',
+                adv_channel_whitelist: '🛡️ Channel Whitelist (Regular)',
+                adv_members_whitelist: '🛡️ Members Whitelist (Exclusive)',
+                adv_keyword_whitelist: '🛡️ Keyword Whitelist',
+                adv_section_filter: 'Section Filter',
+                adv_section_list: '🚫 Section Blacklist',
+                adv_duration_filter: 'Duration Filter',
+                adv_duration_set: '⏱️ Set Duration',
+                adv_min: 'Min (min):',
+                adv_max: 'Max (min):',
+                adv_add: 'Add',
+                adv_remove: 'Remove',
+                adv_clear: '🧹 Clear All',
+                adv_restore: '✨ Restore Defaults',
+                adv_region_convert: 'Region Agnostic Filter',
+                adv_disable_channel: 'Disable on Channel Pages',
+                next_page: 'Next Page',
+                prev_page: 'Prev Page'
+            },
+            'ja': {
+                title: 'YouTube 浄化大師',
+                menu_rules: '📂 フィルタールール設定',
+                menu_low_view: '低視聴回数フィルター (ライブ含む)',
+                menu_threshold: '🔢 閾値を設定',
+                menu_grace: '⏳ 猶予期間を設定',
+                menu_content: '🎥 フィルター設定',
+                menu_lists: '🛡️ リスト管理',
+                menu_ux: '🖱️ インターフェース設定',
+                menu_system: '📊 システムとツール',
+                menu_whitelist: '🛡️ ホワイトリスト管理',
+                menu_new_tab: '強制新タブ (動画)',
+                menu_notification_new_tab: '強制新タブ (通知)',
+                menu_debug: 'デバッグ',
+                menu_reset: '🔄 デフォルトに戻す',
+                menu_stats: '📊 統計情報',
+                menu_export: '💾 設定のエクスポート/インポート',
+                menu_lang: '🌐 言語',
+                menu_input: '選んでください:',
+                stats_title: '【 統計情報 】',
+                stats_empty: 'まだ何もフィルタリングされていません',
+                stats_filtered: '{0} 個の項目をフィルタリングしました',
+                export_title: '【 設定管理 】',
+                export_export: '📤 設定をエクスポート',
+                export_import: '📥 設定をインポート',
+                export_success: '✅ 設定をクリップボードにコピーしました！',
+                export_copy: '以下の設定をコピーしてください (Ctrl+C):',
+                import_prompt: '設定 JSON を貼り付けてください:',
+                import_success: '✅ 設定をインポートしました！',
+                import_fail: '❌ インポート失敗: ',
+                rules_title: '【 フィルタールール 】',
+                rules_back: '(0 戻る)',
+                threshold_prompt: '「視聴回数閾値」を入力してください (これ未満は非表示):',
+                grace_prompt: '「猶予期間 (時間)」を入力してください (0 は猶予なし):',
+                adv_exact_prompt: 'このチャンネルを完全一致で追加しますか？ (1. はい / 2. いいえ)\n\n※完全一致：名前が完全に同じ\n※部分一致：名前の一部を含む',
+                reset_confirm: 'リセットしますか？',
+                lang_title: '【 言語を選択 】',
+                back: '戻る',
+                adv_keyword_filter: 'キーワードフィルター',
+                adv_keyword_list: '🚫 キーワードブラックリスト',
+                adv_channel_filter: 'チャンネルフィルター',
+                adv_channel_list: '🚫 チャンネルブラックリスト',
+                adv_channel_whitelist: '🛡️ チャンネルホワイトリスト (通常)',
+                adv_members_whitelist: '🛡️ メンバーホワイトリスト (限定)',
+                adv_keyword_whitelist: '🛡️ キーワードホワイトリスト',
+                adv_section_filter: 'セクションフィルター',
+                adv_section_list: '🚫 セクションブラックリスト',
+                adv_duration_filter: '動画の長さフィルター',
+                adv_duration_set: '⏱️ 長さを設定',
+                adv_min: '最短(分):',
+                adv_max: '最長(分):',
+                adv_add: '追加',
+                adv_remove: '削除',
+                adv_clear: '🧹 全てクリア',
+                adv_restore: '✨ デフォルトに戻す',
+                adv_region_convert: '繁体字/簡体字共通フィルター',
+                adv_disable_channel: 'チャンネルページではフィルターを無効にする',
+                next_page: '次へ',
+                prev_page: '前へ'
+            }
+        },
+        ruleNames: {
+            'zh-TW': {
+                ad_block_popup: '廣告阻擋彈窗',
+                ad_sponsor: '廣告/贊助',
+                members_only: '會員專屬',
+                shorts_item: 'Shorts 項目',
+                mix_only: '合輯',
+                premium_banner: 'Premium 橫幅',
+                news_block: '新聞區塊',
+                shorts_block: 'Shorts 區塊',
+                posts_block: '社群貼文',
+                playables_block: '可玩內容',
+                fundraiser_block: '募款活動',
+                shorts_grid_shelf: 'Shorts 網格',
+                movies_shelf: '電影推薦',
+                youtube_featured_shelf: 'YouTube 精選',
+                popular_gaming_shelf: '熱門遊戲',
+                more_from_game_shelf: '更多遊戲內容',
+                trending_playlist: '熱門播放清單',
+                inline_survey: '問卷調查',
+                clarify_box: '資訊框',
+                explore_topics: '探索主題',
+                recommended_playlists: '推薦播放清單',
+                members_early_access: '會員搶先看'
+            },
+            'zh-CN': {
+                ad_block_popup: '广告拦截弹窗',
+                ad_sponsor: '广告/赞助',
+                members_only: '会员专属',
+                shorts_item: 'Shorts 项目',
+                mix_only: '合辑',
+                premium_banner: 'Premium 横幅',
+                news_block: '新闻区块',
+                shorts_block: 'Shorts 区块',
+                posts_block: '社区帖子',
+                playables_block: '可玩内容',
+                fundraiser_block: '募款活动',
+                shorts_grid_shelf: 'Shorts 网格',
+                movies_shelf: '电影推荐',
+                youtube_featured_shelf: 'YouTube 精选',
+                popular_gaming_shelf: '热门游戏',
+                more_from_game_shelf: '更多游戏内容',
+                trending_playlist: '热门播放列表',
+                inline_survey: '问卷调查',
+                clarify_box: '信息框',
+                explore_topics: '探索主题',
+                recommended_playlists: '推荐播放列表',
+                members_early_access: '会员抢先看'
+            },
+            'en': {
+                ad_block_popup: 'Ad-block Popup',
+                ad_sponsor: 'Ads / Sponsors',
+                members_only: 'Members Only',
+                shorts_item: 'Shorts Items',
+                mix_only: 'Mix Playlists',
+                premium_banner: 'Premium Banner',
+                news_block: 'News Section',
+                shorts_block: 'Shorts Section',
+                posts_block: 'Community Posts',
+                playables_block: 'Playables',
+                fundraiser_block: 'Fundraiser',
+                shorts_grid_shelf: 'Shorts Grid',
+                movies_shelf: 'Movies Shelf',
+                youtube_featured_shelf: 'YouTube Featured',
+                popular_gaming_shelf: 'Popular Gaming',
+                more_from_game_shelf: 'More from Games',
+                trending_playlist: 'Trending Playlist',
+                inline_survey: 'Surveys',
+                clarify_box: 'Clarify Box',
+                explore_topics: 'Explore Topics',
+                recommended_playlists: 'Recommended Playlists',
+                members_early_access: 'Members Early Access'
+            },
+            'ja': {
+                ad_block_popup: '広告ブロックポップアップ',
+                ad_sponsor: '広告/スポンサー',
+                members_only: 'メンバー限定',
+                shorts_item: 'Shorts 項目',
+                mix_only: 'ミックスリスト',
+                premium_banner: 'Premium バナー',
+                news_block: 'ニュースセクション',
+                shorts_block: 'Shorts セクション',
+                posts_block: 'コミュニティ投稿',
+                playables_block: 'プレイアブル',
+                fundraiser_block: '募金活動',
+                shorts_grid_shelf: 'Shorts グリッド',
+                movies_shelf: '映画の推奨',
+                youtube_featured_shelf: 'YouTube 特選',
+                popular_gaming_shelf: '人気のゲーム',
+                more_from_game_shelf: 'このゲームの関連コンテンツ',
+                trending_playlist: '急上昇プレイリスト',
+                inline_survey: 'アンケート',
+                clarify_box: '情報パネル',
+                explore_topics: 'トピックを探索',
+                recommended_playlists: 'おすすめのプレイリスト',
+                members_early_access: 'メンバー限定先行公開'
+            }
+        },
+        getRuleName(ruleKey) {
+            return this.ruleNames[this.lang]?.[ruleKey] || this.ruleNames['en'][ruleKey] || ruleKey;
+        },
+        detectLanguage() {
+            const ytLang = document.documentElement.lang || navigator.language || 'zh-TW';
+            if (ytLang.startsWith('zh-CN') || ytLang.startsWith('zh-Hans')) return 'zh-CN';
+            if (ytLang.startsWith('zh')) return 'zh-TW';
+            if (ytLang.startsWith('ja')) return 'ja';
+            return 'en';
+        },
+        get lang() {
+            if (!this._lang) {
+                this._lang = GM_getValue('ui_language', null) || this.detectLanguage();
+            }
+            return this._lang;
+        },
+        set lang(value) {
+            this._lang = value;
+            GM_setValue('ui_language', value);
+        },
+        t(key, ...args) {
+            const str = this.strings[this.lang]?.[key] || this.strings['en'][key] || key;
+            return str.replace(/\{(\d+)\}/g, (_, i) => args[i] ?? '');
+        },
+        get availableLanguages() {
+            return {
+                'zh-TW': '繁體中文',
+                'zh-CN': '简体中文',
+                'en': 'English',
+                'ja': '日本語'
+            };
+        }
+    };
+
     class UIManager {
         constructor(config, onRefresh) {
             this.config = config;
@@ -1648,10 +1660,16 @@
             this._renderMenu(this.t('export_title'), items, () => this.showSystemMenu());
         }
         exportSettings() {
+            const cleanSettings = {};
+            for (const key in this.config.state) {
+                if (!key.startsWith('compiled')) {
+                    cleanSettings[key] = this.config.state[key];
+                }
+            }
             const exportData = {
                 version: GM_info.script.version,
                 timestamp: new Date().toISOString(),
-                settings: this.config.state,
+                settings: cleanSettings,
                 language: I18N.lang
             };
             const json = JSON.stringify(exportData, null, 2);

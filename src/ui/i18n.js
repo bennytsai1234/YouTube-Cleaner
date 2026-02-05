@@ -62,9 +62,7 @@ export const I18N = {
             adv_region_convert: '繁簡通用過濾',
             adv_disable_channel: '頻道頁面停止過濾 (保留內容)',
             next_page: '下一頁',
-            prev_page: '上一頁',
-            channel_prefixes: ['前往頻道：', '輕觸即可觀看「', '前往頻道：'],
-            channel_suffixes: ['」頻道的直播']
+            prev_page: '上一頁'
         },
         'zh-CN': {
             title: 'YouTube 净化大师',
@@ -186,9 +184,7 @@ export const I18N = {
             adv_region_convert: 'Region Agnostic Filter',
             adv_disable_channel: 'Disable on Channel Pages',
             next_page: 'Next Page',
-            prev_page: 'Prev Page',
-            channel_prefixes: ['Go to channel:', 'Tap to watch 「'],
-            channel_suffixes: ["'s live stream", '」']
+            prev_page: 'Prev Page'
         },
         'ja': {
             title: 'YouTube 浄化大師',
@@ -248,9 +244,7 @@ export const I18N = {
             adv_region_convert: '繁体字/簡体字共通フィルター',
             adv_disable_channel: 'チャンネルページではフィルターを無効にする',
             next_page: '次へ',
-            prev_page: '前へ',
-            channel_prefixes: ['チャンネルへ移動:', 'タップして「', 'のチャンネルを表示'],
-            channel_suffixes: ['」のライブ配信を視聴', '」']
+            prev_page: '前へ'
         }
     },
 
