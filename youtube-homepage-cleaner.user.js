@@ -787,7 +787,9 @@
                 filterDetail = filterDetail || this._getFilterDuration(item);
                 filterDetail = filterDetail || this._getFilterPlaylist(item);
                 if (filterDetail) {
-                    const whitelistReason = this._checkWhitelist(item);
+                    const strongReasons = ['members_only_js', 'shorts_item_js', 'recommended_playlists'];
+                    const isStrong = strongReasons.includes(filterDetail.reason);
+                    const whitelistReason = isStrong ? null : this._checkWhitelist(item);
                     if (whitelistReason) {
                         const savedBy = whitelistReason === 'channel_whitelist' ? 'Channel' : 'Keyword';
                         const trigger = filterDetail.trigger ? ` [${filterDetail.trigger}]` : '';

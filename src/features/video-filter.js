@@ -342,8 +342,13 @@ export class VideoFilter {
 
             // --- 判斷執行動作 ---
             if (filterDetail) {
-                // 如果本應過濾，檢查是否有白名單護體 (回傳 whitelistReason 或 null)
-                const whitelistReason = this._checkWhitelist(item);
+                // 定義「強規則」：不論是否在白名單，一律隱藏 (如會員影片、Shorts、合輯)
+                const strongReasons = ['members_only_js', 'shorts_item_js', 'recommended_playlists'];
+                const isStrong = strongReasons.includes(filterDetail.reason);
+
+                // 如果不是強規則，才去檢查白名單
+                const whitelistReason = isStrong ? null : this._checkWhitelist(item);
+
                 if (whitelistReason) {
                     const savedBy = whitelistReason === 'channel_whitelist' ? 'Channel' : 'Keyword';
                     const trigger = filterDetail.trigger ? ` [${filterDetail.trigger}]` : '';
@@ -351,7 +356,6 @@ export class VideoFilter {
                     
                     Logger.info(`✅ Keep [Saved by ${savedBy} Whitelist]: ${item.channel} | ${item.title}\n(Originally Triggered: ${filterDetail.reason}${trigger}${ruleInfo})`);
                     
-                    // ❗ 關鍵修正：將整個容器標記為已檢查，防止重複 Log
                     container.dataset.ypChecked = 'true';
                     element.dataset.ypChecked = 'true';
                 } else {
