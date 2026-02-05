@@ -13,7 +13,7 @@
 2. **代碼修改規範 [CRITICAL]**:
    - **禁止使用 `write_file` 覆寫現有源碼**: 為防止代碼截斷遺失，僅允許使用 `replace` 工具進行局部修改。
    - **模組化結構**: 保持 `src/` 下的結構，禁止直接修改構建產物 `youtube-homepage-cleaner.user.js`。
-3. **自動本地備份 [CRITICAL]**: 每次完成單個檔案的修改後，**必須自動執行**：
+3. **立即自動備份 [CRITICAL]**: 每次完成單個檔案的修改後，AI Agent **必須在同一個 Turn 內立即執行** 備份指令，嚴禁等到下一輪對話或使用者回應後才備份：
    `git add <file> ; git commit -m "backup: update <file>"` (Windows 環境必須使用 `;` 分隔)。
 
 ### 第二階段：文檔同步 (Documentation Sync)
