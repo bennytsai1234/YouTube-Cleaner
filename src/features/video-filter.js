@@ -367,25 +367,22 @@ export class VideoFilter {
         const config = this.config;
 
         // 1. 頻道白名單檢查
-        const compiledChannels = config.get('compiledWhitelist');
-        if (compiledChannels && compiledChannels.length > 0) {
-            const isExact = config.get('EXACT_CHANNEL_WHITELIST');
-            if (config.get('ENABLE_REGION_CONVERT')) {
-                if (compiledChannels.some(rx => {
-                    if (!isExact) return rx.test(channel);
-                    // 模擬精準匹配：將原始正則包裝在 ^...$ 中
-                    const exactRx = new RegExp(`^${rx.source}$`, 'i');
-                    return exactRx.test(channel);
-                })) return 'channel_whitelist';
-            } else if (channel) {
-                const cLower = channel.toLowerCase();
-                if (config.get('CHANNEL_WHITELIST').some(k => {
-                    return isExact ? cLower === k.toLowerCase() : cLower.includes(k.toLowerCase());
-                })) return 'channel_whitelist';
-            }
+        const rawChannels = config.get('CHANNEL_WHITELIST') || [];
+        if (rawChannels.length > 0 && channel) {
+            const cLower = channel.toLowerCase();
+            const isMatch = rawChannels.some(k => {
+                if (k.startsWith('=')) {
+                    // 精準匹配模式
+                    const target = k.substring(1).toLowerCase();
+                    return cLower === target;
+                }
+                // 模糊匹配模式 (預設)
+                return cLower.includes(k.toLowerCase());
+            });
+            if (isMatch) return 'channel_whitelist';
         }
 
-        // 2. 關鍵字白名單檢查 (新增)
+        // 2. 關鍵字白名單檢查
         const compiledKeywords = config.get('compiledKeywordWhitelist');
         if (compiledKeywords && compiledKeywords.length > 0) {
             if (config.get('ENABLE_REGION_CONVERT')) {
