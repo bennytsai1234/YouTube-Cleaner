@@ -1,4 +1,5 @@
 import { Logger } from '../core/logger.js';
+import { SELECTORS } from '../data/selectors.js';
 
 // --- 5. Module: Style Manager (CSS) ---
 export class StyleManager {

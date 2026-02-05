@@ -73,6 +73,7 @@ export class ConfigManager {
         // Pre-compile Regexes
         loaded.compiledKeywords = (loaded.KEYWORD_BLACKLIST || []).map(k => Utils.generateCnRegex(k)).filter(Boolean);
         loaded.compiledChannels = (loaded.CHANNEL_BLACKLIST || []).map(k => Utils.generateCnRegex(k)).filter(Boolean);
+        loaded.compiledChannelWhitelist = (loaded.CHANNEL_WHITELIST || []).map(k => Utils.generateCnRegex(k)).filter(Boolean);
         loaded.compiledKeywordWhitelist = (loaded.KEYWORD_WHITELIST || []).map(k => Utils.generateCnRegex(k)).filter(Boolean);
         loaded.compiledSectionBlacklist = (loaded.SECTION_TITLE_BLACKLIST || []).map(k => Utils.generateCnRegex(k)).filter(Boolean);
 
@@ -93,6 +94,9 @@ export class ConfigManager {
         }
         if (key === 'CHANNEL_BLACKLIST') {
             this.state.compiledChannels = value.map(k => Utils.generateCnRegex(k)).filter(Boolean);
+        }
+        if (key === 'CHANNEL_WHITELIST') {
+            this.state.compiledChannelWhitelist = value.map(k => Utils.generateCnRegex(k)).filter(Boolean);
         }
         if (key === 'KEYWORD_WHITELIST') {
             this.state.compiledKeywordWhitelist = value.map(k => Utils.generateCnRegex(k)).filter(Boolean);

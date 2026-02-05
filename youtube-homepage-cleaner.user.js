@@ -209,6 +209,7 @@
             }
             loaded.compiledKeywords = (loaded.KEYWORD_BLACKLIST || []).map(k => Utils.generateCnRegex(k)).filter(Boolean);
             loaded.compiledChannels = (loaded.CHANNEL_BLACKLIST || []).map(k => Utils.generateCnRegex(k)).filter(Boolean);
+            loaded.compiledChannelWhitelist = (loaded.CHANNEL_WHITELIST || []).map(k => Utils.generateCnRegex(k)).filter(Boolean);
             loaded.compiledKeywordWhitelist = (loaded.KEYWORD_WHITELIST || []).map(k => Utils.generateCnRegex(k)).filter(Boolean);
             loaded.compiledSectionBlacklist = (loaded.SECTION_TITLE_BLACKLIST || []).map(k => Utils.generateCnRegex(k)).filter(Boolean);
             return loaded;
@@ -224,6 +225,9 @@
             }
             if (key === 'CHANNEL_BLACKLIST') {
                 this.state.compiledChannels = value.map(k => Utils.generateCnRegex(k)).filter(Boolean);
+            }
+            if (key === 'CHANNEL_WHITELIST') {
+                this.state.compiledChannelWhitelist = value.map(k => Utils.generateCnRegex(k)).filter(Boolean);
             }
             if (key === 'KEYWORD_WHITELIST') {
                 this.state.compiledKeywordWhitelist = value.map(k => Utils.generateCnRegex(k)).filter(Boolean);
@@ -244,6 +248,62 @@
         info(msg, ...args) { if (this.enabled) console.log(`%c${this.prefix} ${msg}`, 'color:#3498db;font-weight:bold', ...args); },
         warn(msg, ...args) { if (this.enabled) console.warn(`${this.prefix} ${msg}`, ...args); }
     };
+
+    const VIDEO_CONTAINERS = [
+        'ytd-rich-item-renderer',
+        'ytd-video-renderer',
+        'ytd-compact-video-renderer',
+        'ytd-grid-video-renderer',
+        'yt-lockup-view-model',
+        'ytd-compact-radio-renderer',
+        'ytd-playlist-panel-video-renderer',
+        'ytd-playlist-video-renderer'
+    ];
+    const SECTION_CONTAINERS = [
+        'ytd-rich-section-renderer',
+        'ytd-rich-shelf-renderer',
+        'ytd-reel-shelf-renderer',
+        'grid-shelf-view-model'
+    ];
+    const ALL_CONTAINERS_STR = [...VIDEO_CONTAINERS, ...SECTION_CONTAINERS].join(', ');
+    const SELECTORS = {
+        VIDEO_CONTAINERS,
+        METADATA: {
+            TEXT: '.inline-metadata-item, #metadata-line span, .yt-content-metadata-view-model__metadata-text, yt-content-metadata-view-model .yt-core-attributed-string',
+            TITLE_LINKS: [
+                'a#video-title-link[aria-label]',
+                'a#thumbnail[aria-label]',
+                'a.yt-lockup-metadata-view-model__title[aria-label]',
+                'a[href*="/watch?"][aria-label]'
+            ],
+            DURATION: 'ytd-thumbnail-overlay-time-status-renderer, span.ytd-thumbnail-overlay-time-status-renderer, badge-shape .yt-badge-shape__text, yt-thumbnail-badge-view-model .yt-badge-shape__text',
+            CHANNEL: 'ytd-channel-name, .ytd-channel-name, a[href^="/@"]',
+            TITLE: '#video-title, #title, .yt-lockup-metadata-view-model__title, .yt-lockup-metadata-view-model__heading-reset, h3'
+        },
+        SHELF_TITLE: [
+            '#rich-shelf-header #title',
+            'ytd-reel-shelf-renderer #title',
+            'h2#title',
+            '.ytd-shelf-renderer #title'
+        ],
+        BADGES: {
+            MEMBERS: '.badge-style-type-members-only, [aria-label*="會員專屬"], [aria-label*="Members only"]',
+            SHORTS: 'a[href*="/shorts/"]',
+            MIX: 'a[aria-label*="合輯"], a[aria-label*="Mix"]'
+        },
+        INTERACTION_EXCLUDE: 'button, yt-icon-button, #menu, ytd-menu-renderer, ytd-toggle-button-renderer, yt-chip-cloud-chip-renderer, .yt-spec-button-shape-next, .yt-core-attributed-string__link, #subscribe-button, .ytp-progress-bar, .ytp-chrome-bottom',
+        CLICKABLE: [
+            'ytd-rich-item-renderer', 'ytd-video-renderer', 'ytd-compact-video-renderer',
+            'yt-lockup-view-model', 'ytd-playlist-renderer', 'ytd-compact-playlist-renderer',
+            'ytd-video-owner-renderer', 'ytd-grid-video-renderer', 'ytd-playlist-video-renderer',
+            'ytd-playlist-panel-video-renderer'
+        ],
+        PREVIEW_PLAYER: 'ytd-video-preview',
+        LINK_CANDIDATES: [
+            'a#thumbnail[href*="/watch?"]', 'a#thumbnail[href*="/shorts/"]', 'a#thumbnail[href*="/playlist?"]',
+            'a#video-title-link', 'a#video-title', 'a.yt-simple-endpoint#video-title', 'a.yt-lockup-view-model-wiz__title'
+        ],
+        allContainers: ALL_CONTAINERS_STR};
 
     class StyleManager {
         constructor(config) { this.config = config; }
@@ -414,61 +474,6 @@
         }
     }
 
-    const VIDEO_CONTAINERS = [
-        'ytd-rich-item-renderer',
-        'ytd-video-renderer',
-        'ytd-compact-video-renderer',
-        'ytd-grid-video-renderer',
-        'yt-lockup-view-model',
-        'ytd-compact-radio-renderer',
-        'ytd-playlist-panel-video-renderer',
-        'ytd-playlist-video-renderer'
-    ];
-    const SECTION_CONTAINERS = [
-        'ytd-rich-section-renderer',
-        'ytd-rich-shelf-renderer',
-        'ytd-reel-shelf-renderer',
-        'grid-shelf-view-model'
-    ];
-    const ALL_CONTAINERS_STR = [...VIDEO_CONTAINERS, ...SECTION_CONTAINERS].join(', ');
-    const SELECTORS$1 = {
-        METADATA: {
-            TEXT: '.inline-metadata-item, #metadata-line span, .yt-content-metadata-view-model__metadata-text, yt-content-metadata-view-model .yt-core-attributed-string',
-            TITLE_LINKS: [
-                'a#video-title-link[aria-label]',
-                'a#thumbnail[aria-label]',
-                'a.yt-lockup-metadata-view-model__title[aria-label]',
-                'a[href*="/watch?"][aria-label]'
-            ],
-            DURATION: 'ytd-thumbnail-overlay-time-status-renderer, span.ytd-thumbnail-overlay-time-status-renderer, badge-shape .yt-badge-shape__text, yt-thumbnail-badge-view-model .yt-badge-shape__text',
-            CHANNEL: 'ytd-channel-name, .ytd-channel-name, a[href^="/@"]',
-            TITLE: '#video-title, #title, .yt-lockup-metadata-view-model__title, .yt-lockup-metadata-view-model__heading-reset, h3'
-        },
-        SHELF_TITLE: [
-            '#rich-shelf-header #title',
-            'ytd-reel-shelf-renderer #title',
-            'h2#title',
-            '.ytd-shelf-renderer #title'
-        ],
-        BADGES: {
-            MEMBERS: '.badge-style-type-members-only, [aria-label*="會員專屬"], [aria-label*="Members only"]',
-            SHORTS: 'a[href*="/shorts/"]',
-            MIX: 'a[aria-label*="合輯"], a[aria-label*="Mix"]'
-        },
-        INTERACTION_EXCLUDE: 'button, yt-icon-button, #menu, ytd-menu-renderer, ytd-toggle-button-renderer, yt-chip-cloud-chip-renderer, .yt-spec-button-shape-next, .yt-core-attributed-string__link, #subscribe-button, .ytp-progress-bar, .ytp-chrome-bottom',
-        CLICKABLE: [
-            'ytd-rich-item-renderer', 'ytd-video-renderer', 'ytd-compact-video-renderer',
-            'yt-lockup-view-model', 'ytd-playlist-renderer', 'ytd-compact-playlist-renderer',
-            'ytd-video-owner-renderer', 'ytd-grid-video-renderer', 'ytd-playlist-video-renderer',
-            'ytd-playlist-panel-video-renderer'
-        ],
-        PREVIEW_PLAYER: 'ytd-video-preview',
-        LINK_CANDIDATES: [
-            'a#thumbnail[href*="/watch?"]', 'a#thumbnail[href*="/shorts/"]', 'a#thumbnail[href*="/playlist?"]',
-            'a#video-title-link', 'a#video-title', 'a.yt-simple-endpoint#video-title', 'a.yt-lockup-view-model-wiz__title'
-        ],
-        allContainers: ALL_CONTAINERS_STR};
-
     const FilterStats = {
         counts: {},
         session: { total: 0, byRule: {} },
@@ -543,14 +548,14 @@
         }
         get title() {
             if (this._title === null) {
-                const el = this.el.querySelector(SELECTORS$1.METADATA.TITLE);
+                const el = this.el.querySelector(SELECTORS.METADATA.TITLE);
                 this._title = el?.title?.trim() || el?.textContent?.trim() || '';
             }
             return this._title;
         }
         get channel() {
             if (this._channel === null) {
-                this._channel = this.el.querySelector(SELECTORS$1.METADATA.CHANNEL)?.textContent?.trim() || '';
+                this._channel = this.el.querySelector(SELECTORS.METADATA.CHANNEL)?.textContent?.trim() || '';
             }
             return this._channel;
         }
@@ -563,9 +568,9 @@
         }
         _parseMetadata() {
             if (this._viewCount !== undefined) return;
-            const texts = Array.from(this.el.querySelectorAll(SELECTORS$1.METADATA.TEXT));
+            const texts = Array.from(this.el.querySelectorAll(SELECTORS.METADATA.TEXT));
             let aria = '';
-            for (const sel of SELECTORS$1.METADATA.TITLE_LINKS) {
+            for (const sel of SELECTORS.METADATA.TITLE_LINKS) {
                 const el = this.el.querySelector(`:scope ${sel}`);
                 if (el?.ariaLabel) { aria = el.ariaLabel; break; }
             }
@@ -590,21 +595,21 @@
         get timeAgo() { this._parseMetadata(); return this._timeAgo; }
         get duration() {
             if (this._duration === undefined) {
-                const el = this.el.querySelector(SELECTORS$1.METADATA.DURATION);
+                const el = this.el.querySelector(SELECTORS.METADATA.DURATION);
                 this._duration = el ? Utils.parseDuration(el.textContent) : null;
             }
             return this._duration;
         }
         get isShorts() {
             if (this._isShorts === undefined) {
-                 this._isShorts = !!this.el.querySelector(SELECTORS$1.BADGES.SHORTS);
+                 this._isShorts = !!this.el.querySelector(SELECTORS.BADGES.SHORTS);
             }
             return this._isShorts;
         }
         get isLive() { return this._liveViewers !== null; }
         get isMembers() {
             if (this._isMembers === undefined) {
-                this._isMembers = !!this.el.querySelector(SELECTORS$1.BADGES.MEMBERS) ||
+                this._isMembers = !!this.el.querySelector(SELECTORS.BADGES.MEMBERS) ||
                     /會員專屬|Members only/.test(this.el.innerText);
             }
             return this._isMembers;
@@ -615,7 +620,7 @@
                 if (link && /list=(LL|WL|FL)/.test(link.href)) {
                     this._isUserPlaylist = true;
                 } else {
-                    const texts = Array.from(this.el.querySelectorAll(SELECTORS$1.METADATA.TEXT));
+                    const texts = Array.from(this.el.querySelectorAll(SELECTORS.METADATA.TEXT));
                     const ownershipKeywords = /Private|Unlisted|Public|私人|不公開|不公开|公開|公开/i;
                     this._isUserPlaylist = texts.some(t => ownershipKeywords.test(t.textContent));
                 }
@@ -629,7 +634,7 @@
                     this._isPlaylist = true;
                     return true;
                 }
-                if (this.el.querySelector(SELECTORS$1.BADGES.MIX)) {
+                if (this.el.querySelector(SELECTORS.BADGES.MIX)) {
                     this._isPlaylist = true;
                     return true;
                 }
@@ -669,12 +674,12 @@
                 /VIDEO|LOCKUP|RICH-ITEM/.test(el.tagName) &&
                 !el.hidden &&
                 el.offsetParent !== null &&
-                el.querySelector(SELECTORS$1.METADATA.TITLE)
+                el.querySelector(SELECTORS.METADATA.TITLE)
             );
             if (!sample) return;
             this.hasValidatedSelectors = true;
             let issues = [];
-            if (!sample.querySelector(SELECTORS$1.METADATA.CHANNEL)) issues.push('METADATA.CHANNEL');
+            if (!sample.querySelector(SELECTORS.METADATA.CHANNEL)) issues.push('METADATA.CHANNEL');
             if (issues.length > 0) {
                 Logger.warn(`⚠️ Selector Health Check Failed: ${issues.join(', ')} not found in active element`, sample);
             } else {
@@ -696,14 +701,14 @@
             for (const mutation of mutations) {
                 for (const node of mutation.addedNodes) {
                     if (node.nodeType !== 1) continue;
-                    if (node.matches?.(SELECTORS$1.allContainers)) candidates.add(node);
-                    node.querySelectorAll?.(SELECTORS$1.allContainers).forEach(c => candidates.add(c));
+                    if (node.matches?.(SELECTORS.allContainers)) candidates.add(node);
+                    node.querySelectorAll?.(SELECTORS.allContainers).forEach(c => candidates.add(c));
                 }
             }
             if (candidates.size > 0) this._processBatch(Array.from(candidates), 0);
         }
         processPage() {
-            const elements = Array.from(document.querySelectorAll(SELECTORS$1.allContainers));
+            const elements = Array.from(document.querySelectorAll(SELECTORS.allContainers));
             this._validateSelectors(elements);
             const unprocessed = elements.filter(el => !el.dataset.ypChecked);
             if (unprocessed.length === 0) return;
@@ -778,7 +783,7 @@
             if (!/RICH-SECTION|REEL-SHELF|SHELF-RENDERER/.test(element.tagName)) return false;
             if (!this.config.get('ENABLE_SECTION_FILTER')) return false;
             let titleText = '';
-            for (const sel of SELECTORS$1.SHELF_TITLE) {
+            for (const sel of SELECTORS.SHELF_TITLE) {
                 const titleEl = element.querySelector(sel);
                 if (titleEl) {
                     titleText = titleEl.textContent.trim();
@@ -786,7 +791,7 @@
                 }
             }
             if (!titleText) return false;
-            const compiled = this.config.get('compiledSections');
+            const compiled = this.config.get('compiledSectionBlacklist');
             if (compiled && compiled.some(rx => rx.test(titleText))) {
                 this._hide(element, 'section_blacklist');
                 return true;
@@ -797,16 +802,9 @@
             const channel = item.channel;
             const title = item.title;
             const config = this.config;
-            const rawChannels = config.get('CHANNEL_WHITELIST') || [];
-            if (rawChannels.length > 0 && channel) {
-                const cLower = channel.toLowerCase();
-                const isMatch = rawChannels.some(k => {
-                    if (k.startsWith('=')) {
-                        const target = k.substring(1).toLowerCase();
-                        return cLower === target;
-                    }
-                    return cLower.includes(k.toLowerCase());
-                });
+            const compiledChannels = config.get('compiledChannelWhitelist');
+            if (compiledChannels && compiledChannels.length > 0 && channel) {
+                const isMatch = compiledChannels.some(rx => rx.test(channel));
                 if (isMatch) return 'channel_whitelist';
             }
             const compiledKeywords = config.get('compiledKeywordWhitelist');
@@ -910,7 +908,7 @@
         }
         findPrimaryLink(container) {
             if (!container) return null;
-            for (const sel of SELECTORS$1.LINK_CANDIDATES) {
+            for (const sel of SELECTORS.LINK_CANDIDATES) {
                 const a = container.querySelector(sel);
                 if (a?.href) return a;
             }
@@ -933,13 +931,13 @@
                 }
                 if (!this.config.get('OPEN_IN_NEW_TAB')) return;
                 if (e.button !== 0 || e.ctrlKey || e.metaKey || e.shiftKey || e.altKey) return;
-                if (e.target.closest(SELECTORS$1.INTERACTION_EXCLUDE)) return;
+                if (e.target.closest(SELECTORS.INTERACTION_EXCLUDE)) return;
                 let targetLink = null;
-                const previewPlayer = e.target.closest(SELECTORS$1.PREVIEW_PLAYER);
+                const previewPlayer = e.target.closest(SELECTORS.PREVIEW_PLAYER);
                 if (previewPlayer) {
-                    targetLink = this.findPrimaryLink(previewPlayer) || this.findPrimaryLink(previewPlayer.closest(SELECTORS$1.CLICKABLE.join(',')));
+                    targetLink = this.findPrimaryLink(previewPlayer) || this.findPrimaryLink(previewPlayer.closest(SELECTORS.CLICKABLE.join(',')));
                 } else {
-                    const container = e.target.closest(SELECTORS$1.CLICKABLE.join(', '));
+                    const container = e.target.closest(SELECTORS.CLICKABLE.join(', '));
                     if (!container) return;
                     const channelLink = e.target.closest('a#avatar-link, .ytd-channel-name a, a[href^="/@"], a[href^="/channel/"]');
                     targetLink = channelLink?.href ? channelLink : this.findPrimaryLink(container);

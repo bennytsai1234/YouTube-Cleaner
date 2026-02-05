@@ -352,7 +352,7 @@ export class VideoFilter {
 
         if (!titleText) return false;
 
-        const compiled = this.config.get('compiledSections');
+        const compiled = this.config.get('compiledSectionBlacklist');
         if (compiled && compiled.some(rx => rx.test(titleText))) {
             this._hide(element, 'section_blacklist');
             return true;
@@ -367,18 +367,9 @@ export class VideoFilter {
         const config = this.config;
 
         // 1. 頻道白名單檢查
-        const rawChannels = config.get('CHANNEL_WHITELIST') || [];
-        if (rawChannels.length > 0 && channel) {
-            const cLower = channel.toLowerCase();
-            const isMatch = rawChannels.some(k => {
-                if (k.startsWith('=')) {
-                    // 精準匹配模式
-                    const target = k.substring(1).toLowerCase();
-                    return cLower === target;
-                }
-                // 模糊匹配模式 (預設)
-                return cLower.includes(k.toLowerCase());
-            });
+        const compiledChannels = config.get('compiledChannelWhitelist');
+        if (compiledChannels && compiledChannels.length > 0 && channel) {
+            const isMatch = compiledChannels.some(rx => rx.test(channel));
             if (isMatch) return 'channel_whitelist';
         }
 
