@@ -155,77 +155,97 @@ export class UIManager {
             `2. ${this.t('adv_keyword_list')}\n` +
             `3. ${i('ENABLE_CHANNEL_FILTER')} ${this.t('adv_channel_filter')}\n` +
             `4. ${this.t('adv_channel_list')}\n` +
-            `5. ${this.t('adv_channel_whitelist')}\n` +
-            `6. ${this.t('adv_keyword_whitelist')}\n` +
-            `7. ${i('ENABLE_SECTION_FILTER')} ${this.t('adv_section_filter')}\n` +
-            `8. ${this.t('adv_section_list')}\n` +
-            `9. ${i('ENABLE_DURATION_FILTER')} ${this.t('adv_duration_filter')}\n` +
-            `10. ${this.t('adv_duration_set')}\n` +
-            `11. ${i('ENABLE_REGION_CONVERT')} ${this.t('adv_region_convert')}\n` +
-            `12. ${i('DISABLE_FILTER_ON_CHANNEL')} ${this.t('adv_disable_channel')}\n` +
-            `0. ${this.t('back')}`
-        );
-        if (c === '1') this.toggle('ENABLE_KEYWORD_FILTER', true);
-        else if (c === '2') this.manage('KEYWORD_BLACKLIST');
-        else if (c === '3') this.toggle('ENABLE_CHANNEL_FILTER', true);
-        else if (c === '4') this.manage('CHANNEL_BLACKLIST');
-        else if (c === '5') this.manage('CHANNEL_WHITELIST');
-        else if (c === '6') this.manage('KEYWORD_WHITELIST');
-        else if (c === '7') this.toggle('ENABLE_SECTION_FILTER', true);
-        else if (c === '8') this.manage('SECTION_TITLE_BLACKLIST');
-        else if (c === '9') this.toggle('ENABLE_DURATION_FILTER', true);
-        else if (c === '10') {
-            const min = prompt(this.t('adv_min'), this.config.get('DURATION_MIN') / 60);
-            const max = prompt(this.t('adv_max'), this.config.get('DURATION_MAX') / 60);
-
-            if (min !== null) {
-                const m = Number(min);
-                if (!isNaN(m)) this.config.set('DURATION_MIN', m * 60);
-            }
-            if (max !== null) {
-                const m = Number(max);
-                if (!isNaN(m)) this.config.set('DURATION_MAX', m * 60);
-            }
-            this.onRefresh(); this.showAdvancedMenu();
-        }
-        else if (c === '11') this.toggle('ENABLE_REGION_CONVERT', true);
-        else if (c === '12') this.toggle('DISABLE_FILTER_ON_CHANNEL', true);
-        else if (c === '0') this.showMainMenu();
-    }
-
-    manage(k) {
-        const l = this.config.get(k);
-        const choice = prompt(
-            `[ ${k} ]\n${l.join(', ') || '(Empty)'}\n\n` +
-            `1. ${this.t('adv_add')}  2. ${this.t('adv_remove')}\n` +
-            `3. ${this.t('adv_clear')}  4. ${this.t('adv_restore')}\n` +
-            `0. ${this.t('back')}`
-        );
-
-        if (!choice) return;
-
-        const c = choice.trim();
-        if (c === '0') { this.showAdvancedMenu(); return; }
-
-        if (c === '1') { 
-            const v = prompt(`${this.t('adv_add')}:`); 
-            if (v) this.config.set(k, [...new Set([...l, ...v.split(',').map(s => s.trim())])]); 
-        }
-        if (c === '2') { 
-            const v = prompt(`${this.t('adv_remove')}:`); 
-            if (v) this.config.set(k, l.filter(i => i !== v.trim())); 
-        }
-        if (c === '3') { 
-            if (confirm(this.t('adv_clear') + '?')) this.config.set(k, []); 
-        }
-        if (c === '4') { 
-            if (confirm(this.t('adv_restore') + '?')) this.config.set(k, [...this.config.defaults[k]]); 
-        }
-
-        this.onRefresh();
-        this.manage(k);
-    }
-
+                        `5. ${this.t('adv_channel_whitelist')}\n` +
+                        `6. ${i('EXACT_CHANNEL_WHITELIST')} ${this.t('adv_exact_match')}\n` + // 新增選項
+                        `7. ${this.t('adv_keyword_whitelist')}\n` +
+                        `8. ${i('ENABLE_SECTION_FILTER')} ${this.t('adv_section_filter')}\n` +
+                        `9. ${this.t('adv_section_list')}\n` +
+                        `10. ${i('ENABLE_DURATION_FILTER')} ${this.t('adv_duration_filter')}\n` +
+                        `11. ${this.t('adv_duration_set')}\n` +
+                        `12. ${i('ENABLE_REGION_CONVERT')} ${this.t('adv_region_convert')}\n` +
+                        `13. ${i('DISABLE_FILTER_ON_CHANNEL')} ${this.t('adv_disable_channel')}\n` +
+                        `0. ${this.t('back')}`
+                    );
+                    if (c === '1') this.toggle('ENABLE_KEYWORD_FILTER', true);
+                    else if (c === '2') this.manage('KEYWORD_BLACKLIST');
+                    else if (c === '3') this.toggle('ENABLE_CHANNEL_FILTER', true);
+                    else if (c === '4') this.manage('CHANNEL_BLACKLIST');
+                    else if (c === '5') this.manage('CHANNEL_WHITELIST');
+                    else if (c === '6') this.toggle('EXACT_CHANNEL_WHITELIST', true); // 新增處理
+                    else if (c === '7') this.manage('KEYWORD_WHITELIST'); 
+                    else if (c === '8') this.toggle('ENABLE_SECTION_FILTER', true);
+                    else if (c === '9') this.manage('SECTION_TITLE_BLACKLIST');
+                    else if (c === '10') this.toggle('ENABLE_DURATION_FILTER', true);
+                    else if (c === '11') {
+                        const min = prompt(this.t('adv_min'), this.config.get('DURATION_MIN') / 60);
+                        const max = prompt(this.t('adv_max'), this.config.get('DURATION_MAX') / 60);
+            
+                        if (min !== null) {
+                            const m = Number(min);
+                            if (!isNaN(m)) this.config.set('DURATION_MIN', m * 60);
+                        }
+                        if (max !== null) {
+                            const m = Number(max);
+                            if (!isNaN(m)) this.config.set('DURATION_MAX', m * 60);
+                        }
+                        this.onRefresh(); this.showAdvancedMenu();
+                    }
+                    else if (c === '12') this.toggle('ENABLE_REGION_CONVERT', true);
+                    else if (c === '13') this.toggle('DISABLE_FILTER_ON_CHANNEL', true);
+                    else if (c === '0') this.showMainMenu();
+                }
+            
+                manage(k) {
+                    const l = this.config.get(k);
+                    const choice = prompt(
+                        `[ ${k} ]\n${l.join(', ') || '(Empty)'}\n\n` +
+                        `1. ${this.t('adv_add')}  2. ${this.t('adv_remove')}\n` +
+                        `3. ${this.t('adv_clear')}  4. ${this.t('adv_restore')}\n` +
+                        `0. ${this.t('back')}`
+                    );
+            
+                    if (!choice) return;
+            
+                    const c = choice.trim();
+                    if (c === '0') { this.showAdvancedMenu(); return; }
+            
+                    if (c === '1') { 
+                        const v = prompt(`${this.t('adv_add')}:`); 
+                        if (v) this.config.set(k, [...new Set([...l, ...v.split(',').map(s => s.trim())])]); 
+                    }
+                    if (c === '2') { 
+                        const v = prompt(`${this.t('adv_remove')}:`); 
+                        if (v) this.config.set(k, l.filter(i => i !== v.trim())); 
+                    }
+                    if (c === '3') { 
+                        if (confirm(this.t('adv_clear') + '?')) this.config.set(k, []); 
+                    }
+                    if (c === '4') { 
+                        if (confirm(this.t('adv_restore') + '?')) {
+                            // 智慧恢復邏輯：根據當前語言篩選
+                            const allDefaults = this.config.defaults[k];
+                            if (Array.isArray(allDefaults) && k === 'SECTION_TITLE_BLACKLIST') {
+                                const currentLang = I18N.lang;
+                                // 保留英文 + 當前語言
+                                const filtered = allDefaults.filter(item => {
+                                    const isEnglish = /[a-zA-Z]/.test(item);
+                                    const isChinese = /[\u4e00-\u9fa5]/.test(item);
+                                    const isJapanese = /[\u3040-\u30ff]/.test(item);
+                                    
+                                    if (currentLang.startsWith('zh')) return isChinese || isEnglish;
+                                    if (currentLang === 'ja') return isJapanese || isEnglish;
+                                    return isEnglish;
+                                });
+                                this.config.set(k, filtered);
+                            } else {
+                                this.config.set(k, [...allDefaults]);
+                            }
+                        }
+                    }
+            
+                    this.onRefresh();
+                    this.manage(k);
+                }
     toggle(k, adv) { 
         this.config.set(k, !this.config.get(k)); 
         this.onRefresh(); 
