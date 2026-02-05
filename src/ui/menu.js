@@ -49,6 +49,7 @@ export class UIManager {
             { label: `${i('ENABLE_LOW_VIEW_FILTER')} ${this.t('menu_low_view')}`, action: () => this.toggle('ENABLE_LOW_VIEW_FILTER') },
             { label: `${this.t('menu_threshold')} (${this.config.get('LOW_VIEW_THRESHOLD')})`, action: () => this.promptNumber('LOW_VIEW_THRESHOLD', 'threshold_prompt') },
             { label: `${this.t('menu_grace')} (${this.config.get('GRACE_PERIOD_HOURS')}h)`, action: () => this.promptNumber('GRACE_PERIOD_HOURS', 'grace_prompt') },
+            { label: this.t('menu_whitelist'), action: () => this.showWhitelistMenu() },
             { label: this.t('menu_advanced'), action: () => this.showAdvancedMenu() },
             { label: `${i('OPEN_IN_NEW_TAB')} ${this.t('menu_new_tab')}`, action: () => this.toggle('OPEN_IN_NEW_TAB') },
             { label: `${i('OPEN_NOTIFICATIONS_IN_NEW_TAB')} ${this.t('menu_notification_new_tab')}`, action: () => this.toggle('OPEN_NOTIFICATIONS_IN_NEW_TAB') },
@@ -70,8 +71,6 @@ export class UIManager {
             { label: this.t('adv_keyword_list'), action: () => this.manage('KEYWORD_BLACKLIST') },
             { label: `${i('ENABLE_CHANNEL_FILTER')} ${this.t('adv_channel_filter')}`, action: () => this.toggle('ENABLE_CHANNEL_FILTER', true) },
             { label: this.t('adv_channel_list'), action: () => this.manage('CHANNEL_BLACKLIST') },
-            { label: this.t('adv_channel_whitelist'), action: () => this.manage('CHANNEL_WHITELIST') },
-            { label: this.t('adv_keyword_whitelist'), action: () => this.manage('KEYWORD_WHITELIST') },
             { label: `${i('ENABLE_SECTION_FILTER')} ${this.t('adv_section_filter')}`, action: () => this.toggle('ENABLE_SECTION_FILTER', true) },
             { label: this.t('adv_section_list'), action: () => this.manage('SECTION_TITLE_BLACKLIST') },
             { label: `${i('ENABLE_DURATION_FILTER')} ${this.t('adv_duration_filter')}`, action: () => this.toggle('ENABLE_DURATION_FILTER', true) },
@@ -81,6 +80,16 @@ export class UIManager {
         ];
 
         this._renderMenu(this.t('menu_advanced'), items, () => this.showMainMenu());
+    }
+
+    showWhitelistMenu() {
+        const items = [
+            { label: this.t('adv_channel_whitelist'), action: () => this.manage('CHANNEL_WHITELIST') },
+            { label: this.t('adv_members_whitelist'), action: () => this.manage('MEMBERS_WHITELIST') },
+            { label: this.t('adv_keyword_whitelist'), action: () => this.manage('KEYWORD_WHITELIST') }
+        ];
+
+        this._renderMenu(this.t('menu_whitelist'), items, () => this.showMainMenu());
     }
 
     showRuleMenu(page = 0) {

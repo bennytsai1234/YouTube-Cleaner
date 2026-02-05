@@ -23,6 +23,7 @@ export class ConfigManager {
             ENABLE_CHANNEL_FILTER: true,
             CHANNEL_BLACKLIST: [],
             CHANNEL_WHITELIST: [],
+            MEMBERS_WHITELIST: [], // 新增：會員影片專屬白名單
             KEYWORD_WHITELIST: [], // 新增：關鍵字白名單
             ENABLE_SECTION_FILTER: true,
             SECTION_TITLE_BLACKLIST: [
@@ -82,6 +83,7 @@ export class ConfigManager {
         loaded.compiledKeywords = this._compileList(loaded.KEYWORD_BLACKLIST);
         loaded.compiledChannels = this._compileList(loaded.CHANNEL_BLACKLIST);
         loaded.compiledChannelWhitelist = this._compileList(loaded.CHANNEL_WHITELIST);
+        loaded.compiledMembersWhitelist = this._compileList(loaded.MEMBERS_WHITELIST);
         loaded.compiledKeywordWhitelist = this._compileList(loaded.KEYWORD_WHITELIST);
         loaded.compiledSectionBlacklist = this._compileList(loaded.SECTION_TITLE_BLACKLIST);
 
@@ -101,6 +103,7 @@ export class ConfigManager {
             'KEYWORD_BLACKLIST': 'compiledKeywords',
             'CHANNEL_BLACKLIST': 'compiledChannels',
             'CHANNEL_WHITELIST': 'compiledChannelWhitelist',
+            'MEMBERS_WHITELIST': 'compiledMembersWhitelist',
             'KEYWORD_WHITELIST': 'compiledKeywordWhitelist',
             'SECTION_TITLE_BLACKLIST': 'compiledSectionBlacklist'
         };

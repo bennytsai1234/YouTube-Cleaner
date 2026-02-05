@@ -168,6 +168,7 @@
                 ENABLE_CHANNEL_FILTER: true,
                 CHANNEL_BLACKLIST: [],
                 CHANNEL_WHITELIST: [],
+                MEMBERS_WHITELIST: [],
                 KEYWORD_WHITELIST: [],
                 ENABLE_SECTION_FILTER: true,
                 SECTION_TITLE_BLACKLIST: [
@@ -218,6 +219,7 @@
             loaded.compiledKeywords = this._compileList(loaded.KEYWORD_BLACKLIST);
             loaded.compiledChannels = this._compileList(loaded.CHANNEL_BLACKLIST);
             loaded.compiledChannelWhitelist = this._compileList(loaded.CHANNEL_WHITELIST);
+            loaded.compiledMembersWhitelist = this._compileList(loaded.MEMBERS_WHITELIST);
             loaded.compiledKeywordWhitelist = this._compileList(loaded.KEYWORD_WHITELIST);
             loaded.compiledSectionBlacklist = this._compileList(loaded.SECTION_TITLE_BLACKLIST);
             return loaded;
@@ -232,6 +234,7 @@
                 'KEYWORD_BLACKLIST': 'compiledKeywords',
                 'CHANNEL_BLACKLIST': 'compiledChannels',
                 'CHANNEL_WHITELIST': 'compiledChannelWhitelist',
+                'MEMBERS_WHITELIST': 'compiledMembersWhitelist',
                 'KEYWORD_WHITELIST': 'compiledKeywordWhitelist',
                 'SECTION_TITLE_BLACKLIST': 'compiledSectionBlacklist'
             };
@@ -787,6 +790,15 @@
                 filterDetail = filterDetail || this._getFilterDuration(item);
                 filterDetail = filterDetail || this._getFilterPlaylist(item);
                 if (filterDetail) {
+                    if (filterDetail.reason === 'members_only_js') {
+                        const compiledMembers = this.config.get('compiledMembersWhitelist');
+                        if (compiledMembers && compiledMembers.some(rx => rx.test(item.channel))) {
+                            Logger.info(`✅ Keep [Saved by Members Whitelist]: ${item.channel} | ${item.title}`);
+                            container.dataset.ypChecked = 'true';
+                            element.dataset.ypChecked = 'true';
+                            return;
+                        }
+                    }
                     const strongReasons = ['members_only_js', 'shorts_item_js', 'recommended_playlists'];
                     const isStrong = strongReasons.includes(filterDetail.reason);
                     const whitelistReason = isStrong ? null : this._checkWhitelist(item);
@@ -1017,6 +1029,7 @@
                 menu_low_view: '低觀看數過濾 (含直播)',
                 menu_threshold: '🔢 設定閾值',
                 menu_grace: '⏳ 設定豁免期',
+                menu_whitelist: '🛡️ 管理白名單',
                 menu_advanced: '🚫 進階過濾',
                 menu_new_tab: '強制新分頁 (影片)',
                 menu_notification_new_tab: '強制新分頁 (通知)',
@@ -1049,8 +1062,9 @@
                 adv_keyword_list: '✏️ 關鍵字清單',
                 adv_channel_filter: '頻道過濾',
                 adv_channel_list: '✏️ 頻道黑名單',
-                adv_channel_whitelist: '🛡️ 頻道白名單 (例外放行)',
-                adv_keyword_whitelist: '🛡️ 關鍵字白名單 (例外放行)',
+                adv_channel_whitelist: '頻道白名單 (常規影片放行)',
+                adv_members_whitelist: '會員白名單 (專屬影片放行)',
+                adv_keyword_whitelist: '關鍵字白名單',
                 adv_section_filter: '欄位過濾',
                 adv_section_list: '✏️ 欄位標題清單',
                 adv_duration_filter: '長度過濾',
@@ -1072,6 +1086,7 @@
                 menu_low_view: '低观看数过滤 (含直播)',
                 menu_threshold: '🔢 设置阈值',
                 menu_grace: '⏳ 设置豁免期',
+                menu_whitelist: '🛡️ 管理白名单',
                 menu_advanced: '🚫 高级过滤',
                 menu_new_tab: '强制新标签页 (视频)',
                 menu_notification_new_tab: '强制新标签页 (通知)',
@@ -1104,8 +1119,9 @@
                 adv_keyword_list: '✏️ 关键字列表',
                 adv_channel_filter: '頻道過濾',
                 adv_channel_list: '✏️ 頻道黑名單',
-                adv_channel_whitelist: '🛡️ 頻道白名單 (例外放行)',
-                adv_keyword_whitelist: '🛡️ 關鍵字白名單 (例外放行)',
+                adv_channel_whitelist: '频道白名单 (常规视频放行)',
+                adv_members_whitelist: '会员白名单 (专属视频放行)',
+                adv_keyword_whitelist: '關鍵字白名單',
                 adv_section_filter: '栏位过滤',
                 adv_section_list: '✏️ 栏位标题列表',
                 adv_duration_filter: '时长过滤',
@@ -1127,6 +1143,7 @@
                 menu_low_view: 'Low View Count Filter (Live included)',
                 menu_threshold: '🔢 Set Threshold',
                 menu_grace: '⏳ Set Grace Period',
+                menu_whitelist: '🛡️ Manage Whitelists',
                 menu_advanced: '🚫 Advanced Filtering',
                 menu_new_tab: 'Force New Tab (Video)',
                 menu_notification_new_tab: 'Force New Tab (Notif)',
@@ -1159,8 +1176,9 @@
                 adv_keyword_list: '✏️ Keyword List',
                 adv_channel_filter: 'Channel Filter',
                 adv_channel_list: '✏️ Channel Blacklist',
-                adv_channel_whitelist: '🛡️ Channel Whitelist',
-                adv_keyword_whitelist: '🛡️ Keyword Whitelist',
+                adv_channel_whitelist: 'Channel Whitelist (Regular Videos)',
+                adv_members_whitelist: 'Members Whitelist (Exclusive Videos)',
+                adv_keyword_whitelist: 'Keyword Whitelist',
                 adv_section_filter: 'Section Filter',
                 adv_section_list: '✏️ Section Title List',
                 adv_duration_filter: 'Duration Filter',
@@ -1182,6 +1200,7 @@
                 menu_low_view: '低視聴回数フィルター (ライブ含む)',
                 menu_threshold: '🔢 閾値を設定',
                 menu_grace: '⏳ 猶予期間を設定',
+                menu_whitelist: '🛡️ ホワイトリスト管理',
                 menu_advanced: '🚫 詳細設定',
                 menu_new_tab: '強制新タブ (動画)',
                 menu_notification_new_tab: '強制新タブ (通知)',
@@ -1214,8 +1233,9 @@
                 adv_keyword_list: '✏️ キーワードリスト',
                 adv_channel_filter: 'チャンネルフィルター',
                 adv_channel_list: '✏️ チャンネルブラックリスト',
-                adv_channel_whitelist: '🛡️ チャンネルホワイトリスト',
-                adv_keyword_whitelist: '🛡️ キーワードホワイトリスト',
+                adv_channel_whitelist: 'チャンネルホワイトリスト (通常動画)',
+                adv_members_whitelist: 'メンバーホワイトリスト (限定動画)',
+                adv_keyword_whitelist: 'キーワードホワイトリスト',
                 adv_section_filter: 'セクションフィルター',
                 adv_section_list: '✏️ セクションタイトルリスト',
                 adv_duration_filter: '動画の長さフィルター',
@@ -1398,6 +1418,7 @@
                 { label: `${i('ENABLE_LOW_VIEW_FILTER')} ${this.t('menu_low_view')}`, action: () => this.toggle('ENABLE_LOW_VIEW_FILTER') },
                 { label: `${this.t('menu_threshold')} (${this.config.get('LOW_VIEW_THRESHOLD')})`, action: () => this.promptNumber('LOW_VIEW_THRESHOLD', 'threshold_prompt') },
                 { label: `${this.t('menu_grace')} (${this.config.get('GRACE_PERIOD_HOURS')}h)`, action: () => this.promptNumber('GRACE_PERIOD_HOURS', 'grace_prompt') },
+                { label: this.t('menu_whitelist'), action: () => this.showWhitelistMenu() },
                 { label: this.t('menu_advanced'), action: () => this.showAdvancedMenu() },
                 { label: `${i('OPEN_IN_NEW_TAB')} ${this.t('menu_new_tab')}`, action: () => this.toggle('OPEN_IN_NEW_TAB') },
                 { label: `${i('OPEN_NOTIFICATIONS_IN_NEW_TAB')} ${this.t('menu_notification_new_tab')}`, action: () => this.toggle('OPEN_NOTIFICATIONS_IN_NEW_TAB') },
@@ -1416,8 +1437,6 @@
                 { label: this.t('adv_keyword_list'), action: () => this.manage('KEYWORD_BLACKLIST') },
                 { label: `${i('ENABLE_CHANNEL_FILTER')} ${this.t('adv_channel_filter')}`, action: () => this.toggle('ENABLE_CHANNEL_FILTER', true) },
                 { label: this.t('adv_channel_list'), action: () => this.manage('CHANNEL_BLACKLIST') },
-                { label: this.t('adv_channel_whitelist'), action: () => this.manage('CHANNEL_WHITELIST') },
-                { label: this.t('adv_keyword_whitelist'), action: () => this.manage('KEYWORD_WHITELIST') },
                 { label: `${i('ENABLE_SECTION_FILTER')} ${this.t('adv_section_filter')}`, action: () => this.toggle('ENABLE_SECTION_FILTER', true) },
                 { label: this.t('adv_section_list'), action: () => this.manage('SECTION_TITLE_BLACKLIST') },
                 { label: `${i('ENABLE_DURATION_FILTER')} ${this.t('adv_duration_filter')}`, action: () => this.toggle('ENABLE_DURATION_FILTER', true) },
@@ -1426,6 +1445,14 @@
                 { label: `${i('DISABLE_FILTER_ON_CHANNEL')} ${this.t('adv_disable_channel')}`, action: () => this.toggle('DISABLE_FILTER_ON_CHANNEL', true) }
             ];
             this._renderMenu(this.t('menu_advanced'), items, () => this.showMainMenu());
+        }
+        showWhitelistMenu() {
+            const items = [
+                { label: this.t('adv_channel_whitelist'), action: () => this.manage('CHANNEL_WHITELIST') },
+                { label: this.t('adv_members_whitelist'), action: () => this.manage('MEMBERS_WHITELIST') },
+                { label: this.t('adv_keyword_whitelist'), action: () => this.manage('KEYWORD_WHITELIST') }
+            ];
+            this._renderMenu(this.t('menu_whitelist'), items, () => this.showMainMenu());
         }
         showRuleMenu(page = 0) {
             const r = this.config.get('RULE_ENABLES');
