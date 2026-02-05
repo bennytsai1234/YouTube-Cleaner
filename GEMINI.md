@@ -41,6 +41,22 @@
 
 ---
 
+## 🛡️ 代碼品質與自我查核 (Self-Verification)
+
+為避免重構導致腳本失效，Agent 必須執行以下操作：
+
+1. **跨檔案影響分析 [CRITICAL]**：
+   - 修改 `config.js`、`selectors.js` 或任何公共常數後，**必須**使用 `search_file_content` 搜尋全域引用，同步更新所有受影響的檔案。
+2. **匯入完整性檢查**：
+   - 使用新變數或類別前，**必須**確認檔案頂部已有對應的 `import`。
+3. **執行階段驗證**：
+   - 修改完成後，必須執行 `npm run build` 確認編譯無誤。
+   - 若環境允許，觀察 `Logger.info` 輸出，確保初始化流程 (`App.init`) 完整跑完。
+4. **Linting 檢查**：
+   - 頻繁執行 `npm run lint` 以捕捉未定義變數或語法錯誤。
+
+---
+
 ## 🚀 發布規範 (Release)
 
 - **Commit Message**: 統一使用英文。

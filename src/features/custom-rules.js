@@ -36,9 +36,9 @@ export class CustomRuleManager {
             if (enables[def.key]) { // Only check if enabled in config
                 for (const rule of def.rules) {
                     if (rule instanceof RegExp) {
-                        if (rule.test(textContent)) return def.key;
+                        if (rule.test(textContent)) return { key: def.key, trigger: rule.toString() };
                     } else if (textContent.includes(rule)) {
-                        return def.key;
+                        return { key: def.key, trigger: rule };
                     }
                 }
             }
