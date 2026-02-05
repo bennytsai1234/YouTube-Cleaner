@@ -166,15 +166,13 @@ export class UIManager {
                         `13. ${i('DISABLE_FILTER_ON_CHANNEL')} ${this.t('adv_disable_channel')}\n` +
                         `0. ${this.t('back')}`
                     );
-                    if (c === '1') this.toggle('ENABLE_KEYWORD_FILTER', true);
-                    else if (c === '2') this.manage('KEYWORD_BLACKLIST');
-                    else if (c === '3') this.toggle('ENABLE_CHANNEL_FILTER', true);
-                    else if (c === '4') this.manage('CHANNEL_BLACKLIST');
-                    else if (c === '5') this.manage('CHANNEL_WHITELIST');
-                    else if (c === '6') this.toggle('EXACT_CHANNEL_WHITELIST', true); // 新增處理
-                    else if (c === '7') this.manage('KEYWORD_WHITELIST'); 
-                    else if (c === '8') this.toggle('ENABLE_SECTION_FILTER', true);
-                    else if (c === '9') this.manage('SECTION_TITLE_BLACKLIST');
+                            if (c === '1') this.toggle('ENABLE_KEYWORD_FILTER', true);
+                            else if (c === '2') this.manage('KEYWORD_BLACKLIST');
+                            else if (c === '3') this.toggle('ENABLE_CHANNEL_FILTER', true);
+                            else if (c === '4') this.manage('CHANNEL_BLACKLIST');
+                            else if (c === '5') this.manage('CHANNEL_WHITELIST');
+                            else if (c === '6') this.manage('KEYWORD_WHITELIST'); 
+                            else if (c === '7') this.toggle('ENABLE_SECTION_FILTER', true);                    else if (c === '9') this.manage('SECTION_TITLE_BLACKLIST');
                     else if (c === '10') this.toggle('ENABLE_DURATION_FILTER', true);
                     else if (c === '11') {
                         const min = prompt(this.t('adv_min'), this.config.get('DURATION_MIN') / 60);
@@ -209,11 +207,23 @@ export class UIManager {
                     const c = choice.trim();
                     if (c === '0') { this.showAdvancedMenu(); return; }
             
-                    if (c === '1') { 
-                        const v = prompt(`${this.t('adv_add')}:`); 
-                        if (v) this.config.set(k, [...new Set([...l, ...v.split(',').map(s => s.trim())])]); 
-                    }
-                    if (c === '2') { 
+                            if (c === '1') { 
+                                const v = prompt(`${this.t('adv_add')}:`); 
+                                if (v) {
+                                    let itemsToAdd = v.split(',').map(s => s.trim()).filter(Boolean);
+                                    
+                                    // ❗ 針對頻道白名單的特殊處理：詢問匹配模式
+                                    if (k === 'CHANNEL_WHITELIST' && itemsToAdd.length > 0) {
+                                        const mode = prompt(this.t('adv_exact_prompt'), '1');
+                                        if (mode === '1') {
+                                            // 精準匹配：加上 = 前綴
+                                            itemsToAdd = itemsToAdd.map(item => '=' + item);
+                                        }
+                                    }
+                                    
+                                    this.config.set(k, [...new Set([...l, ...itemsToAdd])]); 
+                                }
+                            }                    if (c === '2') { 
                         const v = prompt(`${this.t('adv_remove')}:`); 
                         if (v) this.config.set(k, l.filter(i => i !== v.trim())); 
                     }
