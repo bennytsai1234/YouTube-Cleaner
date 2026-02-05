@@ -1,0 +1,8 @@
+# Force all text files to use LF (Linux line endings)
+* text=auto eol=lf
+
+# Explicitly mark binary files
+*.png binary
+*.jpg binary
+*.gif binary
+*.ico binary
