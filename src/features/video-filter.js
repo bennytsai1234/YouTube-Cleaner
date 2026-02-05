@@ -369,11 +369,19 @@ export class VideoFilter {
         // 1. 頻道白名單檢查
         const compiledChannels = config.get('compiledWhitelist');
         if (compiledChannels && compiledChannels.length > 0) {
+            const isExact = config.get('EXACT_CHANNEL_WHITELIST');
             if (config.get('ENABLE_REGION_CONVERT')) {
-                if (compiledChannels.some(rx => rx.test(channel))) return 'channel_whitelist';
+                if (compiledChannels.some(rx => {
+                    if (!isExact) return rx.test(channel);
+                    // 模擬精準匹配：將原始正則包裝在 ^...$ 中
+                    const exactRx = new RegExp(`^${rx.source}$`, 'i');
+                    return exactRx.test(channel);
+                })) return 'channel_whitelist';
             } else if (channel) {
                 const cLower = channel.toLowerCase();
-                if (config.get('CHANNEL_WHITELIST').some(k => cLower.includes(k.toLowerCase()))) return 'channel_whitelist';
+                if (config.get('CHANNEL_WHITELIST').some(k => {
+                    return isExact ? cLower === k.toLowerCase() : cLower.includes(k.toLowerCase());
+                })) return 'channel_whitelist';
             }
         }
 
