@@ -36,11 +36,6 @@ YouTube Cleaner 是一個高效能、模組化的瀏覽器腳本 (Userscript)，
 - **Testing**: Node.js 自研測試套件 (涵蓋 70+ 測試案例)
 - **Libraries**: OpenCC-JS (繁簡轉換)
 
-## 📈 未來展望
-1. **設定雲端同步**：探索使用瀏覽器同步 API 儲存設定。
-2. **UI 視覺化調整**：從 `prompt` 選單進化為嵌入式的 HTML 設定面板。
-3. **機器學習預測**：研究利用簡單的啟發式演算法預測感興趣內容，而非僅依賴黑名單。
-
 ---
 *Last Updated: 2026-02-06*
 *Status: Stable / Released*
