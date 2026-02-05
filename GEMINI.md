@@ -14,7 +14,8 @@
    - 遵循 `ES6+` 標準與下方的[程式碼風格](#-程式碼風格-code-style)。
    - 保持 `src/` 目錄的模組化結構。
    - **禁止**直接修改 `youtube-homepage-cleaner.user.js` (這是 Build 產物)。
-3. **本地備份 (Git Backup) [CRITICAL]**: 每次完成單個檔案的實質性修改後，必須立即執行 `git add <file> && git commit -m "backup: update <file>"` 進行本地存檔，防止後續操作（如全檔覆寫）意外造成代碼丟失。
+   - **嚴禁使用 `write_file` 覆寫現有源碼檔**: 為了防止因 AI 記憶或傳輸導致的代碼截斷/遺失，修改現有檔案時**僅允許**使用 `replace` 工具進行局部替換。
+3. **本地備份 (Git Backup) [CRITICAL]**: 每次完成單個檔案的實質性修改後，必須立即執行 `git add <file> && git commit -m "backup: update <file>"` 進行本地存檔，防止後續操作意外造成代碼丟失。
 
 ### 第二階段：文檔同步 (Documentation Sync) 🚨 **CRITICAL**
 每次修改代碼後，**必須**檢查並更新對應文檔：
@@ -93,5 +94,5 @@ const video_container = document.querySelector("#content") // No snake_case, mis
 | **Windows Git 中文亂碼** | `git config core.quotepath false` |
 | **指令無輸出 (No Output)** | 改用 `run_command` 啟動 Shell Session + `send_command_input` |
 | **Rollup Build 失敗** | 檢查 `src/meta.json` 格式是否正確 Json |
-| **代碼編輯 (replace) 失敗** | 1. 先用 `read_file` 獲取**精確**的縮排與空格。<br>2. 若兩次失敗，**強制**改用 `write_file` 覆寫全檔。<br>🚨 **CRITICAL**: 必須配合「本地備份」規則，確保隨時可透過 `git checkout` 恢復舊版。 |
+| **代碼編輯 (replace) 失敗** | **嚴禁**改用 `write_file` 覆寫以免造成截斷遺失。<br>**正確做法**：1. 用 `read_file` 獲取精確縮排。2. 拆分為更小的原子化替換 (Atomic Replace)。 |
 | **PowerShell `&&` 語法錯誤** | Windows 環境下預設使用 PowerShell，不支援 `&&` 分隔指令。<br>**解決方案**：改用 `;` 作為分隔符 (例如：`git add . ; git commit`)。 |
