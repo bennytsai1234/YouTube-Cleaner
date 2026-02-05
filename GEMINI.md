@@ -11,7 +11,7 @@
 ### 第一階段：實作與安全備份 (Implementation & Safety)
 1. **需求理解**: 修改前必須明確區分修復 (Fix)、新功能 (Feat) 或重構 (Refactor)。
 2. **代碼修改規範 [CRITICAL]**:
-   - **禁止使用 `write_file` 覆寫現有源碼**: 為防止代碼截斷遺失，僅允許使用 `replace` 工具進行局部修改。
+   - **嚴禁對任何 Git 追蹤檔案使用 `write_file`**: 不論是源碼還是文件 (含 `GEMINI.md`)，修改時**僅允許**使用 `replace` 工具。嚴禁因「變更面積大」或「重構」而下意識尋求捷徑使用覆寫，這會導致不可預測的代碼截斷與遺失。
    - **模組化結構**: 保持 `src/` 下的結構，禁止直接修改構建產物 `youtube-homepage-cleaner.user.js`。
 3. **立即自動備份 [CRITICAL]**: 每次完成單個檔案的修改後，AI Agent **必須在同一個 Turn 內立即執行** 備份指令，嚴禁等到下一輪對話或使用者回應後才備份：
    `git add <file> ; git commit -m "backup: update <file>"` (Windows 環境必須使用 `;` 分隔)。
