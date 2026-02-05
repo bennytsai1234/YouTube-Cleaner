@@ -19,6 +19,8 @@ export class LazyVideoData {
         this._liveViewers = undefined;
         this._timeAgo = undefined;
         this._duration = undefined;
+        // 儲存原始文字以便 Log
+        this.raw = { views: '', time: '', duration: '', viewers: '' };
     }
 
     get title() {
@@ -56,6 +58,7 @@ export class LazyVideoData {
         }
 
         if (texts.length === 0 && aria) {
+            this.raw.views = aria;
             this._viewCount = Utils.parseNumeric(aria, 'view');
             this._liveViewers = Utils.parseLiveViewers(aria);
             this._timeAgo = Utils.parseTimeAgo(aria);
@@ -68,9 +71,22 @@ export class LazyVideoData {
 
         for (const t of texts) {
             const text = t.textContent;
-            if (this._liveViewers === null) this._liveViewers = Utils.parseLiveViewers(text);
-            if (this._viewCount === null && /view|觀看|次/i.test(text)) this._viewCount = Utils.parseNumeric(text, 'view');
-            if (this._timeAgo === null && /ago|前/i.test(text)) this._timeAgo = Utils.parseTimeAgo(text);
+            const isLive = /正在觀看|觀眾|watching|viewers/i.test(text);
+            const isView = /view|觀看|次/i.test(text);
+            const isAgo = /ago|前/i.test(text);
+
+            if (this._liveViewers === null && isLive) {
+                this.raw.viewers = text;
+                this._liveViewers = Utils.parseLiveViewers(text);
+            }
+            if (this._viewCount === null && isView && !isLive) {
+                this.raw.views = text;
+                this._viewCount = Utils.parseNumeric(text, 'view');
+            }
+            if (this._timeAgo === null && isAgo) {
+                this.raw.time = text;
+                this._timeAgo = Utils.parseTimeAgo(text);
+            }
         }
     }
 
@@ -81,7 +97,12 @@ export class LazyVideoData {
     get duration() {
         if (this._duration === undefined) {
             const el = this.el.querySelector(SELECTORS.METADATA.DURATION);
-            this._duration = el ? Utils.parseDuration(el.textContent) : null;
+            if (el) {
+                this.raw.duration = el.textContent.trim();
+                this._duration = Utils.parseDuration(this.raw.duration);
+            } else {
+                this._duration = null;
+            }
         }
         return this._duration;
     }
@@ -93,7 +114,7 @@ export class LazyVideoData {
         return this._isShorts;
     }
 
-    get isLive() { return this._liveViewers !== null; } // liveViewers 已經有快取機制
+    get isLive() { return this.liveViewers !== null; }
 
     get isMembers() {
         if (this._isMembers === undefined) {
@@ -356,7 +377,7 @@ export class VideoFilter {
         const compiled = this.config.get('compiledSectionBlacklist');
         if (compiled) {
             for (const rx of compiled) {
-                if (rx.test(titleText)) return { reason: 'section_blacklist', trigger: titleText, rule: rx.toString() };
+                if (rx.test(titleText)) return { reason: 'section_blacklist', trigger: `Title: "${titleText}"`, rule: rx.toString() };
             }
         }
 
@@ -395,13 +416,13 @@ export class VideoFilter {
         const compiled = this.config.get('compiledKeywords');
         if (this.config.get('ENABLE_REGION_CONVERT') && compiled) {
             for (const rx of compiled) {
-                if (rx.test(item.title)) return { reason: 'keyword_blacklist', trigger: item.title, rule: rx.toString() };
+                if (rx.test(item.title)) return { reason: 'keyword_blacklist', trigger: `Title: "${item.title}"`, rule: rx.toString() };
             }
         } else {
             const title = item.title.toLowerCase();
             const rawList = this.config.get('KEYWORD_BLACKLIST');
             for (const k of rawList) {
-                if (title.includes(k.toLowerCase())) return { reason: 'keyword_blacklist', trigger: k };
+                if (title.includes(k.toLowerCase())) return { reason: 'keyword_blacklist', trigger: `Keyword: "${k}"` };
             }
         }
         return null;
@@ -413,13 +434,13 @@ export class VideoFilter {
         const compiled = this.config.get('compiledChannels');
         if (this.config.get('ENABLE_REGION_CONVERT') && compiled) {
             for (const rx of compiled) {
-                if (rx.test(item.channel)) return { reason: 'channel_blacklist', trigger: item.channel, rule: rx.toString() };
+                if (rx.test(item.channel)) return { reason: 'channel_blacklist', trigger: `Channel: "${item.channel}"`, rule: rx.toString() };
             }
         } else {
             const channel = item.channel.toLowerCase();
             const rawList = this.config.get('CHANNEL_BLACKLIST');
             for (const k of rawList) {
-                if (channel.includes(k.toLowerCase())) return { reason: 'channel_blacklist', trigger: k };
+                if (channel.includes(k.toLowerCase())) return { reason: 'channel_blacklist', trigger: `Channel Keyword: "${k}"` };
             }
         }
         return null;
@@ -432,12 +453,12 @@ export class VideoFilter {
         const grace = this.config.get('GRACE_PERIOD_HOURS') * 60;
 
         if (item.isLive && item.liveViewers !== null && item.liveViewers < th) {
-            return { reason: 'low_viewer_live', trigger: `${item.liveViewers} < ${th}` };
+            return { reason: 'low_viewer_live', trigger: `Viewers: ${item.liveViewers} < Threshold: ${th} | Raw: "${item.raw.viewers}"` };
         }
 
         if (!item.isLive && item.viewCount !== null && item.timeAgo !== null &&
             item.timeAgo > grace && item.viewCount < th) {
-            return { reason: 'low_view', trigger: `${item.viewCount} views | ${Math.floor(item.timeAgo/60)}h ago` };
+            return { reason: 'low_view', trigger: `Views: ${item.viewCount} < Threshold: ${th} | Age: ${Math.floor(item.timeAgo/60)}h (Grace: ${this.config.get('GRACE_PERIOD_HOURS')}h) | Raw: "${item.raw.views}"` };
         }
         return null;
     }
@@ -449,10 +470,10 @@ export class VideoFilter {
         const max = this.config.get('DURATION_MAX');
 
         if (min > 0 && item.duration < min) {
-            return { reason: 'duration_filter', trigger: `${item.duration}s < ${min}s` };
+            return { reason: 'duration_filter', trigger: `Duration: ${item.duration}s < Min: ${min}s | Raw: "${item.raw.duration}"` };
         }
         if (max > 0 && item.duration > max) {
-            return { reason: 'duration_filter', trigger: `${item.duration}s > ${max}s` };
+            return { reason: 'duration_filter', trigger: `Duration: ${item.duration}s > Max: ${max}s | Raw: "${item.raw.duration}"` };
         }
         return null;
     }
@@ -460,13 +481,13 @@ export class VideoFilter {
     _getFilterPlaylist(item) {
         if (!this.config.get('RULE_ENABLES').recommended_playlists || !item.isPlaylist) return null;
         if (item.isUserPlaylist) return null;
-        return { reason: 'recommended_playlists' };
+        return { reason: 'recommended_playlists', trigger: 'Detected as algorithmic Mix/Playlist' };
     }
 
     _hide(element, detail, item = null) {
         const reason = detail.reason;
-        const trigger = detail.trigger ? ` (Trigger: ${detail.trigger})` : '';
-        const ruleInfo = detail.rule ? ` [Rule: ${detail.rule}]` : '';
+        const trigger = detail.trigger ? ` [${detail.trigger}]` : '';
+        const ruleInfo = detail.rule ? ` {Rule: ${detail.rule}}` : '';
 
         const container = element.closest('ytd-rich-item-renderer, ytd-grid-video-renderer, ytd-compact-video-renderer, ytd-playlist-renderer, ytd-rich-section-renderer, ytd-reel-shelf-renderer, ytd-playlist-panel-video-renderer') || element;
         
