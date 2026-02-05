@@ -5,6 +5,26 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.0.1] - 2026-02-06
+
+### 🛡️ Reliability & Whitelist Enhancement
+- **Strong/Weak Filtering**: Implemented a layered filtering system.
+    - **Strong Filters**: Shorts, Mixes, and Members-only videos are prioritized for removal.
+    - **Weak Filters**: Low view counts, duration, and keywords can be bypassed by the whitelist.
+- **Dedicated Whitelist Menu**: Centralized all whitelist management (Channel, Members, Keywords) into a focused sub-menu with universal icons (🛡️/🚫).
+- **Members-Only Whitelist**: Added a specific whitelist for members-only videos, allowing users to support favorite creators while still filtering other member content.
+
+### 🐛 Critical Bug Fixes
+- **Circular Dependency**: Resolved a fatal race condition between `Utils.js` and `I18N.js` that caused regex compilation to fail silently.
+- **Settings Integrity**: Fixed a data contamination issue where internal regex caches were being included in JSON exports.
+- **Invisible Character Handling**: Implemented aggressive channel name cleaning to strip hidden Unicode characters (ZWSP) and UI-injected sentence fragments from YouTube Live labels.
+- **Fail-safe Logic**: Added a string-based fallback mechanism for whitelists if the regex engine fails during initialization.
+
+### 🎨 UI & UX Improvements
+- **Layout Support**: Added full compatibility for the new `yt-lockup-view-model` YouTube layout.
+- **Precision Logging**: Enhanced developer logs to display exact numerical comparisons (e.g., `Actual: 99 < Threshold: 1000`) and raw DOM text.
+- **Menu Pagination**: Implemented pagination for the Rule Menu to prevent text truncation in browser prompt dialogs.
+
 ## [2.0.0] - 2026-02-05
 
 ### 🚀 Major Architecture Overhaul
