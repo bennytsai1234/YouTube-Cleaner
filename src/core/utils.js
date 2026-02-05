@@ -156,7 +156,7 @@ export const Utils = {
         }
         clean = clean.replace(Utils._channelCleanerRX.prefix, '');
         clean = clean.replace(Utils._channelCleanerRX.suffix, '');
-        clean = clean.replace(/[「」『』""'']/g, '');
+        clean = clean.replace(/[「」『』"''（）()]/g, '');
         return clean.replace(/·.*$/, '').trim();
     }
 };
