@@ -34,6 +34,7 @@ export const I18N = {
             rules_back: '(0 返回)',
             threshold_prompt: '請輸入「觀看數閾值」 (低於此數將被過濾):',
             grace_prompt: '請輸入「豁免時間 (小時)」 (設為 0 則不豁免):',
+            adv_exact_prompt: '是否需精準匹配頻道名稱？ (1. 是 / 2. 否)\n\n※精準匹配：必須完全一致\n※模糊匹配：包含關鍵字即可',
             reset_confirm: '重設?',
             lang_title: '【 選擇語言 】',
             back: '返回',
