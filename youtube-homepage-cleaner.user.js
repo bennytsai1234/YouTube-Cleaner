@@ -283,7 +283,7 @@
                 'a[href*="/watch?"][aria-label]'
             ],
             DURATION: 'ytd-thumbnail-overlay-time-status-renderer, span.ytd-thumbnail-overlay-time-status-renderer, badge-shape .yt-badge-shape__text, yt-thumbnail-badge-view-model .yt-badge-shape__text',
-            CHANNEL: 'ytd-channel-name, .ytd-channel-name, a[href^="/@"]',
+            CHANNEL: 'ytd-channel-name, .ytd-channel-name, a[href^="/@"], .yt-content-metadata-view-model__metadata-text, yt-decorated-avatar-view-model',
             TITLE: '#video-title, #title, .yt-lockup-metadata-view-model__title, .yt-lockup-metadata-view-model__heading-reset, h3'
         },
         SHELF_TITLE: [
@@ -559,7 +559,15 @@
         }
         get channel() {
             if (this._channel === null) {
-                this._channel = this.el.querySelector(SELECTORS.METADATA.CHANNEL)?.textContent?.trim() || '';
+                const el = this.el.querySelector(SELECTORS.METADATA.CHANNEL);
+                if (!el) return '';
+                if (el.tagName === 'YT-DECORATED-AVATAR-VIEW-MODEL') {
+                    const avatarBtn = el.querySelector('[aria-label]');
+                    const rawLabel = avatarBtn?.getAttribute('aria-label') || '';
+                    this._channel = rawLabel.replace(/^(前往頻道：|Go to channel:|チャンネルへ移動:|前往频道：)/, '').trim();
+                } else {
+                    this._channel = el.textContent?.trim() || '';
+                }
             }
             return this._channel;
         }

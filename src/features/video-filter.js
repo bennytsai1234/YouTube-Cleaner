@@ -33,7 +33,18 @@ export class LazyVideoData {
 
     get channel() {
         if (this._channel === null) {
-            this._channel = this.el.querySelector(SELECTORS.METADATA.CHANNEL)?.textContent?.trim() || '';
+            const el = this.el.querySelector(SELECTORS.METADATA.CHANNEL);
+            if (!el) return '';
+
+            // 處理頭像選擇器情況
+            if (el.tagName === 'YT-DECORATED-AVATAR-VIEW-MODEL') {
+                const avatarBtn = el.querySelector('[aria-label]');
+                const rawLabel = avatarBtn?.getAttribute('aria-label') || '';
+                // 移除常見前綴：前往頻道： | Go to channel: | チャンネルへ移動:
+                this._channel = rawLabel.replace(/^(前往頻道：|Go to channel:|チャンネルへ移動:|前往频道：)/, '').trim();
+            } else {
+                this._channel = el.textContent?.trim() || '';
+            }
         }
         return this._channel;
     }

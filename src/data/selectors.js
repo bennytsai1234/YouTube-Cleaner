@@ -38,7 +38,7 @@ export const SELECTORS = {
         // 時長
         DURATION: 'ytd-thumbnail-overlay-time-status-renderer, span.ytd-thumbnail-overlay-time-status-renderer, badge-shape .yt-badge-shape__text, yt-thumbnail-badge-view-model .yt-badge-shape__text',
         // 頻道名稱
-        CHANNEL: 'ytd-channel-name, .ytd-channel-name, a[href^="/@"]',
+        CHANNEL: 'ytd-channel-name, .ytd-channel-name, a[href^="/@"], .yt-content-metadata-view-model__metadata-text, yt-decorated-avatar-view-model',
         // 標題文字
         TITLE: '#video-title, #title, .yt-lockup-metadata-view-model__title, .yt-lockup-metadata-view-model__heading-reset, h3'
     },
