@@ -801,21 +801,17 @@
             const channel = item.channel;
             const title = item.title;
             const config = this.config;
-            const compiledChannels = config.get('compiledWhitelist');
-            if (compiledChannels && compiledChannels.length > 0) {
-                const isExact = config.get('EXACT_CHANNEL_WHITELIST');
-                if (config.get('ENABLE_REGION_CONVERT')) {
-                    if (compiledChannels.some(rx => {
-                        if (!isExact) return rx.test(channel);
-                        const exactRx = new RegExp(`^${rx.source}$`, 'i');
-                        return exactRx.test(channel);
-                    })) return 'channel_whitelist';
-                } else if (channel) {
-                    const cLower = channel.toLowerCase();
-                    if (config.get('CHANNEL_WHITELIST').some(k => {
-                        return isExact ? cLower === k.toLowerCase() : cLower.includes(k.toLowerCase());
-                    })) return 'channel_whitelist';
-                }
+            const rawChannels = config.get('CHANNEL_WHITELIST') || [];
+            if (rawChannels.length > 0 && channel) {
+                const cLower = channel.toLowerCase();
+                const isMatch = rawChannels.some(k => {
+                    if (k.startsWith('=')) {
+                        const target = k.substring(1).toLowerCase();
+                        return cLower === target;
+                    }
+                    return cLower.includes(k.toLowerCase());
+                });
+                if (isMatch) return 'channel_whitelist';
             }
             const compiledKeywords = config.get('compiledKeywordWhitelist');
             if (compiledKeywords && compiledKeywords.length > 0) {
@@ -999,6 +995,7 @@
                 rules_back: '(0 返回)',
                 threshold_prompt: '請輸入「觀看數閾值」 (低於此數將被過濾):',
                 grace_prompt: '請輸入「豁免時間 (小時)」 (設為 0 則不豁免):',
+                adv_exact_prompt: '是否需精準匹配頻道名稱？ (1. 是 / 2. 否)\n\n※精準匹配：必須完全一致\n※模糊匹配：包含關鍵字即可',
                 reset_confirm: '重設?',
                 lang_title: '【 選擇語言 】',
                 back: '返回',
@@ -1103,6 +1100,7 @@
                 rules_back: '(0 Back)',
                 threshold_prompt: 'Enter View Threshold:',
                 grace_prompt: 'Enter Grace Period (Hours) (0 to disable):',
+                adv_exact_prompt: 'Use exact match for this channel? (1. Yes / 2. No)\n\n※Exact: Must be identical\n※Partial: Contains keyword',
                 reset_confirm: 'Reset?',
                 lang_title: '【 Select Language 】',
                 back: 'Back',
@@ -1156,6 +1154,7 @@
                 rules_back: '(0 戻る)',
                 threshold_prompt: '「視聴回数閾値」を入力してください (これ未満は非表示):',
                 grace_prompt: '「猶予期間 (時間)」を入力してください (0 は猶予なし):',
+                adv_exact_prompt: 'このチャンネルを完全一致で追加しますか？ (1. はい / 2. いいえ)\n\n※完全一致：名前が完全に同じ\n※部分一致：名前の一部を含む',
                 reset_confirm: 'リセットしますか？',
                 lang_title: '【 言語を選択 】',
                 back: '戻る',
@@ -1463,15 +1462,13 @@
                             `13. ${i('DISABLE_FILTER_ON_CHANNEL')} ${this.t('adv_disable_channel')}\n` +
                             `0. ${this.t('back')}`
                         );
-                        if (c === '1') this.toggle('ENABLE_KEYWORD_FILTER', true);
-                        else if (c === '2') this.manage('KEYWORD_BLACKLIST');
-                        else if (c === '3') this.toggle('ENABLE_CHANNEL_FILTER', true);
-                        else if (c === '4') this.manage('CHANNEL_BLACKLIST');
-                        else if (c === '5') this.manage('CHANNEL_WHITELIST');
-                        else if (c === '6') this.toggle('EXACT_CHANNEL_WHITELIST', true);
-                        else if (c === '7') this.manage('KEYWORD_WHITELIST');
-                        else if (c === '8') this.toggle('ENABLE_SECTION_FILTER', true);
-                        else if (c === '9') this.manage('SECTION_TITLE_BLACKLIST');
+                                if (c === '1') this.toggle('ENABLE_KEYWORD_FILTER', true);
+                                else if (c === '2') this.manage('KEYWORD_BLACKLIST');
+                                else if (c === '3') this.toggle('ENABLE_CHANNEL_FILTER', true);
+                                else if (c === '4') this.manage('CHANNEL_BLACKLIST');
+                                else if (c === '5') this.manage('CHANNEL_WHITELIST');
+                                else if (c === '6') this.manage('KEYWORD_WHITELIST');
+                                else if (c === '7') this.toggle('ENABLE_SECTION_FILTER', true);                    else if (c === '9') this.manage('SECTION_TITLE_BLACKLIST');
                         else if (c === '10') this.toggle('ENABLE_DURATION_FILTER', true);
                         else if (c === '11') {
                             const min = prompt(this.t('adv_min'), this.config.get('DURATION_MIN') / 60);
@@ -1501,11 +1498,19 @@
                         if (!choice) return;
                         const c = choice.trim();
                         if (c === '0') { this.showAdvancedMenu(); return; }
-                        if (c === '1') {
-                            const v = prompt(`${this.t('adv_add')}:`);
-                            if (v) this.config.set(k, [...new Set([...l, ...v.split(',').map(s => s.trim())])]);
-                        }
-                        if (c === '2') {
+                                if (c === '1') {
+                                    const v = prompt(`${this.t('adv_add')}:`);
+                                    if (v) {
+                                        let itemsToAdd = v.split(',').map(s => s.trim()).filter(Boolean);
+                                        if (k === 'CHANNEL_WHITELIST' && itemsToAdd.length > 0) {
+                                            const mode = prompt(this.t('adv_exact_prompt'), '1');
+                                            if (mode === '1') {
+                                                itemsToAdd = itemsToAdd.map(item => '=' + item);
+                                            }
+                                        }
+                                        this.config.set(k, [...new Set([...l, ...itemsToAdd])]);
+                                    }
+                                }                    if (c === '2') {
                             const v = prompt(`${this.t('adv_remove')}:`);
                             if (v) this.config.set(k, l.filter(i => i !== v.trim()));
                         }

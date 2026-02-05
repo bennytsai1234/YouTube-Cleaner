@@ -9,7 +9,7 @@
 **隱藏 Shorts、過濾推薦與雜訊，讓 YouTube 回歸純淨**
 
 [![GitHub Stars](https://img.shields.io/github/stars/bennytsai1234/youtube-homepage-cleaner?style=for-the-badge&logo=github&color=gold)](https://github.com/bennytsai1234/youtube-homepage-cleaner/stargazers)
-[![Version](https://img.shields.io/badge/version-v1.9.9-orange?style=for-the-badge)](https://github.com/bennytsai1234/youtube-homepage-cleaner/releases)
+[![Version](https://img.shields.io/badge/version-v2.0.0-orange?style=for-the-badge)](https://github.com/bennytsai1234/youtube-homepage-cleaner/releases)
 [![License](https://img.shields.io/github/license/bennytsai1234/youtube-homepage-cleaner?style=for-the-badge&color=green)](LICENSE)
 
 [✨ **功能特色**](#-主要功能與特色) · [⚡️ **安裝教學**](#%EF%B8%8F-安裝教學) · [🐛 **問題回報**](https://github.com/bennytsai1234/youtube-homepage-cleaner/issues)
@@ -77,7 +77,7 @@
 
 完整更新日誌請見 [CHANGELOG.md](CHANGELOG.md)。
 
-- **v1.9.9**: 當前最新版本。
+- **v2.0.0**: 當前最新版本。重大架構重構、選擇器健康檢查。
 - **v1.9.x**: 頁面感知過濾修復、個人播放清單白名單。
 - **v1.8.x**: 新增區塊過濾器、修復 Rich Grid 布局。
 - **v1.7.x**: 效能大幅優化 (增量掃描)、狀態機重構。
