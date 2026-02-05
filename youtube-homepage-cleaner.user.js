@@ -1157,24 +1157,21 @@
             if (element.hidden || element.hasAttribute('hidden')) {
                 return this._hide(element, { reason: 'native_hidden' });
             }
+            let filterDetail = null;
+            const item = new LazyVideoData(element);
             const textMatch = this.customRules.check(element, element.textContent);
-            if (textMatch) return this._hide(element, { reason: textMatch.key, trigger: textMatch.trigger });
-            const sectionMatch = this._checkSectionFilter(element);
-            if (sectionMatch) return this._hide(element, sectionMatch);
-            if (this.isPageAllowingContent) {
-                container.dataset.ypChecked = 'true';
-                element.dataset.ypChecked = 'true';
-                return;
+            if (textMatch) filterDetail = { reason: textMatch.key, trigger: textMatch.trigger };
+            if (!filterDetail) {
+                const sectionMatch = this._checkSectionFilter(element);
+                if (sectionMatch) filterDetail = sectionMatch;
             }
             const isVideoElement = /VIDEO|LOCKUP|RICH-ITEM|PLAYLIST-PANEL-VIDEO/.test(element.tagName);
-            if (isVideoElement) {
+            if (!filterDetail && isVideoElement && !this.isPageAllowingContent) {
                 if (element.tagName === 'YTD-PLAYLIST-PANEL-VIDEO-RENDERER') {
                     container.dataset.ypChecked = 'true';
                     element.dataset.ypChecked = 'true';
                     return;
                 }
-                const item = new LazyVideoData(element);
-                let filterDetail = null;
                 filterDetail = filterDetail || this._getFilterKeyword(item);
                 filterDetail = filterDetail || this._getFilterChannel(item);
                 if (!filterDetail && this.config.get('RULE_ENABLES').shorts_item && item.isShorts) {
@@ -1186,32 +1183,33 @@
                 filterDetail = filterDetail || this._getFilterView(item);
                 filterDetail = filterDetail || this._getFilterDuration(item);
                 filterDetail = filterDetail || this._getFilterPlaylist(item);
-                if (filterDetail) {
-                    if (filterDetail.reason === 'members_only_js') {
-                        const compiledMembers = this.config.get('compiledMembersWhitelist');
-                        if (compiledMembers && compiledMembers.some(rx => rx.test(item.channel))) {
-                            Logger.info(`✅ Keep [Saved by Members Whitelist]: ${item.channel} | ${item.title}`);
-                            container.dataset.ypChecked = 'true';
-                            element.dataset.ypChecked = 'true';
-                            return;
-                        }
-                    }
-                    const strongReasons = ['members_only_js', 'shorts_item_js', 'recommended_playlists'];
-                    const isStrong = strongReasons.includes(filterDetail.reason);
-                    const whitelistReason = isStrong ? null : this._checkWhitelist(item);
-                    if (whitelistReason) {
-                        const savedBy = whitelistReason === 'channel_whitelist' ? 'Channel' : 'Keyword';
-                        const trigger = filterDetail.trigger ? ` [${filterDetail.trigger}]` : '';
-                        const ruleInfo = filterDetail.rule ? ` {Rule: ${filterDetail.rule}}` : '';
-                        Logger.info(`✅ Keep [Saved by ${savedBy} Whitelist]: ${item.channel} | ${item.title}\n(Originally Triggered: ${filterDetail.reason}${trigger}${ruleInfo})`);
-                        container.dataset.ypChecked = 'true';
-                        element.dataset.ypChecked = 'true';
-                    } else {
-                        this._hide(element, filterDetail, item);
-                    }
-                    return;
-                }
             }
+            if (filterDetail) {
+                if (filterDetail.reason === 'members_only_js') {
+                    const compiledMembers = this.config.get('compiledMembersWhitelist');
+                    if (compiledMembers && compiledMembers.some(rx => rx.test(item.channel))) {
+                        Logger.info(`✅ Keep [Saved by Members Whitelist]: ${item.channel} | ${item.title}`);
+                        this._markChecked(container, element);
+                        return;
+                    }
+                }
+                const strongReasons = ['members_only_js', 'shorts_item_js', 'recommended_playlists'];
+                const isStrong = strongReasons.includes(filterDetail.reason);
+                const whitelistReason = isStrong ? null : this._checkWhitelist(item);
+                if (whitelistReason) {
+                    const savedBy = whitelistReason === 'channel_whitelist' ? 'Channel' : 'Keyword';
+                    const trigger = filterDetail.trigger ? ` [${filterDetail.trigger}]` : '';
+                    const ruleInfo = filterDetail.rule ? ` {Rule: ${filterDetail.rule}}` : '';
+                    Logger.info(`✅ Keep [Saved by ${savedBy} Whitelist]: ${item.channel} | ${item.title}\n(Originally Triggered: ${filterDetail.reason}${trigger}${ruleInfo})`);
+                    this._markChecked(container, element);
+                } else {
+                    this._hide(element, filterDetail, item);
+                }
+                return;
+            }
+            this._markChecked(container, element);
+        }
+        _markChecked(container, element) {
             container.dataset.ypChecked = 'true';
             element.dataset.ypChecked = 'true';
         }

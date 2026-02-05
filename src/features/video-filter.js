@@ -302,24 +302,24 @@ export class VideoFilter {
             return this._hide(element, { reason: 'native_hidden' });
         }
 
-        // 文字規則檢查 (使用 textContent 避免 Reflow, 效能大幅提升)
+        let filterDetail = null;
+        const item = new LazyVideoData(element);
+
+        // --- 第一階段：過濾判定 (收集原因) ---
+
+        // A. 文字規則檢查 (Custom Rules)
         const textMatch = this.customRules.check(element, element.textContent);
-        if (textMatch) return this._hide(element, { reason: textMatch.key, trigger: textMatch.trigger });
+        if (textMatch) filterDetail = { reason: textMatch.key, trigger: textMatch.trigger };
 
-        // 1. 欄位標題過濾 (不套用頻道白名單，因為 Section 通常無特定頻道)
-        const sectionMatch = this._checkSectionFilter(element);
-        if (sectionMatch) return this._hide(element, sectionMatch);
-
-        // 如果是「允許內容」的頁面 (如播放清單、訂閱)，則跳過後續的內容過濾
-        if (this.isPageAllowingContent) {
-            container.dataset.ypChecked = 'true';
-            element.dataset.ypChecked = 'true';
-            return;
+        // B. 欄位標題過濾
+        if (!filterDetail) {
+            const sectionMatch = this._checkSectionFilter(element);
+            if (sectionMatch) filterDetail = sectionMatch;
         }
 
-        // 影片元素處理
+        // C. 影片內容過濾 (僅在非豁免頁面執行)
         const isVideoElement = /VIDEO|LOCKUP|RICH-ITEM|PLAYLIST-PANEL-VIDEO/.test(element.tagName);
-        if (isVideoElement) {
+        if (!filterDetail && isVideoElement && !this.isPageAllowingContent) {
             // ❗ 關鍵修正：如果是播放清單面板中的項目，強制放行
             if (element.tagName === 'YTD-PLAYLIST-PANEL-VIDEO-RENDERER') {
                 container.dataset.ypChecked = 'true';
@@ -327,67 +327,58 @@ export class VideoFilter {
                 return;
             }
 
-            const item = new LazyVideoData(element);
-            
-            // --- 核心邏輯重構：找出過濾原因 ---
-            let filterDetail = null;
-
-            // 1. 檢查關鍵字
             filterDetail = filterDetail || this._getFilterKeyword(item);
-            // 2. 檢查頻道黑名單
             filterDetail = filterDetail || this._getFilterChannel(item);
-            // 2.5 檢查單個 Shorts 項目
+            
             if (!filterDetail && this.config.get('RULE_ENABLES').shorts_item && item.isShorts) {
                 filterDetail = { reason: 'shorts_item_js', trigger: 'Shorts video detected' };
             }
-            // 3. 檢查會員過濾
             if (!filterDetail && this.config.get('RULE_ENABLES').members_only && item.isMembers) {
                 filterDetail = { reason: 'members_only_js' };
             }
-            // 4. 檢查觀看數
+            
             filterDetail = filterDetail || this._getFilterView(item);
-            // 5. 檢查長度
             filterDetail = filterDetail || this._getFilterDuration(item);
-            // 6. 檢查專輯過濾
             filterDetail = filterDetail || this._getFilterPlaylist(item);
-
-            // --- 判斷執行動作 ---
-            if (filterDetail) {
-                // 1. 會員專屬特殊處理：檢查是否有會員白名單護體
-                if (filterDetail.reason === 'members_only_js') {
-                    const compiledMembers = this.config.get('compiledMembersWhitelist');
-                    if (compiledMembers && compiledMembers.some(rx => rx.test(item.channel))) {
-                        Logger.info(`✅ Keep [Saved by Members Whitelist]: ${item.channel} | ${item.title}`);
-                        container.dataset.ypChecked = 'true';
-                        element.dataset.ypChecked = 'true';
-                        return;
-                    }
-                }
-
-                // 2. 定義「強規則」：不論是否在普通白名單，一律隱藏 (如 Shorts、合輯)
-                // 註：會員影片在此已被視為強規則的一環，除非命中了上面的會員白名單
-                const strongReasons = ['members_only_js', 'shorts_item_js', 'recommended_playlists'];
-                const isStrong = strongReasons.includes(filterDetail.reason);
-
-                // 3. 弱規則檢查：檢查普通頻道/關鍵字白名單
-                const whitelistReason = isStrong ? null : this._checkWhitelist(item);
-
-                if (whitelistReason) {
-                    const savedBy = whitelistReason === 'channel_whitelist' ? 'Channel' : 'Keyword';
-                    const trigger = filterDetail.trigger ? ` [${filterDetail.trigger}]` : '';
-                    const ruleInfo = filterDetail.rule ? ` {Rule: ${filterDetail.rule}}` : '';
-                    
-                    Logger.info(`✅ Keep [Saved by ${savedBy} Whitelist]: ${item.channel} | ${item.title}\n(Originally Triggered: ${filterDetail.reason}${trigger}${ruleInfo})`);
-                    
-                    container.dataset.ypChecked = 'true';
-                    element.dataset.ypChecked = 'true';
-                } else {
-                    this._hide(element, filterDetail, item);
-                }
-                return;
-            }
         }
 
+        // --- 第二階段：執行決策 (白名單審核) ---
+
+        if (filterDetail) {
+            // 1. 會員專屬特殊處理：檢查是否有會員白名單護體
+            if (filterDetail.reason === 'members_only_js') {
+                const compiledMembers = this.config.get('compiledMembersWhitelist');
+                if (compiledMembers && compiledMembers.some(rx => rx.test(item.channel))) {
+                    Logger.info(`✅ Keep [Saved by Members Whitelist]: ${item.channel} | ${item.title}`);
+                    this._markChecked(container, element);
+                    return;
+                }
+            }
+
+            // 2. 定義「強規則」：不論是否在普通白名單，一律隱藏 (如 Shorts、合輯)
+            const strongReasons = ['members_only_js', 'shorts_item_js', 'recommended_playlists'];
+            const isStrong = strongReasons.includes(filterDetail.reason);
+
+            // 3. 弱規則檢查：檢查普通頻道/關鍵字白名單
+            const whitelistReason = isStrong ? null : this._checkWhitelist(item);
+
+            if (whitelistReason) {
+                const savedBy = whitelistReason === 'channel_whitelist' ? 'Channel' : 'Keyword';
+                const trigger = filterDetail.trigger ? ` [${filterDetail.trigger}]` : '';
+                const ruleInfo = filterDetail.rule ? ` {Rule: ${filterDetail.rule}}` : '';
+                
+                Logger.info(`✅ Keep [Saved by ${savedBy} Whitelist]: ${item.channel} | ${item.title}\n(Originally Triggered: ${filterDetail.reason}${trigger}${ruleInfo})`);
+                this._markChecked(container, element);
+            } else {
+                this._hide(element, filterDetail, item);
+            }
+            return;
+        }
+
+        this._markChecked(container, element);
+    }
+
+    _markChecked(container, element) {
         container.dataset.ypChecked = 'true';
         element.dataset.ypChecked = 'true';
     }
