@@ -787,7 +787,9 @@
                     const whitelistReason = this._checkWhitelist(item);
                     if (whitelistReason) {
                         const savedBy = whitelistReason === 'channel_whitelist' ? 'Channel' : 'Keyword';
-                        Logger.info(`✅ Keep [Saved by ${savedBy} Whitelist]: ${item.channel} | ${item.title} (Triggered: ${filterDetail.reason})`, container);
+                        const trigger = filterDetail.trigger ? ` [${filterDetail.trigger}]` : '';
+                        const ruleInfo = filterDetail.rule ? ` {Rule: ${filterDetail.rule}}` : '';
+                        Logger.info(`✅ Keep [Saved by ${savedBy} Whitelist]: ${item.channel} | ${item.title}\n(Originally Triggered: ${filterDetail.reason}${trigger}${ruleInfo})`, container);
                         container.dataset.ypChecked = 'true';
                         element.dataset.ypChecked = 'true';
                     } else {
