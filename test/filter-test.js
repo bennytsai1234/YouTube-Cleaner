@@ -161,8 +161,11 @@ TestRunner.suite('CustomRuleManager', () => {
     const manager = new CustomRuleManager(config);
 
     // 測試文字匹配
-    TestRunner.assertEqual('匹配新聞關鍵字', manager.check({}, 'Breaking News Today'), 'news_block');
-    TestRunner.assertEqual('匹配 Shorts 關鍵字', manager.check({}, 'Shorts'), 'shorts_block');
+    const newsMatch = manager.check({}, 'Breaking News Today');
+    TestRunner.assert('匹配新聞關鍵字', newsMatch && newsMatch.key === 'news_block');
+    
+    const shortsMatch = manager.check({}, 'Shorts');
+    TestRunner.assert('匹配 Shorts 關鍵字', shortsMatch && shortsMatch.key === 'shorts_block');
 
     // 測試停用的規則
     TestRunner.assertEqual('忽略停用的規則', manager.check({}, 'Fundraiser Event'), null);

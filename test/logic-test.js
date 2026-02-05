@@ -89,6 +89,8 @@ class MockVideoData {
         this.isMembers = data.isMembers || false;
         this.isPlaylist = data.isPlaylist || false;
         this.isUserPlaylist = data.isUserPlaylist || false;
+        // 新增 raw 屬性以支援詳細日誌
+        this.raw = { views: '5K views', time: '1 day ago', duration: '5:00', viewers: '10K watching' };
     }
 }
 
@@ -113,13 +115,14 @@ TestRunner.suite('VideoFilter - 關鍵字過濾', () => {
     const config = new MockConfig();
     const filter = new VideoFilter(config);
 
-    // 設定黑名單
+    // 設定黑名單 (需手動設定 compiledKeywords 以符合新邏輯)
     config.set('KEYWORD_BLACKLIST', ['Minecraft', 'Roblox']);
+    config.set('compiledKeywords', [new RegExp('Minecraft', 'i'), new RegExp('Roblox', 'i')]);
 
     // 測試 1: 標題包含黑名單關鍵字
     let video = new MockVideoData({ title: 'Playing Minecraft Survival' });
     let result = filter._getFilterKeyword(video);
-    TestRunner.assert('應過濾包含黑名單的標題', result === 'keyword_blacklist');
+    TestRunner.assert('應過濾包含黑名單的標題', result && result.reason === 'keyword_blacklist');
 
     // 測試 2: 標題安全
     video = new MockVideoData({ title: 'Cooking with Chef' });
@@ -147,7 +150,7 @@ TestRunner.suite('VideoFilter - 觀看數過濾 (低觀看)', () => {
         isLive: false
     });
     let result = filter._getFilterView(video);
-    TestRunner.assert('過濾：發布已久且觀看數低', result === 'low_view');
+    TestRunner.assert('過濾：發布已久且觀看數低', result && result.reason === 'low_view');
 
     // 案例 B: 發布不久(5小時)，觀看數很低(500) -> 應保留 (寬限期內)
     video = new MockVideoData({
@@ -180,7 +183,7 @@ TestRunner.suite('VideoFilter - 直播觀看數過濾', () => {
         isLive: true
     });
     let result = filter._getFilterView(video);
-    TestRunner.assert('過濾：直播人數過低', result === 'low_viewer_live');
+    TestRunner.assert('過濾：直播人數過低', result && result.reason === 'low_viewer_live');
 
     // 直播中，人數多 (500) -> 保留
     video = new MockVideoData({
@@ -201,12 +204,12 @@ TestRunner.suite('VideoFilter - 影片時長過濾', () => {
     // 過短 (30秒)
     let video = new MockVideoData({ duration: 30 });
     let result = filter._getFilterDuration(video);
-    TestRunner.assert('過濾：影片過短', result === 'duration_filter');
+    TestRunner.assert('過濾：影片過短', result && result.reason === 'duration_filter');
 
     // 過長 (1000秒)
     video = new MockVideoData({ duration: 1000 });
     result = filter._getFilterDuration(video);
-    TestRunner.assert('過濾：影片過長', result === 'duration_filter');
+    TestRunner.assert('過濾：影片過長', result && result.reason === 'duration_filter');
 
     // 正常範圍 (300秒)
     video = new MockVideoData({ duration: 300 });
@@ -244,10 +247,10 @@ TestRunner.suite('VideoFilter - 雙重白名單', () => {
     const config = new MockConfig();
     const filter = new VideoFilter(config);
 
-    // 1. 頻道白名單
+    // 1. 頻道白名單 (使用新的編譯名稱)
     config.set('CHANNEL_WHITELIST', ['MyFavoriteChannel']);
     const channelRegex = [new RegExp('MyFavoriteChannel', 'i')];
-    config.set('compiledWhitelist', channelRegex);
+    config.set('compiledChannelWhitelist', channelRegex);
 
     let video = new MockVideoData({ channel: 'MyFavoriteChannel', title: 'Minecraft' });
     let whitelistReason = filter._checkWhitelist(video);
