@@ -36,15 +36,15 @@ export class LazyVideoData {
             const el = this.el.querySelector(SELECTORS.METADATA.CHANNEL);
             if (!el) return '';
 
-            // 處理頭像選擇器情況
+            let rawName = '';
             if (el.tagName === 'YT-DECORATED-AVATAR-VIEW-MODEL') {
                 const avatarBtn = el.querySelector('[aria-label]');
-                const rawLabel = avatarBtn?.getAttribute('aria-label') || '';
-                // 移除常見前綴：前往頻道： | Go to channel: | チャンネルへ移動:
-                this._channel = rawLabel.replace(/^(前往頻道：|Go to channel:|チャンネルへ移動:|前往频道：)/, '').trim();
+                rawName = avatarBtn?.getAttribute('aria-label') || '';
             } else {
-                this._channel = el.textContent?.trim() || '';
+                rawName = el.textContent?.trim() || '';
             }
+
+            this._channel = Utils.cleanChannelName(rawName);
         }
         return this._channel;
     }

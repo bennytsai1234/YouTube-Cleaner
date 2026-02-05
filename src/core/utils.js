@@ -138,28 +138,18 @@ export const Utils = {
     },
 
     generateCnRegex: (text, exact = false) => {
-        if (!text) return null;
-        const escape = s => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-        const wrap = s => exact ? `^${s}$` : s;
+        // ... (existing)
+    },
 
-        if (Utils._initOpenCC()) {
-            const simp = Utils._openccToSimp(text);
-            const trad = Utils._openccToTrad(text);
-            const escSimp = escape(simp);
-            const escTrad = escape(trad);
-
-            try {
-                if (escSimp === escTrad) return new RegExp(wrap(escSimp), 'i');
-                return new RegExp(wrap(`(?:${escSimp}|${escTrad})`), 'i');
-            } catch (e) {
-                return null;
-            }
-        }
-
-        try {
-            return new RegExp(wrap(escape(text)), 'i');
-        } catch (e) {
-            return null;
-        }
+    /**
+     * 清洗頻道名稱，移除 YouTube 注入的描述性文字
+     */
+    cleanChannelName: (name) => {
+        if (!name) return '';
+        return name
+            .replace(/^(前往頻道：|Go to channel:|チャンネルへ移動:|前往频道：|輕觸即可觀看「|Tap to watch 「)/, '')
+            .replace(/(」頻道的直播|'s live stream|」のライブ配信|」頻道的直播)$/, '')
+            .replace(/·.*$/, '') // 移除某些佈局下的後綴
+            .trim();
     }
 };

@@ -127,26 +127,14 @@
             return str;
         },
         generateCnRegex: (text, exact = false) => {
-            if (!text) return null;
-            const escape = s => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-            const wrap = s => exact ? `^${s}$` : s;
-            if (Utils._initOpenCC()) {
-                const simp = Utils._openccToSimp(text);
-                const trad = Utils._openccToTrad(text);
-                const escSimp = escape(simp);
-                const escTrad = escape(trad);
-                try {
-                    if (escSimp === escTrad) return new RegExp(wrap(escSimp), 'i');
-                    return new RegExp(wrap(`(?:${escSimp}|${escTrad})`), 'i');
-                } catch (e) {
-                    return null;
-                }
-            }
-            try {
-                return new RegExp(wrap(escape(text)), 'i');
-            } catch (e) {
-                return null;
-            }
+        },
+        cleanChannelName: (name) => {
+            if (!name) return '';
+            return name
+                .replace(/^(前往頻道：|Go to channel:|チャンネルへ移動:|前往频道：|輕觸即可觀看「|Tap to watch 「)/, '')
+                .replace(/(」頻道的直播|'s live stream|」のライブ配信|」頻道的直播)$/, '')
+                .replace(/·.*$/, '')
+                .trim();
         }
     };
 
@@ -561,13 +549,14 @@
             if (this._channel === null) {
                 const el = this.el.querySelector(SELECTORS.METADATA.CHANNEL);
                 if (!el) return '';
+                let rawName = '';
                 if (el.tagName === 'YT-DECORATED-AVATAR-VIEW-MODEL') {
                     const avatarBtn = el.querySelector('[aria-label]');
-                    const rawLabel = avatarBtn?.getAttribute('aria-label') || '';
-                    this._channel = rawLabel.replace(/^(前往頻道：|Go to channel:|チャンネルへ移動:|前往频道：)/, '').trim();
+                    rawName = avatarBtn?.getAttribute('aria-label') || '';
                 } else {
-                    this._channel = el.textContent?.trim() || '';
+                    rawName = el.textContent?.trim() || '';
                 }
+                this._channel = Utils.cleanChannelName(rawName);
             }
             return this._channel;
         }
