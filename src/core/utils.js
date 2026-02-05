@@ -119,9 +119,13 @@ export const Utils = {
         }
     },
 
+    escapeRegex: (s) => {
+        return s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    },
+
     generateCnRegex: (text, exact = false) => {
         if (!text) return null;
-        const escape = s => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+        const escape = Utils.escapeRegex;
         const wrap = s => exact ? `^${s}$` : s;
 
         if (Utils._initOpenCC()) {

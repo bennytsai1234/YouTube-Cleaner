@@ -133,9 +133,12 @@
                 return false;
             }
         },
+        escapeRegex: (s) => {
+            return s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+        },
         generateCnRegex: (text, exact = false) => {
             if (!text) return null;
-            const escape = s => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+            const escape = Utils.escapeRegex;
             const wrap = s => exact ? `^${s}$` : s;
             if (Utils._initOpenCC()) {
                 try {
@@ -216,11 +219,16 @@
             this.state = this._load();
         }
         _compileList(list) {
-            return (list || []).map(k => {
-                if (k.startsWith('=')) {
-                    return Utils.generateCnRegex(k.substring(1), true);
+            if (!Array.isArray(list)) return [];
+            return list.map(k => {
+                try {
+                    if (k.startsWith('=')) {
+                        return Utils.generateCnRegex(k.substring(1), true) || new RegExp(`^${Utils.escapeRegex(k.substring(1))}$`, 'i');
+                    }
+                    return Utils.generateCnRegex(k) || new RegExp(Utils.escapeRegex(k), 'i');
+                } catch (e) {
+                    return null;
                 }
-                return Utils.generateCnRegex(k);
             }).filter(Boolean);
         }
         _load() {
@@ -872,17 +880,23 @@
             const title = item.title;
             const config = this.config;
             const compiledChannels = config.get('compiledChannelWhitelist');
-            if (compiledChannels && compiledChannels.length > 0 && channel) {
-                const isMatch = compiledChannels.some(rx => rx.test(channel));
-                if (isMatch) return 'channel_whitelist';
+            const rawChannels = config.get('CHANNEL_WHITELIST') || [];
+            if (channel) {
+                if (compiledChannels && compiledChannels.length > 0) {
+                    if (compiledChannels.some(rx => rx.test(channel))) return 'channel_whitelist';
+                } else if (rawChannels.length > 0) {
+                    const cLower = channel.toLowerCase();
+                    if (rawChannels.some(k => cLower.includes(k.toLowerCase()))) return 'channel_whitelist';
+                }
             }
             const compiledKeywords = config.get('compiledKeywordWhitelist');
-            if (compiledKeywords && compiledKeywords.length > 0) {
-                if (config.get('ENABLE_REGION_CONVERT')) {
+            const rawKeywords = config.get('KEYWORD_WHITELIST') || [];
+            if (title) {
+                if (compiledKeywords && compiledKeywords.length > 0) {
                     if (compiledKeywords.some(rx => rx.test(title))) return 'keyword_whitelist';
-                } else if (title) {
+                } else if (rawKeywords.length > 0) {
                     const tLower = title.toLowerCase();
-                    if (config.get('KEYWORD_WHITELIST').some(k => tLower.includes(k.toLowerCase()))) return 'keyword_whitelist';
+                    if (rawKeywords.some(k => tLower.includes(k.toLowerCase()))) return 'keyword_whitelist';
                 }
             }
             return null;

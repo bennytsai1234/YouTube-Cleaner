@@ -417,19 +417,29 @@ export class VideoFilter {
 
         // 1. 頻道白名單檢查
         const compiledChannels = config.get('compiledChannelWhitelist');
-        if (compiledChannels && compiledChannels.length > 0 && channel) {
-            const isMatch = compiledChannels.some(rx => rx.test(channel));
-            if (isMatch) return 'channel_whitelist';
+        const rawChannels = config.get('CHANNEL_WHITELIST') || [];
+        
+        if (channel) {
+            // 優先使用編譯後的 Regex
+            if (compiledChannels && compiledChannels.length > 0) {
+                if (compiledChannels.some(rx => rx.test(channel))) return 'channel_whitelist';
+            } else if (rawChannels.length > 0) {
+                // 安全回退：直接字串比對
+                const cLower = channel.toLowerCase();
+                if (rawChannels.some(k => cLower.includes(k.toLowerCase()))) return 'channel_whitelist';
+            }
         }
 
         // 2. 關鍵字白名單檢查
         const compiledKeywords = config.get('compiledKeywordWhitelist');
-        if (compiledKeywords && compiledKeywords.length > 0) {
-            if (config.get('ENABLE_REGION_CONVERT')) {
+        const rawKeywords = config.get('KEYWORD_WHITELIST') || [];
+        
+        if (title) {
+            if (compiledKeywords && compiledKeywords.length > 0) {
                 if (compiledKeywords.some(rx => rx.test(title))) return 'keyword_whitelist';
-            } else if (title) {
+            } else if (rawKeywords.length > 0) {
                 const tLower = title.toLowerCase();
-                if (config.get('KEYWORD_WHITELIST').some(k => tLower.includes(k.toLowerCase()))) return 'keyword_whitelist';
+                if (rawKeywords.some(k => tLower.includes(k.toLowerCase()))) return 'keyword_whitelist';
             }
         }
 

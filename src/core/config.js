@@ -54,11 +54,16 @@ export class ConfigManager {
     }
 
     _compileList(list) {
-        return (list || []).map(k => {
-            if (k.startsWith('=')) {
-                return Utils.generateCnRegex(k.substring(1), true);
+        if (!Array.isArray(list)) return [];
+        return list.map(k => {
+            try {
+                if (k.startsWith('=')) {
+                    return Utils.generateCnRegex(k.substring(1), true) || new RegExp(`^${Utils.escapeRegex(k.substring(1))}$`, 'i');
+                }
+                return Utils.generateCnRegex(k) || new RegExp(Utils.escapeRegex(k), 'i');
+            } catch (e) {
+                return null;
             }
-            return Utils.generateCnRegex(k);
         }).filter(Boolean);
     }
 
