@@ -23,6 +23,7 @@ export class ConfigManager {
             ENABLE_CHANNEL_FILTER: true,
             CHANNEL_BLACKLIST: [],
             CHANNEL_WHITELIST: [],
+            EXACT_CHANNEL_WHITELIST: false, // 新增：是否精準匹配頻道名稱
             KEYWORD_WHITELIST: [], // 新增：關鍵字白名單
             ENABLE_SECTION_FILTER: true,
             SECTION_TITLE_BLACKLIST: [
