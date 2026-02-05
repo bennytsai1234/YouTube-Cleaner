@@ -1,4 +1,5 @@
 /* global OpenCC */
+import { I18N } from '../ui/i18n.js';
 
 // --- 常數定義 ---
 const TIME_UNITS = {
@@ -142,14 +143,38 @@ export const Utils = {
     },
 
     /**
-     * 清洗頻道名稱，移除 YouTube 注入的描述性文字
+     * 清洗頻道名稱，從 I18N 字典中彙整所有語言的噪音字串並移除
      */
     cleanChannelName: (name) => {
         if (!name) return '';
-        return name
-            .replace(/^(前往頻道：|Go to channel:|チャンネルへ移動:|前往频道：|輕觸即可觀看「|Tap to watch 「)/, '')
-            .replace(/(」頻道的直播|'s live stream|」のライブ配信|」頻道的直播)$/, '')
-            .replace(/·.*$/, '') // 移除某些佈局下的後綴
-            .trim();
+        
+        // 懶載入並編譯全語系清理正則
+        if (!Utils._channelCleanerRX) {
+            const prefixes = [];
+            const suffixes = [];
+            
+            // 遍歷 I18N 所有語言包，收集所有噪音詞彙
+            for (const lang in I18N.strings) {
+                const data = I18N.strings[lang];
+                if (data.channel_prefixes) prefixes.push(...data.channel_prefixes);
+                if (data.channel_suffixes) suffixes.push(...data.channel_suffixes);
+            }
+
+            // 轉義特殊字元並組成正則
+            const esc = s => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+            const prePattern = prefixes.length > 0 ? `^(${prefixes.map(esc).join('|')})` : '';
+            const sufPattern = suffixes.length > 0 ? `(${suffixes.map(esc).join('|')})$` : '';
+            
+            Utils._channelCleanerRX = {
+                prefix: prePattern ? new RegExp(prePattern, 'i') : null,
+                suffix: sufPattern ? new RegExp(sufPattern, 'i') : null
+            };
+        }
+
+        let clean = name;
+        if (Utils._channelCleanerRX.prefix) clean = clean.replace(Utils._channelCleanerRX.prefix, '');
+        if (Utils._channelCleanerRX.suffix) clean = clean.replace(Utils._channelCleanerRX.suffix, '');
+        
+        return clean.replace(/·.*$/, '').trim();
     }
 };
