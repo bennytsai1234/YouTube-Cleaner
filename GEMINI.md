@@ -94,3 +94,4 @@ const video_container = document.querySelector("#content") // No snake_case, mis
 | **指令無輸出 (No Output)** | 改用 `run_command` 啟動 Shell Session + `send_command_input` |
 | **Rollup Build 失敗** | 檢查 `src/meta.json` 格式是否正確 Json |
 | **代碼編輯 (replace) 失敗** | 1. 先用 `read_file` 獲取**精確**的縮排與空格。<br>2. 若兩次失敗，**強制**改用 `write_file` 覆寫全檔。<br>🚨 **CRITICAL**: 必須配合「本地備份」規則，確保隨時可透過 `git checkout` 恢復舊版。 |
+| **PowerShell `&&` 語法錯誤** | Windows 環境下預設使用 PowerShell，不支援 `&&` 分隔指令。<br>**解決方案**：改用 `;` 作為分隔符 (例如：`git add . ; git commit`)。 |
