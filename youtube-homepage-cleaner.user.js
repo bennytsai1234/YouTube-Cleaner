@@ -1350,7 +1350,12 @@
                 case '6': this.toggle('OPEN_IN_NEW_TAB'); break;
                 case '7': this.toggle('OPEN_NOTIFICATIONS_IN_NEW_TAB'); break;
                 case '8': this.toggle('DEBUG_MODE'); break;
-                case '9': if (confirm(this.t('reset_confirm'))) { Object.keys(this.config.defaults).forEach(k => this.config.set(k, this.config.defaults[k])); this.update('', null); } break;
+                case '9':
+                    if (confirm(this.t('reset_confirm'))) {
+                        Object.keys(this.config.defaults).forEach(k => this.config.set(k, this.config.defaults[k]));
+                        this.update('', null);
+                    }
+                    break;
                 case '10': this.showStats(); break;
                 case '11': this.showExportImportMenu(); break;
                 case '12': this.showLanguageMenu(); break;
@@ -1418,9 +1423,16 @@
             this.showExportImportMenu();
         }
         showRuleMenu() {
-            const r = this.config.get('RULE_ENABLES'); const k = Object.keys(r);
+            const r = this.config.get('RULE_ENABLES');
+            const k = Object.keys(r);
             const c = prompt(`${this.t('rules_title')} ${this.t('rules_back')}\n` + k.map((key, i) => `${i + 1}. [${r[key] ? '✅' : '❌'}] ${I18N.getRuleName(key)}`).join('\n'));
-            if (c && c !== '0') { this.config.toggleRule(k[parseInt(c) - 1]); this.onRefresh(); this.showRuleMenu(); } else if (c === '0') this.showMainMenu();
+            if (c && c !== '0') {
+                this.config.toggleRule(k[parseInt(c) - 1]);
+                this.onRefresh();
+                this.showRuleMenu();
+            } else if (c === '0') {
+                this.showMainMenu();
+            }
         }
         showAdvancedMenu() {
             const i = (k) => this.config.get(k) ? '✅' : '❌';
@@ -1493,8 +1505,16 @@
             this.onRefresh();
             this.manage(k);
         }
-        toggle(k, adv) { this.config.set(k, !this.config.get(k)); this.onRefresh(); adv ? this.showAdvancedMenu() : this.showMainMenu(); }
-        update(k, v) { if (k) this.config.set(k, v); this.onRefresh(); this.showMainMenu(); }
+        toggle(k, adv) {
+            this.config.set(k, !this.config.get(k));
+            this.onRefresh();
+            adv ? this.showAdvancedMenu() : this.showMainMenu();
+        }
+        update(k, v) {
+            if (k) this.config.set(k, v);
+            this.onRefresh();
+            this.showMainMenu();
+        }
     }
 
     class App {
