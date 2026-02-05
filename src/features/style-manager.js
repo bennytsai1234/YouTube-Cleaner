@@ -59,12 +59,9 @@ export class StyleManager {
         }
 
         // 5.4 Advanced :has() Rules
-        // ★ Add new Container rules here
+        // ★ 僅保留純廣告類，內容類 (Shorts/Mix/Members) 移至 JS 處理以支援白名單
         const hasRules = [
-            { key: 'ad_sponsor', selector: '[aria-label*="廣告"], [aria-label*="Sponsor"], [aria-label="贊助商廣告"], ad-badge-view-model, feed-ad-metadata-view-model' },
-            { key: 'members_only', selector: '[aria-label*="會員專屬"]' },
-            { key: 'shorts_item', selector: 'a[href*="/shorts/"]' },
-            { key: 'mix_only', selector: 'a[aria-label*="合輯"], a[aria-label*="Mix"]' }
+            { key: 'ad_sponsor', selector: '[aria-label*="廣告"], [aria-label*="Sponsor"], [aria-label="贊助商廣告"], ad-badge-view-model, feed-ad-metadata-view-model' }
         ];
 
         hasRules.forEach(({ key, selector }) => {

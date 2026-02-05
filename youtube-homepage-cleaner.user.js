@@ -355,10 +355,7 @@
                 if (enables[key]) rules.push(`${selectors.join(', ')} { display: none !important; }`);
             }
             const hasRules = [
-                { key: 'ad_sponsor', selector: '[aria-label*="廣告"], [aria-label*="Sponsor"], [aria-label="贊助商廣告"], ad-badge-view-model, feed-ad-metadata-view-model' },
-                { key: 'members_only', selector: '[aria-label*="會員專屬"]' },
-                { key: 'shorts_item', selector: 'a[href*="/shorts/"]' },
-                { key: 'mix_only', selector: 'a[aria-label*="合輯"], a[aria-label*="Mix"]' }
+                { key: 'ad_sponsor', selector: '[aria-label*="廣告"], [aria-label*="Sponsor"], [aria-label="贊助商廣告"], ad-badge-view-model, feed-ad-metadata-view-model' }
             ];
             hasRules.forEach(({ key, selector }) => {
                 if (enables[key]) {
@@ -780,6 +777,9 @@
                 let filterDetail = null;
                 filterDetail = filterDetail || this._getFilterKeyword(item);
                 filterDetail = filterDetail || this._getFilterChannel(item);
+                if (!filterDetail && this.config.get('RULE_ENABLES').shorts_item && item.isShorts) {
+                    filterDetail = { reason: 'shorts_item_js', trigger: 'Shorts video detected' };
+                }
                 if (!filterDetail && this.config.get('RULE_ENABLES').members_only && item.isMembers) {
                     filterDetail = { reason: 'members_only_js' };
                 }
@@ -932,7 +932,14 @@
             }
         }
         clearCache() {
-            document.querySelectorAll('[data-yp-checked]').forEach(el => delete el.dataset.ypChecked);
+            document.querySelectorAll('[data-yp-checked], [data-yp-hidden]').forEach(el => {
+                if (el.dataset.ypHidden) {
+                    el.style.display = '';
+                    el.style.visibility = '';
+                    delete el.dataset.ypHidden;
+                }
+                delete el.dataset.ypChecked;
+            });
             this.hasValidatedSelectors = false;
         }
         reset() {

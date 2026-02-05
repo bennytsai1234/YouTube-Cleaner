@@ -325,6 +325,10 @@ export class VideoFilter {
             filterDetail = filterDetail || this._getFilterKeyword(item);
             // 2. 檢查頻道黑名單
             filterDetail = filterDetail || this._getFilterChannel(item);
+            // 2.5 檢查單個 Shorts 項目
+            if (!filterDetail && this.config.get('RULE_ENABLES').shorts_item && item.isShorts) {
+                filterDetail = { reason: 'shorts_item_js', trigger: 'Shorts video detected' };
+            }
             // 3. 檢查會員過濾
             if (!filterDetail && this.config.get('RULE_ENABLES').members_only && item.isMembers) {
                 filterDetail = { reason: 'members_only_js' };
@@ -523,7 +527,15 @@ export class VideoFilter {
     }
 
     clearCache() {
-        document.querySelectorAll('[data-yp-checked]').forEach(el => delete el.dataset.ypChecked);
+        // 徹底還原所有被隱藏或檢查過的元素狀態，確保白名單能正確生效
+        document.querySelectorAll('[data-yp-checked], [data-yp-hidden]').forEach(el => {
+            if (el.dataset.ypHidden) {
+                el.style.display = '';
+                el.style.visibility = '';
+                delete el.dataset.ypHidden;
+            }
+            delete el.dataset.ypChecked;
+        });
         this.hasValidatedSelectors = false;
     }
 
