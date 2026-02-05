@@ -15,7 +15,7 @@
    - 保持 `src/` 目錄的模組化結構。
    - **禁止**直接修改 `youtube-homepage-cleaner.user.js` (這是 Build 產物)。
    - **嚴禁使用 `write_file` 覆寫現有源碼檔**: 為了防止因 AI 記憶或傳輸導致的代碼截斷/遺失，修改現有檔案時**僅允許**使用 `replace` 工具進行局部替換。
-3. **本地備份 (Git Backup) [CRITICAL]**: 每次完成單個檔案的實質性修改後，必須立即執行 `git add <file> && git commit -m "backup: update <file>"` 進行本地存檔，防止後續操作意外造成代碼丟失。
+3. **自動本地備份 (Automatic Git Backup) [CRITICAL]**: AI Agent **必須自動**執行備份。每次完成單個檔案的實質性修改後，Agent 應立即執行 `git add <file> ; git commit -m "backup: update <file>"` (Windows 使用 `;`) 進行本地存檔，無需使用者提醒。這能防止後續操作意外造成代碼丟失。
 
 ### 第二階段：文檔同步 (Documentation Sync) 🚨 **CRITICAL**
 每次修改代碼後，**必須**檢查並更新對應文檔：
