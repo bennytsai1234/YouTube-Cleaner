@@ -1,37 +1,62 @@
-import { SELECTORS } from '../data/selectors.js';
-import { Utils } from '../core/utils.js';
-import { Logger } from '../core/logger.js';
-import { FilterStats } from '../core/stats.js';
-import { CustomRuleManager } from './custom-rules.js';
+import { SELECTORS } from '../data/selectors';
+import { Utils } from '../core/utils';
+import { Logger } from '../core/logger';
+import { FilterStats } from '../core/stats';
+import { CustomRuleManager } from './custom-rules';
+import { ConfigManager } from '../core/config';
 
 // --- 常數定義 ---
 const BATCH_SIZE = 50;
 const IDLE_TIMEOUT = 500;
 const MUTATION_THRESHOLD = 100;  // 超過此數量直接全頁掃描
 
+interface FilterDetail {
+    reason: string;
+    trigger?: string;
+    rule?: string;
+}
+
+declare global {
+    interface HTMLElement {
+        dataset: DOMStringMap & {
+            ypChecked?: string;
+            ypHidden?: string;
+        };
+    }
+    function requestIdleCallback(callback: (deadline: { timeRemaining: () => number; didTimeout: boolean }) => void, options?: { timeout: number }): number;
+}
+
 // --- 延遲載入影片資料 ---
 export class LazyVideoData {
-    constructor(element) {
+    public el: HTMLElement;
+    private _title: string | null = null;
+    private _channel: string | null = null;
+    private _url: string | undefined = undefined;
+    private _viewCount: number | null | undefined = undefined;
+    private _liveViewers: number | null | undefined = undefined;
+    private _timeAgo: number | null | undefined = undefined;
+    private _duration: number | null | undefined = undefined;
+    private _isShorts: boolean | undefined = undefined;
+    private _isMembers: boolean | undefined = undefined;
+    private _isUserPlaylist: boolean | undefined = undefined;
+    private _isPlaylist: boolean | undefined = undefined;
+    
+    // 儲存原始文字以便 Log
+    public raw = { views: '', time: '', duration: '', viewers: '' };
+
+    constructor(element: HTMLElement) {
         this.el = element;
-        this._title = null;
-        this._channel = null;
-        this._viewCount = undefined;
-        this._liveViewers = undefined;
-        this._timeAgo = undefined;
-        this._duration = undefined;
-        // 儲存原始文字以便 Log
-        this.raw = { views: '', time: '', duration: '', viewers: '' };
     }
 
-    get title() {
+    get title(): string {
         if (this._title === null) {
-            const el = this.el.querySelector(SELECTORS.METADATA.TITLE);
+            const el = this.el.querySelector<HTMLElement>(SELECTORS.METADATA.TITLE);
             this._title = el?.title?.trim() || el?.textContent?.trim() || '';
         }
         return this._title;
     }
 
-    get channel() {
+    get channel(): string {
         if (this._channel === null) {
             const el = this.el.querySelector(SELECTORS.METADATA.CHANNEL);
             if (!el) return '';
@@ -49,22 +74,22 @@ export class LazyVideoData {
         return this._channel;
     }
 
-    get url() {
+    get url(): string {
         if (this._url === undefined) {
-             const anchor = this.el.querySelector('a[href*="/watch?"], a[href*="/shorts/"]');
+             const anchor = this.el.querySelector<HTMLAnchorElement>('a[href*="/watch?"], a[href*="/shorts/"]');
              this._url = anchor ? anchor.href : '';
         }
         return this._url;
     }
 
-    _parseMetadata() {
+    private _parseMetadata(): void {
         if (this._viewCount !== undefined) return;
 
         const texts = Array.from(this.el.querySelectorAll(SELECTORS.METADATA.TEXT));
         let aria = '';
 
         for (const sel of SELECTORS.METADATA.TITLE_LINKS) {
-            const el = this.el.querySelector(`:scope ${sel}`);
+            const el = this.el.querySelector<HTMLElement>(`:scope ${sel}`);
             if (el?.ariaLabel) { aria = el.ariaLabel; break; }
         }
 
@@ -81,7 +106,7 @@ export class LazyVideoData {
         this._timeAgo = null;
 
         for (const t of texts) {
-            const text = t.textContent;
+            const text = t.textContent || '';
             const isLive = /正在觀看|觀眾|watching|viewers/i.test(text);
             const isView = /view|觀看|次/i.test(text);
             const isAgo = /ago|前/i.test(text);
@@ -101,15 +126,15 @@ export class LazyVideoData {
         }
     }
 
-    get viewCount() { this._parseMetadata(); return this._viewCount; }
-    get liveViewers() { this._parseMetadata(); return this._liveViewers; }
-    get timeAgo() { this._parseMetadata(); return this._timeAgo; }
+    get viewCount(): number | null { this._parseMetadata(); return this._viewCount!; }
+    get liveViewers(): number | null { this._parseMetadata(); return this._liveViewers!; }
+    get timeAgo(): number | null { this._parseMetadata(); return this._timeAgo!; }
 
-    get duration() {
+    get duration(): number | null {
         if (this._duration === undefined) {
             const el = this.el.querySelector(SELECTORS.METADATA.DURATION);
             if (el) {
-                this.raw.duration = el.textContent.trim();
+                this.raw.duration = el.textContent?.trim() || '';
                 this._duration = Utils.parseDuration(this.raw.duration);
             } else {
                 this._duration = null;
@@ -118,38 +143,38 @@ export class LazyVideoData {
         return this._duration;
     }
 
-    get isShorts() {
+    get isShorts(): boolean {
         if (this._isShorts === undefined) {
              this._isShorts = !!this.el.querySelector(SELECTORS.BADGES.SHORTS);
         }
         return this._isShorts;
     }
 
-    get isLive() { return this.liveViewers !== null; }
+    get isLive(): boolean { return this.liveViewers !== null; }
 
-    get isMembers() {
+    get isMembers(): boolean {
         if (this._isMembers === undefined) {
             this._isMembers = !!this.el.querySelector(SELECTORS.BADGES.MEMBERS) ||
-                /會員專屬|Members only/.test(this.el.innerText);
+                /會員專屬|Members only/.test((this.el as HTMLElement).innerText);
         }
         return this._isMembers;
     }
 
-    get isUserPlaylist() {
+    get isUserPlaylist(): boolean {
         if (this._isUserPlaylist === undefined) {
-            const link = this.el.querySelector('a[href*="list="]');
+            const link = this.el.querySelector<HTMLAnchorElement>('a[href*="list="]');
             if (link && /list=(LL|WL|FL)/.test(link.href)) {
                 this._isUserPlaylist = true;
             } else {
                 const texts = Array.from(this.el.querySelectorAll(SELECTORS.METADATA.TEXT));
                 const ownershipKeywords = /Private|Unlisted|Public|私人|不公開|不公开|公開|公开/i;
-                this._isUserPlaylist = texts.some(t => ownershipKeywords.test(t.textContent));
+                this._isUserPlaylist = texts.some(t => ownershipKeywords.test(t.textContent || ''));
             }
         }
         return this._isUserPlaylist;
     }
 
-    get isPlaylist() {
+    get isPlaylist(): boolean {
         if (this._isPlaylist === undefined) {
             const link = this.el.querySelector('a[href*="list="], [content-id^="PL"]');
             if (link) {
@@ -175,14 +200,17 @@ export class LazyVideoData {
 
 // --- 影片過濾器 ---
 export class VideoFilter {
-    constructor(config) {
+    private config: ConfigManager;
+    private customRules: CustomRuleManager;
+    private observer: MutationObserver | null = null;
+    private hasValidatedSelectors: boolean = false;
+
+    constructor(config: ConfigManager) {
         this.config = config;
         this.customRules = new CustomRuleManager(config);
-        this.observer = null;
-        this.hasValidatedSelectors = false;
     }
 
-    start() {
+    public start(): void {
         if (this.observer) return;
         
         // 優化：使用單一隊列處理 Mutation，由 Filter 內部狀態機管理進度
@@ -192,14 +220,14 @@ export class VideoFilter {
         Logger.info('👁️ VideoFilter observer started');
     }
 
-    stop() {
+    public stop(): void {
         if (this.observer) {
             this.observer.disconnect();
             this.observer = null;
         }
     }
 
-    _validateSelectors(elements) {
+    private _validateSelectors(elements: HTMLElement[]): void {
         if (this.hasValidatedSelectors || !this.config.get('DEBUG_MODE')) return;
         if (!elements || elements.length === 0) return;
 
@@ -214,7 +242,7 @@ export class VideoFilter {
         if (!sample) return; // 頁面可能還在載入中，下次 processPage 再試
 
         this.hasValidatedSelectors = true;
-        let issues = [];
+        let issues: string[] = [];
 
         // Check Critical Selectors
         if (!sample.querySelector(SELECTORS.METADATA.CHANNEL)) issues.push('METADATA.CHANNEL');
@@ -226,12 +254,7 @@ export class VideoFilter {
         }
     }
 
-    get isPageAllowingContent() {
-        // 在這些頁面不執行內容過濾 (但仍執行廣告過濾)
-        // 1. /feed/playlists (播放清單頁)
-        // 2. /feed/library (媒體庫)
-        // 3. /feed/subscriptions (訂閱內容) - 通常使用者想看所有訂閱
-        // 4. /@xxx (頻道首頁)、/channel/xxx 等頻道頁面 - 使用者主動瀏覽特定頻道
+    get isPageAllowingContent(): boolean {
         const path = window.location.pathname;
 
         // 頻道頁面判斷
@@ -241,26 +264,27 @@ export class VideoFilter {
                /\/playlists$/.test(path);
     }
 
-    processMutations(mutations) {
+    public processMutations(mutations: MutationRecord[]): void {
         if (mutations.length > MUTATION_THRESHOLD) {
             this.processPage();
             return;
         }
 
-        const candidates = new Set();
+        const candidates = new Set<HTMLElement>();
         for (const mutation of mutations) {
-            for (const node of mutation.addedNodes) {
+            for (const node of Array.from(mutation.addedNodes)) {
                 if (node.nodeType !== 1) continue;
-                if (node.matches?.(SELECTORS.allContainers)) candidates.add(node);
-                node.querySelectorAll?.(SELECTORS.allContainers).forEach(c => candidates.add(c));
+                const el = node as HTMLElement;
+                if (el.matches?.(SELECTORS.allContainers)) candidates.add(el);
+                el.querySelectorAll?.(SELECTORS.allContainers).forEach(c => candidates.add(c as HTMLElement));
             }
         }
 
         if (candidates.size > 0) this._processBatch(Array.from(candidates), 0);
     }
 
-    processPage() {
-        const elements = Array.from(document.querySelectorAll(SELECTORS.allContainers));
+    public processPage(): void {
+        const elements = Array.from(document.querySelectorAll<HTMLElement>(SELECTORS.allContainers));
         
         // Debug Health Check (Run once per page load)
         this._validateSelectors(elements);
@@ -275,7 +299,7 @@ export class VideoFilter {
         }
     }
 
-    _processBatch(elements, startIndex) {
+    private _processBatch(elements: HTMLElement[], startIndex: number): void {
         requestIdleCallback((deadline) => {
             let i = startIndex;
             while (i < elements.length && (deadline.timeRemaining() > 0 || deadline.didTimeout)) {
@@ -287,9 +311,9 @@ export class VideoFilter {
         }, { timeout: IDLE_TIMEOUT });
     }
 
-    processElement(element) {
+    public processElement(element: HTMLElement): void {
         // 1. 鎖定容器：所有操作都以最外層容器為準
-        const container = element.closest('ytd-rich-item-renderer, ytd-grid-video-renderer, ytd-compact-video-renderer, ytd-playlist-renderer, ytd-rich-section-renderer, ytd-reel-shelf-renderer, ytd-playlist-panel-video-renderer') || element;
+        const container = element.closest<HTMLElement>('ytd-rich-item-renderer, ytd-grid-video-renderer, ytd-compact-video-renderer, ytd-playlist-renderer, ytd-rich-section-renderer, ytd-reel-shelf-renderer, ytd-playlist-panel-video-renderer') || element;
 
         // 2. 基本檢查：容器已檢查過、或已隱藏，則跳過
         if (container.dataset.ypChecked || container.dataset.ypHidden) {
@@ -302,13 +326,13 @@ export class VideoFilter {
             return this._hide(element, { reason: 'native_hidden' });
         }
 
-        let filterDetail = null;
+        let filterDetail: FilterDetail | null = null;
         const item = new LazyVideoData(element);
 
         // --- 第一階段：過濾判定 (收集原因) ---
 
         // A. 文字規則檢查 (Custom Rules)
-        const textMatch = this.customRules.check(element, element.textContent);
+        const textMatch = this.customRules.check(element, element.textContent || '');
         if (textMatch) filterDetail = { reason: textMatch.key, trigger: textMatch.trigger };
 
         // B. 欄位標題過濾
@@ -367,7 +391,8 @@ export class VideoFilter {
                 const trigger = filterDetail.trigger ? ` [${filterDetail.trigger}]` : '';
                 const ruleInfo = filterDetail.rule ? ` {Rule: ${filterDetail.rule}}` : '';
                 
-                Logger.info(`✅ Keep [Saved by ${savedBy} Whitelist]: ${item.channel} | ${item.title}\n(Originally Triggered: ${filterDetail.reason}${trigger}${ruleInfo})`);
+                Logger.info(`✅ Keep [Saved by ${savedBy} Whitelist]: ${item.channel} | ${item.title}
+(Originally Triggered: ${filterDetail.reason}${trigger}${ruleInfo})`);
                 this._markChecked(container, element);
             } else {
                 this._hide(element, filterDetail, item);
@@ -378,12 +403,12 @@ export class VideoFilter {
         this._markChecked(container, element);
     }
 
-    _markChecked(container, element) {
+    private _markChecked(container: HTMLElement, element: HTMLElement): void {
         container.dataset.ypChecked = 'true';
         element.dataset.ypChecked = 'true';
     }
 
-    _checkSectionFilter(element) {
+    private _checkSectionFilter(element: HTMLElement): FilterDetail | null {
         // 只檢查 Section 容器
         if (!/RICH-SECTION|REEL-SHELF|SHELF-RENDERER/.test(element.tagName)) return null;
         if (!this.config.get('ENABLE_SECTION_FILTER')) return null;
@@ -393,7 +418,7 @@ export class VideoFilter {
         for (const sel of SELECTORS.SHELF_TITLE) {
             const titleEl = element.querySelector(sel);
             if (titleEl) {
-                titleText = titleEl.textContent.trim();
+                titleText = titleEl.textContent?.trim() || '';
                 break;
             }
         }
@@ -410,7 +435,7 @@ export class VideoFilter {
         return null;
     }
 
-    _checkWhitelist(item) {
+    private _checkWhitelist(item: LazyVideoData): string | null {
         const channel = item.channel;
         const title = item.title;
         const config = this.config;
@@ -446,7 +471,7 @@ export class VideoFilter {
         return null;
     }
 
-    _getFilterKeyword(item) {
+    private _getFilterKeyword(item: LazyVideoData): FilterDetail | null {
         if (!this.config.get('ENABLE_KEYWORD_FILTER') || !item.title) return null;
 
         const compiled = this.config.get('compiledKeywords');
@@ -464,7 +489,7 @@ export class VideoFilter {
         return null;
     }
 
-    _getFilterChannel(item) {
+    private _getFilterChannel(item: LazyVideoData): FilterDetail | null {
         if (!this.config.get('ENABLE_CHANNEL_FILTER') || !item.channel) return null;
 
         const compiled = this.config.get('compiledChannels');
@@ -482,7 +507,7 @@ export class VideoFilter {
         return null;
     }
 
-    _getFilterView(item) {
+    private _getFilterView(item: LazyVideoData): FilterDetail | null {
         if (!this.config.get('ENABLE_LOW_VIEW_FILTER') || item.isShorts) return null;
 
         const th = this.config.get('LOW_VIEW_THRESHOLD');
@@ -499,7 +524,7 @@ export class VideoFilter {
         return null;
     }
 
-    _getFilterDuration(item) {
+    private _getFilterDuration(item: LazyVideoData): FilterDetail | null {
         if (!this.config.get('ENABLE_DURATION_FILTER') || item.isShorts || item.duration === null) return null;
 
         const min = this.config.get('DURATION_MIN');
@@ -514,18 +539,18 @@ export class VideoFilter {
         return null;
     }
 
-    _getFilterPlaylist(item) {
+    private _getFilterPlaylist(item: LazyVideoData): FilterDetail | null {
         if (!this.config.get('RULE_ENABLES').recommended_playlists || !item.isPlaylist) return null;
         if (item.isUserPlaylist) return null;
         return { reason: 'recommended_playlists', trigger: 'Detected as algorithmic Mix/Playlist' };
     }
 
-    _hide(element, detail, item = null) {
+    private _hide(element: HTMLElement, detail: FilterDetail, item: LazyVideoData | null = null): void {
         const reason = detail.reason;
         const trigger = detail.trigger ? ` [${detail.trigger}]` : '';
         const ruleInfo = detail.rule ? ` {Rule: ${detail.rule}}` : '';
 
-        const container = element.closest('ytd-rich-item-renderer, ytd-grid-video-renderer, ytd-compact-video-renderer, ytd-playlist-renderer, ytd-rich-section-renderer, ytd-reel-shelf-renderer, ytd-playlist-panel-video-renderer') || element;
+        const container = element.closest<HTMLElement>('ytd-rich-item-renderer, ytd-grid-video-renderer, ytd-compact-video-renderer, ytd-playlist-renderer, ytd-rich-section-renderer, ytd-reel-shelf-renderer, ytd-playlist-panel-video-renderer') || element;
         
         // 如果已經隱藏過了，直接標記並退出，防止重複 Log
         if (container.dataset.ypHidden) {
@@ -548,15 +573,18 @@ export class VideoFilter {
         // Rich Logging for Debug
         const logMsg = `Hidden [${reason}]${trigger}${ruleInfo}`;
         if (item && item.url) {
-            Logger.info(`${logMsg}\nTitle: ${item.title}\nChannel: "${item.channel}"\nURL: ${item.url}`);
+            Logger.info(`${logMsg}
+Title: ${item.title}
+Channel: "${item.channel}"
+URL: ${item.url}`);
         } else {
             Logger.info(logMsg);
         }
     }
 
-    clearCache() {
+    public clearCache(): void {
         // 徹底還原所有被隱藏或檢查過的元素狀態，確保白名單能正確生效
-        document.querySelectorAll('[data-yp-checked], [data-yp-hidden]').forEach(el => {
+        document.querySelectorAll<HTMLElement>('[data-yp-checked], [data-yp-hidden]').forEach(el => {
             if (el.dataset.ypHidden) {
                 el.style.display = '';
                 el.style.visibility = '';
@@ -567,8 +595,8 @@ export class VideoFilter {
         this.hasValidatedSelectors = false;
     }
 
-    reset() {
-        document.querySelectorAll('[data-yp-hidden]').forEach(el => {
+    public reset(): void {
+        document.querySelectorAll<HTMLElement>('[data-yp-hidden]').forEach(el => {
             el.style.display = '';
             delete el.dataset.ypHidden;
             delete el.dataset.ypChecked;
