@@ -1,12 +1,17 @@
-import { Logger } from '../core/logger.js';
-import { SELECTORS } from '../data/selectors.js';
+import { Logger } from '../core/logger';
+import { SELECTORS } from '../data/selectors';
+import { ConfigManager } from '../core/config';
 
 // --- 5. Module: Style Manager (CSS) ---
 export class StyleManager {
-    constructor(config) { this.config = config; }
+    private config: ConfigManager;
 
-    apply() {
-        const rules = [];
+    constructor(config: ConfigManager) { 
+        this.config = config; 
+    }
+
+    public apply(): void {
+        const rules: string[] = [];
         const enables = this.config.get('RULE_ENABLES');
 
         // 5.1 Global Fixes
@@ -38,7 +43,7 @@ export class StyleManager {
 
         // 5.3 Simple Selection (CSS)
         // ★ Add new Selector-based rules here
-        const map = {
+        const map: Partial<Record<keyof typeof enables, string[]>> = {
             ad_sponsor: [
                 'ytd-ad-slot-renderer',
                 'ytd-promoted-sparkles-text-search-renderer',
@@ -55,12 +60,14 @@ export class StyleManager {
         };
 
         for (const [key, selectors] of Object.entries(map)) {
-            if (enables[key]) rules.push(`${selectors.join(', ')} { display: none !important; }`);
+            if (enables[key as keyof typeof enables]) {
+                rules.push(`${selectors!.join(', ')} { display: none !important; }`);
+            }
         }
 
         // 5.4 Advanced :has() Rules
         // ★ 僅保留純廣告類，內容類 (Shorts/Mix/Members) 移至 JS 處理以支援白名單
-        const hasRules = [
+        const hasRules: { key: keyof typeof enables; selector: string }[] = [
             { key: 'ad_sponsor', selector: '[aria-label*="廣告"], [aria-label*="Sponsor"], [aria-label="贊助商廣告"], ad-badge-view-model, feed-ad-metadata-view-model' }
         ];
 
@@ -71,8 +78,6 @@ export class StyleManager {
             }
         });
 
-        // 5.5 首頁推薦播放清單 (已移至 JavaScript 處理)
-
         // 修正：避免重複注入，先檢查是否存在
         let styleEl = document.getElementById('yt-cleaner-css');
         if (!styleEl) {
@@ -80,7 +85,8 @@ export class StyleManager {
             styleEl.id = 'yt-cleaner-css';
             document.head.appendChild(styleEl);
         }
-        styleEl.textContent = rules.join('\n');
+        styleEl.textContent = rules.join('
+');
         Logger.info('Static CSS rules updated');
     }
 }
