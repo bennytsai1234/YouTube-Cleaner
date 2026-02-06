@@ -380,7 +380,7 @@ export class VideoFilter {
             }
 
             // 2. 定義「強規則」：不論是否在普通白名單，一律隱藏 (如 Shorts、合輯)
-            const strongReasons = ['members_only_js', 'shorts_item_js', 'recommended_playlists'];
+            const strongReasons = ['members_only', 'members_only_js', 'shorts_item_js', 'recommended_playlists'];
             const isStrong = strongReasons.includes(filterDetail.reason);
 
             // 3. 弱規則檢查：檢查普通頻道/關鍵字白名單
