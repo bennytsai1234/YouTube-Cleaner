@@ -1,4 +1,5 @@
 import { Utils } from './utils';
+import { I18N } from '../ui/i18n';
 
 declare const GM_getValue: (key: string, defaultValue?: any) => any;
 declare const GM_setValue: (key: string, value: any) => void;
@@ -89,14 +90,7 @@ export class ConfigManager {
             MEMBERS_WHITELIST: [], // 新增：會員影片專屬白名單
             KEYWORD_WHITELIST: [], // 新增：關鍵字白名單
             ENABLE_SECTION_FILTER: true,
-            SECTION_TITLE_BLACKLIST: [
-                // 中文 (繁/簡)
-                '耳目一新', '重溫舊愛', '合輯', '最新貼文', '發燒影片', '熱門', '為您推薦', '推薦', '先前搜尋內容', '相關內容',
-                // English
-                'New to you', 'Relive', 'Mixes', 'Latest posts', 'Trending', 'Recommended', 'People also watched', 'From your search', 'Related to', 'Previously watched',
-                // Japanese
-                'おすすめ', 'ミックス', '新着', 'トレンド', 'あなたへの', '関連'
-            ],
+            SECTION_TITLE_BLACKLIST: Object.values(I18N.defaultSectionBlacklist).flat(),
             ENABLE_DURATION_FILTER: true,
             DURATION_MIN: 0,
             DURATION_MAX: 0,

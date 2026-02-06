@@ -106,11 +106,13 @@ export class LazyVideoData {
         this._liveViewers = null;
         this._timeAgo = null;
 
+        const patterns = I18N.filterPatterns[I18N.lang];
+
         for (const t of texts) {
             const text = t.textContent || '';
-            const isLive = /正在觀看|觀眾|watching|viewers/i.test(text);
-            const isView = /view|觀看|次/i.test(text);
-            const isAgo = /ago|前/i.test(text);
+            const isLive = patterns.live.test(text);
+            const isView = patterns.views.test(text);
+            const isAgo = patterns.ago.test(text);
 
             if (this._liveViewers === null && isLive) {
                 this.raw.viewers = text;
@@ -190,7 +192,8 @@ export class LazyVideoData {
             }
             // 檢查 Title
             const title = this.title;
-            if (title && /^(合輯|Mix)/i.test(title)) {
+            const pattern = I18N.filterPatterns[I18N.lang]?.playlist || /Mix/i;
+            if (title && pattern.test(title)) {
                 this._isPlaylist = true;
                 return true;
             }

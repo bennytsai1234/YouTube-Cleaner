@@ -71,7 +71,9 @@ export const I18N = {
             adv_region_convert: '繁簡通用過濾',
             adv_disable_channel: '頻道頁面停止過濾 (保留內容)',
             next_page: '下一頁',
-            prev_page: '上一頁'
+            prev_page: '上一頁',
+            movies_keyword: '電影',
+            fundraiser_keyword: '募款'
         },
         'zh-CN': {
             title: 'YouTube 净化大师',
@@ -131,7 +133,9 @@ export const I18N = {
             adv_region_convert: '繁简通用过滤',
             adv_disable_channel: '频道页面停止过滤 (保留内容)',
             next_page: '下一页',
-            prev_page: '上一頁'
+            prev_page: '上一頁',
+            movies_keyword: '电影',
+            fundraiser_keyword: '募款'
         },
         'en': {
             title: 'YouTube Cleaner',
@@ -191,7 +195,9 @@ export const I18N = {
             adv_region_convert: 'Region Agnostic Filter',
             adv_disable_channel: 'Disable on Channel Pages',
             next_page: 'Next Page',
-            prev_page: 'Prev Page'
+            prev_page: 'Prev Page',
+            movies_keyword: 'Movies',
+            fundraiser_keyword: 'Fundraiser'
         },
         'ja': {
             title: 'YouTube 浄化大師',
@@ -251,7 +257,9 @@ export const I18N = {
             adv_region_convert: '繁體字/簡體字共通フィルター',
             adv_disable_channel: 'チャンネルページではフィルターを無効にする',
             next_page: '次へ',
-            prev_page: '前へ'
+            prev_page: '前へ',
+            movies_keyword: '映画',
+            fundraiser_keyword: '募金'
         }
     } as Record<SupportedLang, I18NStrings>,
 
@@ -259,21 +267,53 @@ export const I18N = {
     filterPatterns: {
         'zh-TW': {
             members_only: /頻道會員專屬|會員搶先看/i,
-            shorts: /Shorts/i
+            shorts: /Shorts/i,
+            live: /正在觀看|觀眾/i,
+            views: /view|觀看|次/i,
+            ago: /ago|前/i,
+            playlist: /合輯|Mix/i,
+            movies: /電影|Movies/i,
+            fundraiser: /募款/i
         },
         'zh-CN': {
             members_only: /会员专属|会员抢先看/i,
-            shorts: /Shorts/i
+            shorts: /Shorts/i,
+            live: /正在观看|观众/i,
+            views: /view|观看|次/i,
+            ago: /ago|前/i,
+            playlist: /合辑|Mix/i,
+            movies: /电影|Movies/i,
+            fundraiser: /募款/i
         },
         'en': {
             members_only: /Members only|Early access/i,
-            shorts: /Shorts/i
+            shorts: /Shorts/i,
+            live: /watching|viewers/i,
+            views: /view/i,
+            ago: /ago/i,
+            playlist: /Mix/i,
+            movies: /Movies/i,
+            fundraiser: /Fundraiser/i
         },
         'ja': {
             members_only: /メンバー限定|先行公開/i,
-            shorts: /Shorts/i
+            shorts: /Shorts/i,
+            live: /視聴中|視聴者/i,
+            views: /視聴|回/i,
+            ago: /前/i,
+            playlist: /ミックス/i,
+            movies: /映画|Movies/i,
+            fundraiser: /募金/i
         }
     } as Record<SupportedLang, Record<string, RegExp>>,
+
+    // 預設的欄位黑名單 (Section Titles)
+    defaultSectionBlacklist: {
+        'zh-TW': ['耳目一新', '重溫舊愛', '合輯', '最新貼文', '發燒影片', '熱門', '為您推薦', '推薦', '先前搜尋內容', '相關內容'],
+        'zh-CN': ['耳目一新', '重温旧爱', '合辑', '最新贴文', '发烧影片', '热门', '为您推荐', '推荐', '先前搜索内容', '相关内容'],
+        'en': ['New to you', 'Relive', 'Mixes', 'Latest posts', 'Trending', 'Recommended', 'People also watched', 'From your search', 'Related to', 'Previously watched'],
+        'ja': ['おすすめ', 'ミックス', '新着', 'トレンド', 'あなたへの', '関連']
+    } as Record<SupportedLang, string[]>,
 
     // 規則名稱翻譯
     ruleNames: {

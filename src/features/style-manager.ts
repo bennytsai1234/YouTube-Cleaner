@@ -1,6 +1,7 @@
 import { Logger } from '../core/logger';
 import { SELECTORS } from '../data/selectors';
 import { ConfigManager } from '../core/config';
+import { I18N } from '../ui/i18n';
 
 // --- 5. Module: Style Manager (CSS) ---
 export class StyleManager {
@@ -58,8 +59,12 @@ export class StyleManager {
             playables_block: ['ytd-rich-section-renderer:has(ytd-rich-shelf-renderer[is-playables])', 'ytd-game-card-renderer'],
             shorts_block: ['ytd-rich-section-renderer:has(ytd-rich-shelf-renderer[is-shorts])', 'ytd-reel-shelf-renderer'],
             news_block: ['ytd-rich-section-renderer:has(ytd-rich-shelf-renderer[is-news])'],
-            movies_shelf: ['ytd-rich-section-renderer:has(ytd-rich-shelf-renderer:has(#title[title*="電影"], #title[title*="Movies"]))'],
-            fundraiser_block: ['ytd-rich-section-renderer:has(ytd-rich-shelf-renderer:has(#title[title*="募款"]))']
+            movies_shelf: [
+                `ytd-rich-section-renderer:has(ytd-rich-shelf-renderer:has(#title[title*="${I18N.t('movies_keyword') || 'Movies'}"]))`
+            ],
+            fundraiser_block: [
+                `ytd-rich-section-renderer:has(ytd-rich-shelf-renderer:has(#title[title*="${I18N.t('fundraiser_keyword') || 'Fundraiser'}"]))`
+            ]
         };
 
         for (const [key, selectors] of Object.entries(map)) {
