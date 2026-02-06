@@ -1,5 +1,7 @@
 /* global OpenCC */
-import { CLEANING_RULES } from './constants.js';
+import { CLEANING_RULES } from './constants';
+
+declare const OpenCC: any;
 
 // --- 常數定義 ---
 const TIME_UNITS = {
@@ -9,9 +11,9 @@ const TIME_UNITS = {
     WEEK: 10080,
     MONTH: 43200,
     YEAR: 525600
-};
+} as const;
 
-const MULTIPLIERS = {
+const MULTIPLIERS: Record<string, number> = {
     'k': 1e3, 'm': 1e6, 'b': 1e9,
     'K': 1e3, 'M': 1e6, 'B': 1e9,
     '千': 1e3, '萬': 1e4, '億': 1e8,
@@ -24,7 +26,7 @@ const RX_TIME_AGO_CHECK = /(ago|前|hour|minute|day|week|month|year|秒|分|時|
 const RX_TIME_AGO_PARSE = /([\d.]+)\s*(second|minute|min|hour|hr|day|week|month|year|秒|分|小時|時|天|日|週|周|月|年)s?/i;
 const RX_ZERO_TIME = /second|秒/i;
 
-const TIME_UNIT_KEYS = {
+const TIME_UNIT_KEYS: Record<string, number> = {
     'minute': TIME_UNITS.MINUTE, 'min': TIME_UNITS.MINUTE, '分': TIME_UNITS.MINUTE,
     'hour': TIME_UNITS.HOUR, 'hr': TIME_UNITS.HOUR, '時': TIME_UNITS.HOUR, '小時': TIME_UNITS.HOUR,
     'day': TIME_UNITS.DAY, '天': TIME_UNITS.DAY, '日': TIME_UNITS.DAY,
@@ -36,18 +38,21 @@ const TIME_UNIT_KEYS = {
 // --- 工具函式 ---
 export const Utils = {
     // 快取 OpenCC 轉換器
-    _openccToSimp: null,
-    _openccToTrad: null,
-    _channelCleanerRX: null,
+    _openccToSimp: null as any,
+    _openccToTrad: null as any,
+    _channelCleanerRX: null as { prefix: RegExp; suffix: RegExp } | null,
 
-    debounce: (func, delay) => {
-        let t;
-        return (...args) => { clearTimeout(t); t = setTimeout(() => func(...args), delay); };
+    debounce<T extends (...args: any[]) => any>(func: T, delay: number): (...args: Parameters<T>) => void {
+        let t: any;
+        return (...args: Parameters<T>) => { 
+            clearTimeout(t); 
+            t = setTimeout(() => func(...args), delay); 
+        };
     },
 
-    throttle: (func, limit) => {
-        let inThrottle;
-        return function(...args) {
+    throttle<T extends (...args: any[]) => any>(func: T, limit: number): (...args: Parameters<T>) => void {
+        let inThrottle: boolean;
+        return function(this: any, ...args: Parameters<T>) {
             const context = this;
             if (!inThrottle) {
                 func.apply(context, args);
@@ -57,7 +62,7 @@ export const Utils = {
         };
     },
 
-    parseNumeric: (text, type = 'any') => {
+    parseNumeric: (text: string | null | undefined, type: 'view' | 'any' = 'any'): number | null => {
         if (!text) return null;
         if (type === 'view' && RX_TIME_AGO_CHECK.test(text)) return null;
 
@@ -66,7 +71,7 @@ export const Utils = {
         if (!match) return null;
 
         let num = parseFloat(match[1]);
-        const unit = match[2]; // 不使用 toLowerCase 以支援原件比對，雖然 MULTIPLIERS 有處理
+        const unit = match[2];
 
         if (unit && MULTIPLIERS[unit]) {
             num *= MULTIPLIERS[unit];
@@ -77,7 +82,7 @@ export const Utils = {
         return Math.floor(num);
     },
 
-    parseDuration: (text) => {
+    parseDuration: (text: string | null | undefined): number | null => {
         if (!text) return null;
         const parts = text.trim().split(':').map(Number);
         if (parts.some(isNaN)) return null;
@@ -87,7 +92,7 @@ export const Utils = {
         return null;
     },
 
-    parseTimeAgo: (text) => {
+    parseTimeAgo: (text: string | null | undefined): number | null => {
         if (!text) return null;
         if (RX_ZERO_TIME.test(text)) return 0;
         const match = text.match(RX_TIME_AGO_PARSE);
@@ -101,13 +106,13 @@ export const Utils = {
         return null;
     },
 
-    parseLiveViewers: (text) => {
+    parseLiveViewers: (text: string | null | undefined): number | null => {
         if (!text) return null;
         if (!/(正在觀看|觀眾|watching|viewers)/i.test(text)) return null;
         return Utils.parseNumeric(text, 'any');
     },
 
-    _initOpenCC: () => {
+    _initOpenCC: (): boolean => {
         if (Utils._openccToSimp) return true;
         if (typeof OpenCC === 'undefined') return false;
         try {
@@ -119,14 +124,14 @@ export const Utils = {
         }
     },
 
-    escapeRegex: (s) => {
-        return s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    escapeRegex: (s: string): string => {
+        return s.replace(/[.*+?^${}()|[\]\]/g, '\$&');
     },
 
-    generateCnRegex: (text, exact = false) => {
+    generateCnRegex: (text: string | null | undefined, exact = false): RegExp | null => {
         if (!text) return null;
         const escape = Utils.escapeRegex;
-        const wrap = s => exact ? `^${s}$` : s;
+        const wrap = (s: string) => exact ? `^${s}$` : s;
 
         if (Utils._initOpenCC()) {
             try {
@@ -146,11 +151,11 @@ export const Utils = {
         }
     },
 
-    cleanChannelName: (name) => {
+    cleanChannelName: (name: string | null | undefined): string => {
         if (!name) return '';
         let clean = name.replace(/[\u200B-\u200D\uFEFF]/g, '').replace(/\u00A0/g, ' ');
         if (!Utils._channelCleanerRX) {
-            const esc = s => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+            const esc = (s: string) => s.replace(/[.*+?^${}()|[\]\]/g, '\$&');
             const prePattern = `^(${CLEANING_RULES.PREFIXES.map(esc).join('|')})`;
             const sufPattern = `(${CLEANING_RULES.SUFFIXES.map(esc).join('|')})$`;
             Utils._channelCleanerRX = {
