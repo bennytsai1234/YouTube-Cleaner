@@ -65,13 +65,16 @@
         _openccToSimp: null,
         _openccToTrad: null,
         _channelCleanerRX: null,
-        debounce: (func, delay) => {
+        debounce(func, delay) {
             let t;
-            return (...args) => { clearTimeout(t); t = setTimeout(() => func(...args), delay); };
+            return (...args) => {
+                clearTimeout(t);
+                t = setTimeout(() => func(...args), delay);
+            };
         },
-        throttle: (func, limit) => {
+        throttle(func, limit) {
             let inThrottle;
-            return function(...args) {
+            return function (...args) {
                 const context = this;
                 if (!inThrottle) {
                     func.apply(context, args);
@@ -81,55 +84,74 @@
             };
         },
         parseNumeric: (text, type = 'any') => {
-            if (!text) return null;
-            if (type === 'view' && RX_TIME_AGO_CHECK.test(text)) return null;
+            if (!text)
+                return null;
+            if (type === 'view' && RX_TIME_AGO_CHECK.test(text))
+                return null;
             const clean = text.replace(/,/g, '').trim();
             const match = clean.match(RX_NUMERIC);
-            if (!match) return null;
+            if (!match)
+                return null;
             let num = parseFloat(match[1]);
             const unit = match[2];
             if (unit && MULTIPLIERS[unit]) {
                 num *= MULTIPLIERS[unit];
-            } else if (unit && MULTIPLIERS[unit.toLowerCase()]) {
+            }
+            else if (unit && MULTIPLIERS[unit.toLowerCase()]) {
                 num *= MULTIPLIERS[unit.toLowerCase()];
             }
             return Math.floor(num);
         },
         parseDuration: (text) => {
-            if (!text) return null;
+            if (!text)
+                return null;
             const parts = text.trim().split(':').map(Number);
-            if (parts.some(isNaN)) return null;
-            if (parts.length === 3) return parts[0] * 3600 + parts[1] * 60 + parts[2];
-            if (parts.length === 2) return parts[0] * 60 + parts[1];
-            if (parts.length === 1) return parts[0];
+            if (parts.some(isNaN))
+                return null;
+            if (parts.length === 3)
+                return parts[0] * 3600 + parts[1] * 60 + parts[2];
+            if (parts.length === 2)
+                return parts[0] * 60 + parts[1];
+            if (parts.length === 1)
+                return parts[0];
             return null;
         },
         parseTimeAgo: (text) => {
-            if (!text) return null;
-            if (RX_ZERO_TIME.test(text)) return 0;
+            if (!text)
+                return null;
+            if (RX_ZERO_TIME.test(text))
+                return 0;
             const match = text.match(RX_TIME_AGO_PARSE);
-            if (!match) return null;
+            if (!match)
+                return null;
             const val = parseFloat(match[1]);
             const unitStr = match[2].toLowerCase();
-            if (TIME_UNIT_KEYS[unitStr]) return val * TIME_UNIT_KEYS[unitStr];
+            if (TIME_UNIT_KEYS[unitStr])
+                return val * TIME_UNIT_KEYS[unitStr];
             for (const [key, multiplier] of Object.entries(TIME_UNIT_KEYS)) {
-                if (unitStr.includes(key)) return val * multiplier;
+                if (unitStr.includes(key))
+                    return val * multiplier;
             }
             return null;
         },
         parseLiveViewers: (text) => {
-            if (!text) return null;
-            if (!/(正在觀看|觀眾|watching|viewers)/i.test(text)) return null;
+            if (!text)
+                return null;
+            if (!/(正在觀看|觀眾|watching|viewers)/i.test(text))
+                return null;
             return Utils.parseNumeric(text, 'any');
         },
         _initOpenCC: () => {
-            if (Utils._openccToSimp) return true;
-            if (typeof OpenCC === 'undefined') return false;
+            if (Utils._openccToSimp)
+                return true;
+            if (typeof OpenCC === 'undefined')
+                return false;
             try {
                 Utils._openccToSimp = OpenCC.Converter({ from: 'tw', to: 'cn' });
                 Utils._openccToTrad = OpenCC.Converter({ from: 'cn', to: 'tw' });
                 return true;
-            } catch (e) {
+            }
+            catch (e) {
                 return false;
             }
         },
@@ -137,30 +159,35 @@
             return s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
         },
         generateCnRegex: (text, exact = false) => {
-            if (!text) return null;
+            if (!text)
+                return null;
             const escape = Utils.escapeRegex;
-            const wrap = s => exact ? `^${s}$` : s;
+            const wrap = (s) => exact ? `^${s}$` : s;
             if (Utils._initOpenCC()) {
                 try {
                     const simp = Utils._openccToSimp(text);
                     const trad = Utils._openccToTrad(text);
                     const escSimp = escape(simp);
                     const escTrad = escape(trad);
-                    if (escSimp === escTrad) return new RegExp(wrap(escSimp), 'i');
+                    if (escSimp === escTrad)
+                        return new RegExp(wrap(escSimp), 'i');
                     return new RegExp(wrap(`(?:${escSimp}|${escTrad})`), 'i');
-                } catch (e) {  }
+                }
+                catch (e) {  }
             }
             try {
                 return new RegExp(wrap(escape(text)), 'i');
-            } catch (e) {
+            }
+            catch (e) {
                 return null;
             }
         },
         cleanChannelName: (name) => {
-            if (!name) return '';
+            if (!name)
+                return '';
             let clean = name.replace(/[\u200B-\u200D\uFEFF]/g, '').replace(/\u00A0/g, ' ');
             if (!Utils._channelCleanerRX) {
-                const esc = s => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+                const esc = (s) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
                 const prePattern = `^(${CLEANING_RULES.PREFIXES.map(esc).join('|')})`;
                 const sufPattern = `(${CLEANING_RULES.SUFFIXES.map(esc).join('|')})$`;
                 Utils._channelCleanerRX = {
@@ -177,8 +204,11 @@
 
     let instance = null;
     class ConfigManager {
+        defaults;
+        state;
         constructor() {
-            if (instance) return instance;
+            if (instance)
+                return instance;
             instance = this;
             this.defaults = {
                 OPEN_IN_NEW_TAB: true,
@@ -219,30 +249,34 @@
             this.state = this._load();
         }
         _compileList(list) {
-            if (!Array.isArray(list)) return [];
+            if (!Array.isArray(list))
+                return [];
             return list.map(k => {
                 try {
                     if (k.startsWith('=')) {
                         return Utils.generateCnRegex(k.substring(1), true) || new RegExp(`^${Utils.escapeRegex(k.substring(1))}$`, 'i');
                     }
                     return Utils.generateCnRegex(k) || new RegExp(Utils.escapeRegex(k), 'i');
-                } catch (e) {
+                }
+                catch (e) {
                     return null;
                 }
-            }).filter(Boolean);
+            }).filter((x) => x !== null);
         }
         _load() {
             const get = (k, d) => GM_getValue(k, d);
-            const snake = str => str.replace(/[A-Z]/g, l => `_${l.toLowerCase()}`);
+            const snake = (str) => str.replace(/[A-Z]/g, l => `_${l.toLowerCase()}`);
             const loaded = {};
             for (const key in this.defaults) {
-                if (key === 'RULE_ENABLES') {
+                const configKey = key;
+                if (configKey === 'RULE_ENABLES') {
                     const saved = get('ruleEnables', {});
-                    loaded[key] = { ...this.defaults.RULE_ENABLES, ...saved };
-                } else {
-                    loaded[key] = get(snake(key), this.defaults[key]);
-                    if (Array.isArray(this.defaults[key]) && !Array.isArray(loaded[key])) {
-                        loaded[key] = [...this.defaults[key]];
+                    loaded[configKey] = { ...this.defaults.RULE_ENABLES, ...saved };
+                }
+                else {
+                    loaded[configKey] = get(snake(key), this.defaults[configKey]);
+                    if (Array.isArray(this.defaults[configKey]) && !Array.isArray(loaded[configKey])) {
+                        loaded[configKey] = [...this.defaults[configKey]];
                     }
                 }
             }
@@ -254,12 +288,16 @@
             loaded.compiledSectionBlacklist = this._compileList(loaded.SECTION_TITLE_BLACKLIST);
             return loaded;
         }
-        get(key) { return this.state[key]; }
+        get(key) {
+            return this.state[key];
+        }
         set(key, value) {
             this.state[key] = value;
-            const snake = str => str.replace(/[A-Z]/g, l => `_${l.toLowerCase()}`);
-            if (key === 'RULE_ENABLES') GM_setValue('ruleEnables', value);
-            else GM_setValue(snake(key), value);
+            const snake = (str) => str.replace(/[A-Z]/g, l => `_${l.toLowerCase()}`);
+            if (key === 'RULE_ENABLES')
+                GM_setValue('ruleEnables', value);
+            else
+                GM_setValue(snake(key), value);
             const compileMap = {
                 'KEYWORD_BLACKLIST': 'compiledKeywords',
                 'CHANNEL_BLACKLIST': 'compiledChannels',
@@ -268,8 +306,9 @@
                 'KEYWORD_WHITELIST': 'compiledKeywordWhitelist',
                 'SECTION_TITLE_BLACKLIST': 'compiledSectionBlacklist'
             };
-            if (compileMap[key]) {
-                this.state[compileMap[key]] = this._compileList(value);
+            const target = compileMap[key];
+            if (target) {
+                this.state[target] = this._compileList(value);
             }
         }
         toggleRule(ruleId) {
@@ -281,8 +320,14 @@
     const Logger = {
         enabled: false,
         prefix: `[Purifier]`,
-        info(msg, ...args) { if (this.enabled) console.log(`%c${this.prefix} ${msg}`, 'color:#3498db;font-weight:bold', ...args); },
-        warn(msg, ...args) { if (this.enabled) console.warn(`${this.prefix} ${msg}`, ...args); }
+        info(msg, ...args) {
+            if (this.enabled)
+                console.log(`%c${this.prefix} ${msg}`, 'color:#3498db;font-weight:bold', ...args);
+        },
+        warn(msg, ...args) {
+            if (this.enabled)
+                console.warn(`${this.prefix} ${msg}`, ...args);
+        }
     };
 
     const VIDEO_CONTAINERS = [
@@ -342,7 +387,10 @@
         allContainers: ALL_CONTAINERS_STR};
 
     class StyleManager {
-        constructor(config) { this.config = config; }
+        config;
+        constructor(config) {
+            this.config = config;
+        }
         apply() {
             const rules = [];
             const enables = this.config.get('RULE_ENABLES');
@@ -385,7 +433,9 @@
                 shorts_block: ['ytd-rich-section-renderer:has(ytd-rich-shelf-renderer[is-shorts])']
             };
             for (const [key, selectors] of Object.entries(map)) {
-                if (enables[key]) rules.push(`${selectors.join(', ')} { display: none !important; }`);
+                if (enables[key]) {
+                    rules.push(`${selectors.join(', ')} { display: none !important; }`);
+                }
             }
             const hasRules = [
                 { key: 'ad_sponsor', selector: '[aria-label*="廣告"], [aria-label*="Sponsor"], [aria-label="贊助商廣告"], ad-badge-view-model, feed-ad-metadata-view-model' }
@@ -411,6 +461,11 @@
         RESUME_COOLDOWN: 3000
     };
     class AdBlockGuard {
+        keywords;
+        whitelistSelectors;
+        lastTrigger;
+        observer;
+        checkAndCleanThrottled;
         constructor() {
             this.keywords = [
                 'Ad blockers', '廣告攔截器',
@@ -427,6 +482,7 @@
             ];
             this.lastTrigger = 0;
             this.observer = null;
+            this.checkAndCleanThrottled = null;
         }
         patchConfig() {
             try {
@@ -438,13 +494,14 @@
                     config.EXPERIMENT_FLAGS.ad_blocker_notifications_disabled = true;
                     config.EXPERIMENT_FLAGS.web_enable_adblock_detection_block_playback = false;
                 }
-            } catch (e) {
+            }
+            catch (e) {
             }
         }
         start() {
             this.patchConfig();
             this.checkAndCleanThrottled = Utils.throttle(() => this.checkAndClean(), 250);
-            this.observer = new MutationObserver(() => this.checkAndCleanThrottled());
+            this.observer = new MutationObserver(() => this.checkAndCleanThrottled?.());
             this.observer.observe(document.body, {
                 childList: true,
                 subtree: false
@@ -453,9 +510,10 @@
                 const popupContainer = document.querySelector('ytd-popup-container');
                 if (popupContainer && !popupContainer._adGuardObserved) {
                     popupContainer._adGuardObserved = true;
-                    this.observer.observe(popupContainer, { childList: true, subtree: true });
+                    this.observer?.observe(popupContainer, { childList: true, subtree: true });
                     Logger.info('🛡️ AdBlockGuard attached to popup container');
-                } else if (attempts < 10) {
+                }
+                else if (attempts < 10) {
                     setTimeout(() => tryConnect(attempts + 1), 500);
                 }
             };
@@ -466,9 +524,12 @@
             return this.whitelistSelectors.some(sel => dialog.querySelector(sel));
         }
         isAdBlockPopup(dialog) {
-            if (dialog.tagName === 'YTD-ENFORCEMENT-MESSAGE-VIEW-MODEL') return true;
-            if (dialog.querySelector('ytd-enforcement-message-view-model')) return true;
-            if (dialog.textContent && this.keywords.some(k => dialog.textContent.includes(k))) return true;
+            if (dialog.tagName === 'YTD-ENFORCEMENT-MESSAGE-VIEW-MODEL')
+                return true;
+            if (dialog.querySelector('ytd-enforcement-message-view-model'))
+                return true;
+            if (dialog.textContent && this.keywords.some(k => dialog.textContent.includes(k)))
+                return true;
             return false;
         }
         checkAndClean() {
@@ -480,7 +541,8 @@
             const dialogs = document.querySelectorAll(popupSelectors.join(', '));
             let detected = false;
             for (const dialog of dialogs) {
-                if (this.isWhitelisted(dialog)) continue;
+                if (this.isWhitelisted(dialog))
+                    continue;
                 if (this.isAdBlockPopup(dialog)) {
                     dialog.querySelectorAll('[aria-label="Close"], #dismiss-button').forEach(btn => btn.click());
                     dialog.remove();
@@ -498,7 +560,7 @@
                 this.lastTrigger = Date.now();
                 const video = document.querySelector('video');
                 if (video?.paused && !video.ended) {
-                    video.play().catch(() => {});
+                    video.play().catch(() => { });
                 }
             }
         }
@@ -516,8 +578,7 @@
             this.session.byRule[reason] = (this.session.byRule[reason] || 0) + 1;
         },
         getSummary() {
-            return `已過濾 ${this.session.total} 個項目
-` +
+            return `已過濾 ${this.session.total} 個項目\n` +
                 Object.entries(this.session.byRule)
                     .sort((a, b) => b[1] - a[1])
                     .map(([k, v]) => `  ${k}: ${v}`)
@@ -529,6 +590,8 @@
     };
 
     class CustomRuleManager {
+        config;
+        definitions;
         constructor(config) {
             this.config = config;
             this.definitions = [
@@ -555,8 +618,10 @@
                 if (enables[def.key]) {
                     for (const rule of def.rules) {
                         if (rule instanceof RegExp) {
-                            if (rule.test(textContent)) return { key: def.key, trigger: rule.toString() };
-                        } else if (textContent.includes(rule)) {
+                            if (rule.test(textContent))
+                                return { key: def.key, trigger: rule.toString() };
+                        }
+                        else if (textContent.includes(rule)) {
                             return { key: def.key, trigger: rule };
                         }
                     }
@@ -570,15 +635,21 @@
     const IDLE_TIMEOUT = 500;
     const MUTATION_THRESHOLD = 100;
     class LazyVideoData {
+        el;
+        _title = null;
+        _channel = null;
+        _url = undefined;
+        _viewCount = undefined;
+        _liveViewers = undefined;
+        _timeAgo = undefined;
+        _duration = undefined;
+        _isShorts = undefined;
+        _isMembers = undefined;
+        _isUserPlaylist = undefined;
+        _isPlaylist = undefined;
+        raw = { views: '', time: '', duration: '', viewers: '' };
         constructor(element) {
             this.el = element;
-            this._title = null;
-            this._channel = null;
-            this._viewCount = undefined;
-            this._liveViewers = undefined;
-            this._timeAgo = undefined;
-            this._duration = undefined;
-            this.raw = { views: '', time: '', duration: '', viewers: '' };
         }
         get title() {
             if (this._title === null) {
@@ -590,12 +661,14 @@
         get channel() {
             if (this._channel === null) {
                 const el = this.el.querySelector(SELECTORS.METADATA.CHANNEL);
-                if (!el) return '';
+                if (!el)
+                    return '';
                 let rawName = '';
                 if (el.tagName === 'YT-DECORATED-AVATAR-VIEW-MODEL') {
                     const avatarBtn = el.querySelector('[aria-label]');
                     rawName = avatarBtn?.getAttribute('aria-label') || '';
-                } else {
+                }
+                else {
                     rawName = el.textContent?.trim() || '';
                 }
                 this._channel = Utils.cleanChannelName(rawName);
@@ -604,18 +677,22 @@
         }
         get url() {
             if (this._url === undefined) {
-                 const anchor = this.el.querySelector('a[href*="/watch?"], a[href*="/shorts/"]');
-                 this._url = anchor ? anchor.href : '';
+                const anchor = this.el.querySelector('a[href*="/watch?"], a[href*="/shorts/"]');
+                this._url = anchor ? anchor.href : '';
             }
             return this._url;
         }
         _parseMetadata() {
-            if (this._viewCount !== undefined) return;
+            if (this._viewCount !== undefined)
+                return;
             const texts = Array.from(this.el.querySelectorAll(SELECTORS.METADATA.TEXT));
             let aria = '';
             for (const sel of SELECTORS.METADATA.TITLE_LINKS) {
                 const el = this.el.querySelector(`:scope ${sel}`);
-                if (el?.ariaLabel) { aria = el.ariaLabel; break; }
+                if (el?.ariaLabel) {
+                    aria = el.ariaLabel;
+                    break;
+                }
             }
             if (texts.length === 0 && aria) {
                 this.raw.views = aria;
@@ -628,7 +705,7 @@
             this._liveViewers = null;
             this._timeAgo = null;
             for (const t of texts) {
-                const text = t.textContent;
+                const text = t.textContent || '';
                 const isLive = /正在觀看|觀眾|watching|viewers/i.test(text);
                 const isView = /view|觀看|次/i.test(text);
                 const isAgo = /ago|前/i.test(text);
@@ -653,9 +730,10 @@
             if (this._duration === undefined) {
                 const el = this.el.querySelector(SELECTORS.METADATA.DURATION);
                 if (el) {
-                    this.raw.duration = el.textContent.trim();
+                    this.raw.duration = el.textContent?.trim() || '';
                     this._duration = Utils.parseDuration(this.raw.duration);
-                } else {
+                }
+                else {
                     this._duration = null;
                 }
             }
@@ -663,7 +741,7 @@
         }
         get isShorts() {
             if (this._isShorts === undefined) {
-                 this._isShorts = !!this.el.querySelector(SELECTORS.BADGES.SHORTS);
+                this._isShorts = !!this.el.querySelector(SELECTORS.BADGES.SHORTS);
             }
             return this._isShorts;
         }
@@ -680,10 +758,11 @@
                 const link = this.el.querySelector('a[href*="list="]');
                 if (link && /list=(LL|WL|FL)/.test(link.href)) {
                     this._isUserPlaylist = true;
-                } else {
+                }
+                else {
                     const texts = Array.from(this.el.querySelectorAll(SELECTORS.METADATA.TEXT));
                     const ownershipKeywords = /Private|Unlisted|Public|私人|不公開|不公开|公開|公开/i;
-                    this._isUserPlaylist = texts.some(t => ownershipKeywords.test(t.textContent));
+                    this._isUserPlaylist = texts.some(t => ownershipKeywords.test(t.textContent || ''));
                 }
             }
             return this._isUserPlaylist;
@@ -710,14 +789,17 @@
         }
     }
     class VideoFilter {
+        config;
+        customRules;
+        observer = null;
+        hasValidatedSelectors = false;
         constructor(config) {
             this.config = config;
             this.customRules = new CustomRuleManager(config);
-            this.observer = null;
-            this.hasValidatedSelectors = false;
         }
         start() {
-            if (this.observer) return;
+            if (this.observer)
+                return;
             this.observer = new MutationObserver((mutations) => this.processMutations(mutations));
             this.observer.observe(document.body, { childList: true, subtree: true });
             Logger.info('👁️ VideoFilter observer started');
@@ -729,29 +811,34 @@
             }
         }
         _validateSelectors(elements) {
-            if (this.hasValidatedSelectors || !this.config.get('DEBUG_MODE')) return;
-            if (!elements || elements.length === 0) return;
-            const sample = elements.find(el =>
-                /VIDEO|LOCKUP|RICH-ITEM/.test(el.tagName) &&
+            if (this.hasValidatedSelectors || !this.config.get('DEBUG_MODE'))
+                return;
+            if (!elements || elements.length === 0)
+                return;
+            const sample = elements.find(el => /VIDEO|LOCKUP|RICH-ITEM/.test(el.tagName) &&
                 !el.hidden &&
                 el.offsetParent !== null &&
                 el.querySelector(SELECTORS.METADATA.TITLE)
             );
-            if (!sample) return;
+            if (!sample)
+                return;
             this.hasValidatedSelectors = true;
             let issues = [];
-            if (!sample.querySelector(SELECTORS.METADATA.CHANNEL)) issues.push('METADATA.CHANNEL');
+            if (!sample.querySelector(SELECTORS.METADATA.CHANNEL))
+                issues.push('METADATA.CHANNEL');
             if (issues.length > 0) {
                 Logger.warn(`⚠️ Selector Health Check Failed: ${issues.join(', ')} not found in active element`, sample);
-            } else {
+            }
+            else {
                 Logger.info('✅ Selector Health Check Passed');
             }
         }
         get isPageAllowingContent() {
             const path = window.location.pathname;
-            if (this.config.get('DISABLE_FILTER_ON_CHANNEL') && /^\/(@|channel\/|c\/|user\/)/.test(path)) return true;
+            if (this.config.get('DISABLE_FILTER_ON_CHANNEL') && /^\/(@|channel\/|c\/|user\/)/.test(path))
+                return true;
             return /^\/feed\/(playlists|library|subscriptions)/.test(path) ||
-                   /\/playlists$/.test(path);
+                /\/playlists$/.test(path);
         }
         processMutations(mutations) {
             if (mutations.length > MUTATION_THRESHOLD) {
@@ -760,22 +847,28 @@
             }
             const candidates = new Set();
             for (const mutation of mutations) {
-                for (const node of mutation.addedNodes) {
-                    if (node.nodeType !== 1) continue;
-                    if (node.matches?.(SELECTORS.allContainers)) candidates.add(node);
-                    node.querySelectorAll?.(SELECTORS.allContainers).forEach(c => candidates.add(c));
+                for (const node of Array.from(mutation.addedNodes)) {
+                    if (node.nodeType !== 1)
+                        continue;
+                    const el = node;
+                    if (el.matches?.(SELECTORS.allContainers))
+                        candidates.add(el);
+                    el.querySelectorAll?.(SELECTORS.allContainers).forEach(c => candidates.add(c));
                 }
             }
-            if (candidates.size > 0) this._processBatch(Array.from(candidates), 0);
+            if (candidates.size > 0)
+                this._processBatch(Array.from(candidates), 0);
         }
         processPage() {
             const elements = Array.from(document.querySelectorAll(SELECTORS.allContainers));
             this._validateSelectors(elements);
             const unprocessed = elements.filter(el => !el.dataset.ypChecked);
-            if (unprocessed.length === 0) return;
+            if (unprocessed.length === 0)
+                return;
             if ('requestIdleCallback' in window) {
                 this._processBatch(unprocessed, 0);
-            } else {
+            }
+            else {
                 unprocessed.forEach(el => this.processElement(el));
             }
         }
@@ -785,9 +878,11 @@
                 while (i < elements.length && (deadline.timeRemaining() > 0 || deadline.didTimeout)) {
                     this.processElement(elements[i]);
                     i++;
-                    if (i - startIndex >= BATCH_SIZE) break;
+                    if (i - startIndex >= BATCH_SIZE)
+                        break;
                 }
-                if (i < elements.length) this._processBatch(elements, i);
+                if (i < elements.length)
+                    this._processBatch(elements, i);
             }, { timeout: IDLE_TIMEOUT });
         }
         processElement(element) {
@@ -801,11 +896,13 @@
             }
             let filterDetail = null;
             const item = new LazyVideoData(element);
-            const textMatch = this.customRules.check(element, element.textContent);
-            if (textMatch) filterDetail = { reason: textMatch.key, trigger: textMatch.trigger };
+            const textMatch = this.customRules.check(element, element.textContent || '');
+            if (textMatch)
+                filterDetail = { reason: textMatch.key, trigger: textMatch.trigger };
             if (!filterDetail) {
                 const sectionMatch = this._checkSectionFilter(element);
-                if (sectionMatch) filterDetail = sectionMatch;
+                if (sectionMatch)
+                    filterDetail = sectionMatch;
             }
             const isVideoElement = /VIDEO|LOCKUP|RICH-ITEM|PLAYLIST-PANEL-VIDEO/.test(element.tagName);
             if (!filterDetail && isVideoElement && !this.isPageAllowingContent) {
@@ -842,9 +939,11 @@
                     const savedBy = whitelistReason === 'channel_whitelist' ? 'Channel' : 'Keyword';
                     const trigger = filterDetail.trigger ? ` [${filterDetail.trigger}]` : '';
                     const ruleInfo = filterDetail.rule ? ` {Rule: ${filterDetail.rule}}` : '';
-                    Logger.info(`✅ Keep [Saved by ${savedBy} Whitelist]: ${item.channel} | ${item.title}\n(Originally Triggered: ${filterDetail.reason}${trigger}${ruleInfo})`);
+                    Logger.info(`✅ Keep [Saved by ${savedBy} Whitelist]: ${item.channel} | ${item.title}
+(Originally Triggered: ${filterDetail.reason}${trigger}${ruleInfo})`);
                     this._markChecked(container, element);
-                } else {
+                }
+                else {
                     this._hide(element, filterDetail, item);
                 }
                 return;
@@ -856,21 +955,25 @@
             element.dataset.ypChecked = 'true';
         }
         _checkSectionFilter(element) {
-            if (!/RICH-SECTION|REEL-SHELF|SHELF-RENDERER/.test(element.tagName)) return null;
-            if (!this.config.get('ENABLE_SECTION_FILTER')) return null;
+            if (!/RICH-SECTION|REEL-SHELF|SHELF-RENDERER/.test(element.tagName))
+                return null;
+            if (!this.config.get('ENABLE_SECTION_FILTER'))
+                return null;
             let titleText = '';
             for (const sel of SELECTORS.SHELF_TITLE) {
                 const titleEl = element.querySelector(sel);
                 if (titleEl) {
-                    titleText = titleEl.textContent.trim();
+                    titleText = titleEl.textContent?.trim() || '';
                     break;
                 }
             }
-            if (!titleText) return null;
+            if (!titleText)
+                return null;
             const compiled = this.config.get('compiledSectionBlacklist');
             if (compiled) {
                 for (const rx of compiled) {
-                    if (rx.test(titleText)) return { reason: 'section_blacklist', trigger: `Title: "${titleText}"`, rule: rx.toString() };
+                    if (rx.test(titleText))
+                        return { reason: 'section_blacklist', trigger: `Title: "${titleText}"`, rule: rx.toString() };
                 }
             }
             return null;
@@ -883,58 +986,73 @@
             const rawChannels = config.get('CHANNEL_WHITELIST') || [];
             if (channel) {
                 if (compiledChannels && compiledChannels.length > 0) {
-                    if (compiledChannels.some(rx => rx.test(channel))) return 'channel_whitelist';
-                } else if (rawChannels.length > 0) {
+                    if (compiledChannels.some(rx => rx.test(channel)))
+                        return 'channel_whitelist';
+                }
+                else if (rawChannels.length > 0) {
                     const cLower = channel.toLowerCase();
-                    if (rawChannels.some(k => cLower.includes(k.toLowerCase()))) return 'channel_whitelist';
+                    if (rawChannels.some(k => cLower.includes(k.toLowerCase())))
+                        return 'channel_whitelist';
                 }
             }
             const compiledKeywords = config.get('compiledKeywordWhitelist');
             const rawKeywords = config.get('KEYWORD_WHITELIST') || [];
             if (title) {
                 if (compiledKeywords && compiledKeywords.length > 0) {
-                    if (compiledKeywords.some(rx => rx.test(title))) return 'keyword_whitelist';
-                } else if (rawKeywords.length > 0) {
+                    if (compiledKeywords.some(rx => rx.test(title)))
+                        return 'keyword_whitelist';
+                }
+                else if (rawKeywords.length > 0) {
                     const tLower = title.toLowerCase();
-                    if (rawKeywords.some(k => tLower.includes(k.toLowerCase()))) return 'keyword_whitelist';
+                    if (rawKeywords.some(k => tLower.includes(k.toLowerCase())))
+                        return 'keyword_whitelist';
                 }
             }
             return null;
         }
         _getFilterKeyword(item) {
-            if (!this.config.get('ENABLE_KEYWORD_FILTER') || !item.title) return null;
+            if (!this.config.get('ENABLE_KEYWORD_FILTER') || !item.title)
+                return null;
             const compiled = this.config.get('compiledKeywords');
             if (this.config.get('ENABLE_REGION_CONVERT') && compiled) {
                 for (const rx of compiled) {
-                    if (rx.test(item.title)) return { reason: 'keyword_blacklist', trigger: `Title: "${item.title}"`, rule: rx.toString() };
+                    if (rx.test(item.title))
+                        return { reason: 'keyword_blacklist', trigger: `Title: "${item.title}"`, rule: rx.toString() };
                 }
-            } else {
+            }
+            else {
                 const title = item.title.toLowerCase();
                 const rawList = this.config.get('KEYWORD_BLACKLIST');
                 for (const k of rawList) {
-                    if (title.includes(k.toLowerCase())) return { reason: 'keyword_blacklist', trigger: `Keyword: "${k}"` };
+                    if (title.includes(k.toLowerCase()))
+                        return { reason: 'keyword_blacklist', trigger: `Keyword: "${k}"` };
                 }
             }
             return null;
         }
         _getFilterChannel(item) {
-            if (!this.config.get('ENABLE_CHANNEL_FILTER') || !item.channel) return null;
+            if (!this.config.get('ENABLE_CHANNEL_FILTER') || !item.channel)
+                return null;
             const compiled = this.config.get('compiledChannels');
             if (this.config.get('ENABLE_REGION_CONVERT') && compiled) {
                 for (const rx of compiled) {
-                    if (rx.test(item.channel)) return { reason: 'channel_blacklist', trigger: `Channel: "${item.channel}"`, rule: rx.toString() };
+                    if (rx.test(item.channel))
+                        return { reason: 'channel_blacklist', trigger: `Channel: "${item.channel}"`, rule: rx.toString() };
                 }
-            } else {
+            }
+            else {
                 const channel = item.channel.toLowerCase();
                 const rawList = this.config.get('CHANNEL_BLACKLIST');
                 for (const k of rawList) {
-                    if (channel.includes(k.toLowerCase())) return { reason: 'channel_blacklist', trigger: `Channel Keyword: "${k}"` };
+                    if (channel.includes(k.toLowerCase()))
+                        return { reason: 'channel_blacklist', trigger: `Channel Keyword: "${k}"` };
                 }
             }
             return null;
         }
         _getFilterView(item) {
-            if (!this.config.get('ENABLE_LOW_VIEW_FILTER') || item.isShorts) return null;
+            if (!this.config.get('ENABLE_LOW_VIEW_FILTER') || item.isShorts)
+                return null;
             const th = this.config.get('LOW_VIEW_THRESHOLD');
             const grace = this.config.get('GRACE_PERIOD_HOURS') * 60;
             if (item.isLive && item.liveViewers !== null && item.liveViewers < th) {
@@ -942,12 +1060,13 @@
             }
             if (!item.isLive && item.viewCount !== null && item.timeAgo !== null &&
                 item.timeAgo > grace && item.viewCount < th) {
-                return { reason: 'low_view', trigger: `Views: ${item.viewCount} < Threshold: ${th} | Age: ${Math.floor(item.timeAgo/60)}h (Grace: ${this.config.get('GRACE_PERIOD_HOURS')}h) | Raw: "${item.raw.views}"` };
+                return { reason: 'low_view', trigger: `Views: ${item.viewCount} < Threshold: ${th} | Age: ${Math.floor(item.timeAgo / 60)}h (Grace: ${this.config.get('GRACE_PERIOD_HOURS')}h) | Raw: "${item.raw.views}"` };
             }
             return null;
         }
         _getFilterDuration(item) {
-            if (!this.config.get('ENABLE_DURATION_FILTER') || item.isShorts || item.duration === null) return null;
+            if (!this.config.get('ENABLE_DURATION_FILTER') || item.isShorts || item.duration === null)
+                return null;
             const min = this.config.get('DURATION_MIN');
             const max = this.config.get('DURATION_MAX');
             if (min > 0 && item.duration < min) {
@@ -959,8 +1078,10 @@
             return null;
         }
         _getFilterPlaylist(item) {
-            if (!this.config.get('RULE_ENABLES').recommended_playlists || !item.isPlaylist) return null;
-            if (item.isUserPlaylist) return null;
+            if (!this.config.get('RULE_ENABLES').recommended_playlists || !item.isPlaylist)
+                return null;
+            if (item.isUserPlaylist)
+                return null;
             return { reason: 'recommended_playlists', trigger: 'Detected as algorithmic Mix/Playlist' };
         }
         _hide(element, detail, item = null) {
@@ -980,11 +1101,16 @@
                 element.dataset.ypChecked = 'true';
             }
             FilterStats.record(reason);
-            if (reason === 'native_hidden') return;
+            if (reason === 'native_hidden')
+                return;
             const logMsg = `Hidden [${reason}]${trigger}${ruleInfo}`;
             if (item && item.url) {
-                Logger.info(`${logMsg}\nTitle: ${item.title}\nChannel: "${item.channel}"\nURL: ${item.url}`);
-            } else {
+                Logger.info(`${logMsg}
+Title: ${item.title}
+Channel: "${item.channel}"
+URL: ${item.url}`);
+            }
+            else {
                 Logger.info(logMsg);
             }
         }
@@ -1010,25 +1136,30 @@
     }
 
     class InteractionEnhancer {
+        config;
         constructor(config) {
             this.config = config;
         }
         findPrimaryLink(container) {
-            if (!container) return null;
+            if (!container)
+                return null;
             for (const sel of SELECTORS.LINK_CANDIDATES) {
                 const a = container.querySelector(sel);
-                if (a?.href) return a;
+                if (a?.href)
+                    return a;
             }
             return container.querySelector('a[href*="/watch?"], a[href*="/shorts/"], a[href*="/playlist?"]');
         }
         init() {
             document.addEventListener('click', (e) => {
-                if (e.target.closest('[data-yp-hidden]')) return;
+                const target = e.target;
+                if (target.closest('[data-yp-hidden]'))
+                    return;
                 if (this.config.get('OPEN_NOTIFICATIONS_IN_NEW_TAB')) {
-                    const notificationPanel = e.target.closest('ytd-notification-renderer, ytd-comment-video-thumbnail-header-renderer, #sections.ytd-multi-page-menu-renderer');
+                    const notificationPanel = target.closest('ytd-notification-renderer, ytd-comment-video-thumbnail-header-renderer, #sections.ytd-multi-page-menu-renderer');
                     if (notificationPanel) {
-                        const link = e.target.closest('a.yt-simple-endpoint, a[href*="/watch?"]');
-                        if (link && link.href && !e.target.closest('yt-icon-button, button')) {
+                        const link = target.closest('a.yt-simple-endpoint, a[href*="/watch?"]');
+                        if (link && link.href && !target.closest('yt-icon-button, button')) {
                             e.preventDefault();
                             e.stopImmediatePropagation();
                             window.open(link.href, '_blank');
@@ -1036,20 +1167,26 @@
                         }
                     }
                 }
-                if (!this.config.get('OPEN_IN_NEW_TAB')) return;
-                if (e.button !== 0 || e.ctrlKey || e.metaKey || e.shiftKey || e.altKey) return;
-                if (e.target.closest(SELECTORS.INTERACTION_EXCLUDE)) return;
+                if (!this.config.get('OPEN_IN_NEW_TAB'))
+                    return;
+                if (e.button !== 0 || e.ctrlKey || e.metaKey || e.shiftKey || e.altKey)
+                    return;
+                if (target.closest(SELECTORS.INTERACTION_EXCLUDE))
+                    return;
                 let targetLink = null;
-                const previewPlayer = e.target.closest(SELECTORS.PREVIEW_PLAYER);
+                const previewPlayer = target.closest(SELECTORS.PREVIEW_PLAYER);
                 if (previewPlayer) {
                     targetLink = this.findPrimaryLink(previewPlayer) || this.findPrimaryLink(previewPlayer.closest(SELECTORS.CLICKABLE.join(',')));
-                } else {
-                    const container = e.target.closest(SELECTORS.CLICKABLE.join(', '));
-                    if (!container) return;
-                    const channelLink = e.target.closest('a#avatar-link, .ytd-channel-name a, a[href^="/@"], a[href^="/channel/"]');
+                }
+                else {
+                    const container = target.closest(SELECTORS.CLICKABLE.join(', '));
+                    if (!container)
+                        return;
+                    const channelLink = target.closest('a#avatar-link, .ytd-channel-name a, a[href^="/@"], a[href^="/channel/"]');
                     targetLink = channelLink?.href ? channelLink : this.findPrimaryLink(container);
                 }
-                if (!targetLink) return;
+                if (!targetLink)
+                    return;
                 try {
                     const hostname = new URL(targetLink.href, location.origin).hostname;
                     const isValidTarget = targetLink.href && /(^|\.)youtube\.com$/.test(hostname);
@@ -1058,7 +1195,8 @@
                         e.stopImmediatePropagation();
                         window.open(targetLink.href, '_blank');
                     }
-                } catch (err) {  }
+                }
+                catch (err) {  }
             }, { capture: true });
         }
     }
@@ -1184,9 +1322,7 @@
                 adv_region_convert: '繁简通用过滤',
                 adv_disable_channel: '频道页面停止过滤 (保留内容)',
                 next_page: '下一页',
-                prev_page: '上一页',
-                channel_prefixes: ['前往频道：', '輕觸即可觀看「', '前往頻道：'],
-                channel_suffixes: ['」頻道的直播']
+                prev_page: '上一頁'
             },
             'en': {
                 title: 'YouTube Cleaner',
@@ -1251,7 +1387,7 @@
             'ja': {
                 title: 'YouTube 浄化大師',
                 menu_rules: '📂 フィルタールール設定',
-                menu_low_view: '低視聴回数フィルター (ライブ含む)',
+                menu_low_view: '低視聴回數フィルター (ライブ含む)',
                 menu_threshold: '🔢 閾値を設定',
                 menu_grace: '⏳ 猶予期間を設定',
                 menu_content: '🎥 フィルター設定',
@@ -1280,7 +1416,7 @@
                 import_fail: '❌ インポート失敗: ',
                 rules_title: '【 フィルタールール 】',
                 rules_back: '(0 戻る)',
-                threshold_prompt: '「視聴回数閾値」を入力してください (これ未満は非表示):',
+                threshold_prompt: '「視聴回數閾值」を入力してください (これ未満は非表示):',
                 grace_prompt: '「猶予期間 (時間)」を入力してください (0 は猶予なし):',
                 adv_exact_prompt: 'このチャンネルを完全一致で追加しますか？ (1. はい / 2. いいえ)\n\n※完全一致：名前が完全に同じ\n※部分一致：名前の一部を含む',
                 reset_confirm: 'リセットしますか？',
@@ -1303,7 +1439,7 @@
                 adv_remove: '削除',
                 adv_clear: '🧹 全てクリア',
                 adv_restore: '✨ デフォルトに戻す',
-                adv_region_convert: '繁体字/簡体字共通フィルター',
+                adv_region_convert: '繁體字/簡體字共通フィルター',
                 adv_disable_channel: 'チャンネルページではフィルターを無効にする',
                 next_page: '次へ',
                 prev_page: '前へ'
@@ -1412,9 +1548,12 @@
         },
         detectLanguage() {
             const ytLang = document.documentElement.lang || navigator.language || 'zh-TW';
-            if (ytLang.startsWith('zh-CN') || ytLang.startsWith('zh-Hans')) return 'zh-CN';
-            if (ytLang.startsWith('zh')) return 'zh-TW';
-            if (ytLang.startsWith('ja')) return 'ja';
+            if (ytLang.startsWith('zh-CN') || ytLang.startsWith('zh-Hans'))
+                return 'zh-CN';
+            if (ytLang.startsWith('zh'))
+                return 'zh-TW';
+            if (ytLang.startsWith('ja'))
+                return 'ja';
             return 'en';
         },
         get lang() {
@@ -1442,6 +1581,8 @@
     };
 
     class UIManager {
+        config;
+        onRefresh;
         constructor(config, onRefresh) {
             this.config = config;
             this.onRefresh = onRefresh;
@@ -1461,9 +1602,11 @@
                 backAction();
                 return;
             }
-            const selected = visibleItems[parseInt(choice) - 1];
-            if (selected && selected.action) {
-                selected.action();
+            if (choice !== null) {
+                const selected = visibleItems[parseInt(choice) - 1];
+                if (selected && selected.action) {
+                    selected.action();
+                }
             }
         }
         showMainMenu() {
@@ -1566,42 +1709,58 @@
             this._returnToContext(context);
         }
         promptNumber(key, promptKey, context = 'main') {
-            const v = prompt(this.t(promptKey), this.config.get(key));
-            const num = Number(v);
-            if (v !== null && !isNaN(num)) {
-                this.config.set(key, num);
-                this.onRefresh();
-            } else if (v !== null) {
-                alert('❌ ' + this.t('invalid_number'));
+            const v = prompt(this.t(promptKey), String(this.config.get(key)));
+            if (v !== null) {
+                const num = Number(v);
+                if (!isNaN(num)) {
+                    this.config.set(key, num);
+                    this.onRefresh();
+                }
+                else {
+                    alert('❌ ' + this.t('invalid_number'));
+                }
             }
             this._returnToContext(context);
         }
         _returnToContext(context) {
-            const map = { filter: 'showFilterMenu', list: 'showListMenu', ux: 'showUXMenu', system: 'showSystemMenu' };
-            if (map[context]) this[map[context]]();
-            else this.showMainMenu();
+            const map = {
+                filter: () => this.showFilterMenu(),
+                list: () => this.showListMenu(),
+                ux: () => this.showUXMenu(),
+                system: () => this.showSystemMenu()
+            };
+            if (map[context])
+                map[context]();
+            else
+                this.showMainMenu();
         }
         promptDuration() {
-            const min = prompt(this.t('adv_min'), this.config.get('DURATION_MIN') / 60);
-            const max = prompt(this.t('adv_max'), this.config.get('DURATION_MAX') / 60);
+            const min = prompt(this.t('adv_min'), String(this.config.get('DURATION_MIN') / 60));
+            const max = prompt(this.t('adv_max'), String(this.config.get('DURATION_MAX') / 60));
             if (min !== null) {
                 const m = Number(min);
-                if (!isNaN(m)) this.config.set('DURATION_MIN', m * 60);
+                if (!isNaN(m))
+                    this.config.set('DURATION_MIN', m * 60);
             }
             if (max !== null) {
                 const m = Number(max);
-                if (!isNaN(m)) this.config.set('DURATION_MAX', m * 60);
+                if (!isNaN(m))
+                    this.config.set('DURATION_MAX', m * 60);
             }
             this.onRefresh();
             this.showFilterMenu();
         }
         addItem(k, currentList) {
             const v = prompt(`${this.t('adv_add')}:`);
-            if (!v) { this.manage(k); return; }
+            if (!v) {
+                this.manage(k);
+                return;
+            }
             let itemsToAdd = v.split(',').map(s => s.trim()).filter(Boolean);
             if ((k === 'CHANNEL_WHITELIST' || k === 'MEMBERS_WHITELIST') && itemsToAdd.length > 0) {
                 const mode = prompt(this.t('adv_exact_prompt'), '1');
-                if (mode === '1') itemsToAdd = itemsToAdd.map(item => '=' + item);
+                if (mode === '1')
+                    itemsToAdd = itemsToAdd.map(item => '=' + item);
             }
             this.config.set(k, [...new Set([...currentList, ...itemsToAdd])]);
             this.onRefresh();
@@ -1628,15 +1787,19 @@
                 if (Array.isArray(allDefaults) && k === 'SECTION_TITLE_BLACKLIST') {
                     const currentLang = I18N.lang;
                     const filtered = allDefaults.filter(item => {
-                        const isEnglish = /[a-zA-Z]/.test(item);
-                        const isChinese = /[\u4e00-\u9fa5]/.test(item);
-                        const isJapanese = /[\u3040-\u30ff]/.test(item);
-                        if (currentLang.startsWith('zh')) return isChinese || isEnglish;
-                        if (currentLang === 'ja') return isJapanese || isEnglish;
+                        const s = String(item);
+                        const isEnglish = /[a-zA-Z]/.test(s);
+                        const isChinese = /[\u4e00-\u9fa5]/.test(s);
+                        const isJapanese = /[\u3040-\u30ff]/.test(s);
+                        if (currentLang.startsWith('zh'))
+                            return isChinese || isEnglish;
+                        if (currentLang === 'ja')
+                            return isJapanese || isEnglish;
                         return isEnglish;
                     });
                     this.config.set(k, filtered);
-                } else {
+                }
+                else {
                     this.config.set(k, [...allDefaults]);
                 }
                 this.onRefresh();
@@ -1690,24 +1853,33 @@
             try {
                 GM_setClipboard(json);
                 alert(this.t('export_success'));
-            } catch (e) {
+            }
+            catch (e) {
                 prompt(this.t('export_copy'), json);
             }
             this.showExportImportMenu();
         }
         importSettings() {
             const json = prompt(this.t('import_prompt'));
-            if (!json) { this.showExportImportMenu(); return; }
+            if (!json) {
+                this.showExportImportMenu();
+                return;
+            }
             try {
                 const data = JSON.parse(json);
-                if (!data.settings) throw new Error('Invalid format');
+                if (!data.settings)
+                    throw new Error('Invalid format');
                 for (const key in data.settings) {
-                    if (key in this.config.defaults) this.config.set(key, data.settings[key]);
+                    if (key in this.config.defaults) {
+                        this.config.set(key, data.settings[key]);
+                    }
                 }
-                if (data.language) I18N.lang = data.language;
+                if (data.language)
+                    I18N.lang = data.language;
                 alert(this.t('import_success'));
                 this.onRefresh();
-            } catch (e) {
+            }
+            catch (e) {
                 alert(this.t('import_fail') + e.message);
             }
             this.showExportImportMenu();
@@ -1715,6 +1887,12 @@
     }
 
     class App {
+        config;
+        styleManager;
+        adGuard;
+        filter;
+        enhancer;
+        ui;
         constructor() {
             this.config = new ConfigManager();
             this.styleManager = new StyleManager(this.config);
@@ -1739,7 +1917,8 @@
             this.filter.processPage();
             if (typeof OpenCC !== 'undefined') {
                 Logger.info('✅ 成功載入 OpenCC-JS 繁簡轉換庫');
-            } else {
+            }
+            else {
                 Logger.info('⚠️ OpenCC-JS 未載入，繁簡過濾功能受限');
             }
             Logger.info(`🚀 YouTube 淨化大師 v${GM_info.script.version} 啟動`);
@@ -1753,8 +1932,12 @@
     }
     if (!window.ytPurifierInitialized) {
         window.ytPurifierInitialized = true;
-        if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', () => new App().init());
-        else new App().init();
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', () => new App().init());
+        }
+        else {
+            new App().init();
+        }
     }
 
 })();

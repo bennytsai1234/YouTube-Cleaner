@@ -64,8 +64,8 @@ export interface ConfigState {
 }
 
 export class ConfigManager {
-    public defaults: ConfigState;
-    public state: ConfigState;
+    public defaults!: ConfigState;
+    public state!: ConfigState;
 
     constructor() {
         if (instance) return instance;

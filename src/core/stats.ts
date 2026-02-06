@@ -15,13 +15,11 @@ export const FilterStats = {
     },
 
     getSummary(): string {
-        return `已過濾 ${this.session.total} 個項目
-` +
+        return `已過濾 ${this.session.total} 個項目\n` +
             Object.entries(this.session.byRule)
                 .sort((a, b) => b[1] - a[1])
                 .map(([k, v]) => `  ${k}: ${v}`)
-                .join('
-');
+                .join('\n');
     },
 
     reset(): void {

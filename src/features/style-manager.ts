@@ -85,8 +85,7 @@ export class StyleManager {
             styleEl.id = 'yt-cleaner-css';
             document.head.appendChild(styleEl);
         }
-        styleEl.textContent = rules.join('
-');
+        styleEl.textContent = rules.join('\n');
         Logger.info('Static CSS rules updated');
     }
 }

@@ -47,10 +47,7 @@ export const I18N = {
             rules_back: '(0 返回)',
             threshold_prompt: '請輸入「觀看數閾值」 (低於此數將被過濾):',
             grace_prompt: '請輸入「豁免時間 (小時)」 (設為 0 則不豁免):',
-            adv_exact_prompt: '是否需精準匹配頻道名稱？ (1. 是 / 2. 否)
-
-※精準匹配：必須完全一致
-※模糊匹配：包含關鍵字即可',
+            adv_exact_prompt: '是否需精準匹配頻道名稱？ (1. 是 / 2. 否)\n\n※精準匹配：必須完全一致\n※模糊匹配：包含關鍵字即可',
             reset_confirm: '重設?',
             lang_title: '【 選擇語言 】',
             back: '返回',
@@ -110,10 +107,7 @@ export const I18N = {
             rules_back: '(0 返回)',
             threshold_prompt: '请输入「观看数阈值」 (低于此数将被过滤):',
             grace_prompt: '请输入「豁免时间 (小时)」 (设为 0 则不豁免):',
-            adv_exact_prompt: '是否需精準匹配频道名称？ (1. 是 / 2. 否)
-
-※精準匹配：必须完全一致
-※模糊匹配：包含关键字即可',
+            adv_exact_prompt: '是否需精準匹配频道名称？ (1. 是 / 2. 否)\n\n※精準匹配：必须完全一致\n※模糊匹配：包含关键字即可',
             reset_confirm: '重置?',
             lang_title: '【 选择语言 】',
             back: '返回',
@@ -173,10 +167,7 @@ export const I18N = {
             rules_back: '(0 Back)',
             threshold_prompt: 'Enter View Threshold:',
             grace_prompt: 'Enter Grace Period (Hours) (0 to disable):',
-            adv_exact_prompt: 'Use exact match for this channel? (1. Yes / 2. No)
-
-※Exact: Must be identical
-※Partial: Contains keyword',
+            adv_exact_prompt: 'Use exact match for this channel? (1. Yes / 2. No)\n\n※Exact: Must be identical\n※Partial: Contains keyword',
             reset_confirm: 'Reset?',
             lang_title: '【 Select Language 】',
             back: 'Back',
@@ -236,10 +227,7 @@ export const I18N = {
             rules_back: '(0 戻る)',
             threshold_prompt: '「視聴回數閾值」を入力してください (これ未満は非表示):',
             grace_prompt: '「猶予期間 (時間)」を入力してください (0 は猶予なし):',
-            adv_exact_prompt: 'このチャンネルを完全一致で追加しますか？ (1. はい / 2. いいえ)
-
-※完全一致：名前が完全に同じ
-※部分一致：名前の一部を含む',
+            adv_exact_prompt: 'このチャンネルを完全一致で追加しますか？ (1. はい / 2. いいえ)\n\n※完全一致：名前が完全に同じ\n※部分一致：名前の一部を含む',
             reset_confirm: 'リセットしますか？',
             lang_title: '【 言語を選択 】',
             back: '戻る',

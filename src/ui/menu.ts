@@ -38,16 +38,10 @@ export class UIManager {
         const visibleItems = items.filter(item => item.show !== false);
         const menuString = visibleItems
             .map((item, idx) => `${idx + 1}. ${item.label}`)
-            .join('
-');
+            .join('\n');
         
-        const footer = backAction ? `
-0. ${this.t('back')}` : '';
-        const promptText = `【 ${title} 】
-
-${menuString}${footer}
-
-${this.t('menu_input')}`;
+        const footer = backAction ? `\n0. ${this.t('back')}` : '';
+        const promptText = `【 ${title} 】\n\n${menuString}${footer}\n\n${this.t('menu_input')}`;
         
         const choice = prompt(promptText);
         if (choice === '0' && backAction) {
@@ -166,8 +160,7 @@ ${this.t('menu_input')}`;
 
     public manage(k: keyof ConfigState): void {
         const l = this.config.get(k) as string[];
-        const title = `[ ${k} ]
-${l.join(', ') || '(Empty)'}`;
+        const title = `[ ${k} ]\n${l.join(', ') || '(Empty)'}`;
         
         const items: MenuItem[] = [
             { label: this.t('adv_add'), action: () => this.addItem(k, l) },
@@ -265,9 +258,10 @@ ${l.join(', ') || '(Empty)'}`;
             if (Array.isArray(allDefaults) && k === 'SECTION_TITLE_BLACKLIST') {
                 const currentLang = I18N.lang;
                 const filtered = allDefaults.filter(item => {
-                    const isEnglish = /[a-zA-Z]/.test(item);
-                    const isChinese = /[\u4e00-\u9fa5]/.test(item);
-                    const isJapanese = /[\u3040-\u30ff]/.test(item);
+                    const s = String(item);
+                    const isEnglish = /[a-zA-Z]/.test(s);
+                    const isChinese = /[\u4e00-\u9fa5]/.test(s);
+                    const isJapanese = /[\u3040-\u30ff]/.test(s);
                     if (currentLang.startsWith('zh')) return isChinese || isEnglish;
                     if (currentLang === 'ja') return isJapanese || isEnglish;
                     return isEnglish;
@@ -293,9 +287,7 @@ ${l.join(', ') || '(Empty)'}`;
 
     public showStats(): void {
         const summary = FilterStats.getSummary();
-        alert(`${this.t('stats_title')}
-
-${summary || this.t('stats_empty')}`);
+        alert(`${this.t('stats_title')}\n\n${summary || this.t('stats_empty')}`);
         this.showSystemMenu();
     }
 

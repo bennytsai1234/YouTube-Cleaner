@@ -81,7 +81,7 @@ export class AdBlockGuard {
 
         // 嘗試連接 popup container，帶有重試機制
         const tryConnect = (attempts = 0) => {
-            const popupContainer = document.querySelector('ytd-popup-container');
+            const popupContainer = document.querySelector('ytd-popup-container') as HTMLElement | null;
             if (popupContainer && !popupContainer._adGuardObserved) {
                 popupContainer._adGuardObserved = true;
                 this.observer?.observe(popupContainer, { childList: true, subtree: true });

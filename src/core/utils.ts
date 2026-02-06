@@ -125,7 +125,7 @@ export const Utils = {
     },
 
     escapeRegex: (s: string): string => {
-        return s.replace(/[.*+?^${}()|[\]\]/g, '\$&');
+        return s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
     },
 
     generateCnRegex: (text: string | null | undefined, exact = false): RegExp | null => {
@@ -155,7 +155,7 @@ export const Utils = {
         if (!name) return '';
         let clean = name.replace(/[\u200B-\u200D\uFEFF]/g, '').replace(/\u00A0/g, ' ');
         if (!Utils._channelCleanerRX) {
-            const esc = (s: string) => s.replace(/[.*+?^${}()|[\]\]/g, '\$&');
+            const esc = (s: string) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
             const prePattern = `^(${CLEANING_RULES.PREFIXES.map(esc).join('|')})`;
             const sufPattern = `(${CLEANING_RULES.SUFFIXES.map(esc).join('|')})$`;
             Utils._channelCleanerRX = {
