@@ -1,6 +1,15 @@
+declare const GM_getValue: (key: string, defaultValue?: any) => any;
+declare const GM_setValue: (key: string, value: any) => void;
+
+export type SupportedLang = 'zh-TW' | 'zh-CN' | 'en' | 'ja';
+
+export interface I18NStrings {
+    [key: string]: string | undefined;
+}
+
 // --- 國際化 (i18n) - 繁中、簡中、英文 ---
 export const I18N = {
-    _lang: null,
+    _lang: null as SupportedLang | null,
 
     // 語言字典
     strings: {
@@ -38,7 +47,10 @@ export const I18N = {
             rules_back: '(0 返回)',
             threshold_prompt: '請輸入「觀看數閾值」 (低於此數將被過濾):',
             grace_prompt: '請輸入「豁免時間 (小時)」 (設為 0 則不豁免):',
-            adv_exact_prompt: '是否需精準匹配頻道名稱？ (1. 是 / 2. 否)\n\n※精準匹配：必須完全一致\n※模糊匹配：包含關鍵字即可',
+            adv_exact_prompt: '是否需精準匹配頻道名稱？ (1. 是 / 2. 否)
+
+※精準匹配：必須完全一致
+※模糊匹配：包含關鍵字即可',
             reset_confirm: '重設?',
             lang_title: '【 選擇語言 】',
             back: '返回',
@@ -98,7 +110,10 @@ export const I18N = {
             rules_back: '(0 返回)',
             threshold_prompt: '请输入「观看数阈值」 (低于此数将被过滤):',
             grace_prompt: '请输入「豁免时间 (小时)」 (设为 0 则不豁免):',
-            adv_exact_prompt: '是否需精準匹配频道名称？ (1. 是 / 2. 否)\n\n※精準匹配：必须完全一致\n※模糊匹配：包含关键字即可',
+            adv_exact_prompt: '是否需精準匹配频道名称？ (1. 是 / 2. 否)
+
+※精準匹配：必须完全一致
+※模糊匹配：包含关键字即可',
             reset_confirm: '重置?',
             lang_title: '【 选择语言 】',
             back: '返回',
@@ -122,9 +137,7 @@ export const I18N = {
             adv_region_convert: '繁简通用过滤',
             adv_disable_channel: '频道页面停止过滤 (保留内容)',
             next_page: '下一页',
-            prev_page: '上一页',
-            channel_prefixes: ['前往频道：', '輕觸即可觀看「', '前往頻道：'],
-            channel_suffixes: ['」頻道的直播']
+            prev_page: '上一頁'
         },
         'en': {
             title: 'YouTube Cleaner',
@@ -160,7 +173,10 @@ export const I18N = {
             rules_back: '(0 Back)',
             threshold_prompt: 'Enter View Threshold:',
             grace_prompt: 'Enter Grace Period (Hours) (0 to disable):',
-            adv_exact_prompt: 'Use exact match for this channel? (1. Yes / 2. No)\n\n※Exact: Must be identical\n※Partial: Contains keyword',
+            adv_exact_prompt: 'Use exact match for this channel? (1. Yes / 2. No)
+
+※Exact: Must be identical
+※Partial: Contains keyword',
             reset_confirm: 'Reset?',
             lang_title: '【 Select Language 】',
             back: 'Back',
@@ -189,7 +205,7 @@ export const I18N = {
         'ja': {
             title: 'YouTube 浄化大師',
             menu_rules: '📂 フィルタールール設定',
-            menu_low_view: '低視聴回数フィルター (ライブ含む)',
+            menu_low_view: '低視聴回數フィルター (ライブ含む)',
             menu_threshold: '🔢 閾値を設定',
             menu_grace: '⏳ 猶予期間を設定',
             menu_content: '🎥 フィルター設定',
@@ -218,9 +234,12 @@ export const I18N = {
             import_fail: '❌ インポート失敗: ',
             rules_title: '【 フィルタールール 】',
             rules_back: '(0 戻る)',
-            threshold_prompt: '「視聴回数閾値」を入力してください (これ未満は非表示):',
+            threshold_prompt: '「視聴回數閾值」を入力してください (これ未満は非表示):',
             grace_prompt: '「猶予期間 (時間)」を入力してください (0 は猶予なし):',
-            adv_exact_prompt: 'このチャンネルを完全一致で追加しますか？ (1. はい / 2. いいえ)\n\n※完全一致：名前が完全に同じ\n※部分一致：名前の一部を含む',
+            adv_exact_prompt: 'このチャンネルを完全一致で追加しますか？ (1. はい / 2. いいえ)
+
+※完全一致：名前が完全に同じ
+※部分一致：名前の一部を含む',
             reset_confirm: 'リセットしますか？',
             lang_title: '【 言語を選択 】',
             back: '戻る',
@@ -241,12 +260,12 @@ export const I18N = {
             adv_remove: '削除',
             adv_clear: '🧹 全てクリア',
             adv_restore: '✨ デフォルトに戻す',
-            adv_region_convert: '繁体字/簡体字共通フィルター',
+            adv_region_convert: '繁體字/簡體字共通フィルター',
             adv_disable_channel: 'チャンネルページではフィルターを無効にする',
             next_page: '次へ',
             prev_page: '前へ'
         }
-    },
+    } as Record<SupportedLang, I18NStrings>,
 
     // 規則名稱翻譯
     ruleNames: {
@@ -346,13 +365,13 @@ export const I18N = {
             recommended_playlists: 'おすすめのプレイリスト',
             members_early_access: 'メンバー限定先行公開'
         }
-    },
+    } as Record<SupportedLang, Record<string, string>>,
 
-    getRuleName(ruleKey) {
+    getRuleName(ruleKey: string): string {
         return this.ruleNames[this.lang]?.[ruleKey] || this.ruleNames['en'][ruleKey] || ruleKey;
     },
 
-    detectLanguage() {
+    detectLanguage(): SupportedLang {
         const ytLang = document.documentElement.lang || navigator.language || 'zh-TW';
         if (ytLang.startsWith('zh-CN') || ytLang.startsWith('zh-Hans')) return 'zh-CN';
         if (ytLang.startsWith('zh')) return 'zh-TW';
@@ -360,24 +379,24 @@ export const I18N = {
         return 'en';
     },
 
-    get lang() {
+    get lang(): SupportedLang {
         if (!this._lang) {
-            this._lang = GM_getValue('ui_language', null) || this.detectLanguage();
+            this._lang = (GM_getValue('ui_language', null) as SupportedLang | null) || this.detectLanguage();
         }
         return this._lang;
     },
 
-    set lang(value) {
+    set lang(value: SupportedLang) {
         this._lang = value;
         GM_setValue('ui_language', value);
     },
 
-    t(key, ...args) {
+    t(key: string, ...args: any[]): string {
         const str = this.strings[this.lang]?.[key] || this.strings['en'][key] || key;
         return str.replace(/\{(\d+)\}/g, (_, i) => args[i] ?? '');
     },
 
-    get availableLanguages() {
+    get availableLanguages(): Record<SupportedLang, string> {
         return {
             'zh-TW': '繁體中文',
             'zh-CN': '简体中文',
