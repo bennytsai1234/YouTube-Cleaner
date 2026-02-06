@@ -1,13 +1,31 @@
-import { Logger } from '../core/logger.js';
-import { Utils } from '../core/utils.js';
+import { Logger } from '../core/logger';
+import { Utils } from '../core/utils';
+
+declare global {
+    interface Window {
+        yt?: any;
+        ytcfg?: {
+            data_?: any;
+        };
+    }
+    interface HTMLElement {
+        _adGuardObserved?: boolean;
+    }
+}
 
 // --- 常數定義 ---
 const TIMING = {
     RESUME_COOLDOWN: 3000  // 恢復播放冷卻時間 (ms)
-};
+} as const;
 
 // --- AdBlock Guard (優化版：使用 MutationObserver 取代輪詢) ---
 export class AdBlockGuard {
+    private keywords: string[];
+    private whitelistSelectors: string[];
+    private lastTrigger: number;
+    private observer: MutationObserver | null;
+    private checkAndCleanThrottled: ((...args: any[]) => void) | null;
+
     constructor() {
         // 精簡關鍵字 (只保留最常見的)
         this.keywords = [
@@ -26,10 +44,11 @@ export class AdBlockGuard {
         ];
         this.lastTrigger = 0;
         this.observer = null;
+        this.checkAndCleanThrottled = null;
     }
 
     // **ANTI-ADBLOCK PATCH**: 透過 YouTube 自身的配置對象來阻止偵測
-    patchConfig() {
+    public patchConfig(): void {
         try {
             const config = window.yt?.config_ || window.ytcfg?.data_;
             if (config?.openPopupConfig?.supportedPopups?.adBlockMessageViewModel) {
@@ -39,13 +58,12 @@ export class AdBlockGuard {
                 config.EXPERIMENT_FLAGS.ad_blocker_notifications_disabled = true;
                 config.EXPERIMENT_FLAGS.web_enable_adblock_detection_block_playback = false;
             }
-            // Logger.info('🛡️ AdBlock config patched'); // Optional: noisy
         } catch (e) {
             // 忽略錯誤
         }
     }
 
-    start() {
+    public start(): void {
         // 初始 Patch
         this.patchConfig();
 
@@ -53,7 +71,7 @@ export class AdBlockGuard {
         this.checkAndCleanThrottled = Utils.throttle(() => this.checkAndClean(), 250);
 
         // 使用 MutationObserver 監聽 popup 容器
-        this.observer = new MutationObserver(() => this.checkAndCleanThrottled());
+        this.observer = new MutationObserver(() => this.checkAndCleanThrottled?.());
 
         // 監聽 body 的直接子元素變化 (popup 通常加在這裡)
         this.observer.observe(document.body, {
@@ -66,7 +84,7 @@ export class AdBlockGuard {
             const popupContainer = document.querySelector('ytd-popup-container');
             if (popupContainer && !popupContainer._adGuardObserved) {
                 popupContainer._adGuardObserved = true;
-                this.observer.observe(popupContainer, { childList: true, subtree: true });
+                this.observer?.observe(popupContainer, { childList: true, subtree: true });
                 Logger.info('🛡️ AdBlockGuard attached to popup container');
             } else if (attempts < 10) {
                 // 如果還沒找到，每 500ms 重試一次，最多 5 秒
@@ -80,18 +98,18 @@ export class AdBlockGuard {
         this.checkAndClean();
     }
 
-    isWhitelisted(dialog) {
+    private isWhitelisted(dialog: Element): boolean {
         return this.whitelistSelectors.some(sel => dialog.querySelector(sel));
     }
 
-    isAdBlockPopup(dialog) {
+    private isAdBlockPopup(dialog: Element): boolean {
         if (dialog.tagName === 'YTD-ENFORCEMENT-MESSAGE-VIEW-MODEL') return true;
         if (dialog.querySelector('ytd-enforcement-message-view-model')) return true;
         if (dialog.textContent && this.keywords.some(k => dialog.textContent.includes(k))) return true;
         return false;
     }
 
-    checkAndClean() {
+    public checkAndClean(): void {
         const popupSelectors = [
             'tp-yt-paper-dialog',
             'ytd-enforcement-message-view-model',
@@ -104,7 +122,7 @@ export class AdBlockGuard {
         for (const dialog of dialogs) {
             if (this.isWhitelisted(dialog)) continue;
             if (this.isAdBlockPopup(dialog)) {
-                dialog.querySelectorAll('[aria-label="Close"], #dismiss-button').forEach(btn => btn.click());
+                dialog.querySelectorAll<HTMLElement>('[aria-label="Close"], #dismiss-button').forEach(btn => btn.click());
                 dialog.remove();
                 detected = true;
                 Logger.info(`🚫 Removed AdBlock Popup: ${dialog.tagName}`);
@@ -117,7 +135,7 @@ export class AdBlockGuard {
         }
     }
 
-    resumeVideo() {
+    public resumeVideo(): void {
         if (Date.now() - this.lastTrigger > TIMING.RESUME_COOLDOWN) {
             this.lastTrigger = Date.now();
             const video = document.querySelector('video');
@@ -127,7 +145,7 @@ export class AdBlockGuard {
         }
     }
 
-    destroy() {
+    public destroy(): void {
         this.observer?.disconnect();
     }
 }
