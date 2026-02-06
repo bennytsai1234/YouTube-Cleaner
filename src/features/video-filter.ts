@@ -368,17 +368,16 @@ export class VideoFilter {
 
         // --- 第二階段：執行決策 (白名單審核) ---
 
-        if (filterDetail) {
-            // 1. 會員專屬特殊處理：檢查是否有會員白名單護體
-            if (filterDetail.reason === 'members_only_js') {
-                const compiledMembers = this.config.get('compiledMembersWhitelist');
-                if (compiledMembers && compiledMembers.some(rx => rx.test(item.channel))) {
-                    Logger.info(`✅ Keep [Saved by Members Whitelist]: ${item.channel} | ${item.title}`);
-                    this._markChecked(container, element);
-                    return;
-                }
-            }
-
+                if (filterDetail) {
+                    // 1. 會員專屬特殊處理：檢查是否有會員白名單護體
+                    if (filterDetail.reason === 'members_only' || filterDetail.reason === 'members_only_js') {
+                        const compiledMembers = this.config.get('compiledMembersWhitelist');
+                        if (compiledMembers && compiledMembers.some(rx => rx.test(item.channel))) {
+                            Logger.info(`✅ Keep [Saved by Members Whitelist]: ${item.channel} | ${item.title}`); 
+                            this._markChecked(container, element);
+                            return;
+                        }
+                    }
             // 2. 定義「強規則」：不論是否在普通白名單，一律隱藏 (如 Shorts、合輯)
             const strongReasons = ['members_only', 'members_only_js', 'shorts_item_js', 'recommended_playlists'];
             const isStrong = strongReasons.includes(filterDetail.reason);
