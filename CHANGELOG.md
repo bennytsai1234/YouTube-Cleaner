@@ -5,6 +5,15 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.0.2] - 2026-02-06
+
+### 🚀 Architecture & I18n Refactor
+- **Refactor**: Centralized all UI strings and detection patterns into `src/ui/i18n.ts`.
+- **Improved**: Language detection now uses YouTube's internal `yt.config_` for higher reliability.
+- **Improved**: Enhanced members-only video detection with multi-language support (TW/CN/EN/JA).
+- **Optimization**: Moved static UI blocks (Premium banner, surveys, etc.) to CSS-first filtering to eliminate flickering.
+- **Logic**: Introduced `RULE_PRIORITIES` to ensure critical filters (like Members-only) override channel whitelists.
+
 ## [2.0.1] - 2026-02-06
 
 ### 🛡️ Reliability & Whitelist Enhancement
