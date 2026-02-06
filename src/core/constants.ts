@@ -1,5 +1,10 @@
 // --- 專門存放 YouTube UI 噪音詞彙與常數 ---
-export const CLEANING_RULES = {
+export interface CleaningRules {
+    PREFIXES: string[];
+    SUFFIXES: string[];
+}
+
+export const CLEANING_RULES: CleaningRules = {
     // 頻道名稱前綴 (不分語系，彙整所有已知的噪音)
     PREFIXES: [
         '前往頻道：', '前往频道：', 'Go to channel:', 'チャンネルへ移動:', 
