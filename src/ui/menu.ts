@@ -235,9 +235,38 @@ export class UIManager {
     }
 
     private removeItem(k: keyof ConfigState, currentList: string[]): void {
-        const v = prompt(`${this.t('adv_remove')}:`);
+        if (currentList.length === 0) {
+            alert('名單是空的');
+            this.manage(k);
+            return;
+        }
+
+        // 1. 建立編號清單
+        const listString = currentList.map((item, idx) => `${idx + 1}. ${item}`).join('\n');
+        const v = prompt(`${this.t('adv_remove')}:\n\n${listString}\n\n[請輸入編號 (例如 1 或 1,3) 或完整關鍵字]`);
+        
         if (v) {
-            this.config.set(k, currentList.filter(i => i !== v.trim()) as any);
+            const input = v.trim();
+            let newList = [...currentList];
+
+            // 2. 判斷是否為編號輸入 (支援 1,2,3 格式)
+            if (/^[\d,\s]+$/.test(input)) {
+                const indices = input.split(',')
+                    .map(s => parseInt(s.trim()) - 1)
+                    .filter(idx => idx >= 0 && idx < currentList.length)
+                    .sort((a, b) => b - a); // 由大到小排序，避免刪除時索引跑掉
+
+                if (indices.length > 0) {
+                    indices.forEach(idx => newList.splice(idx, 1));
+                } else {
+                    return this.removeItem(k, currentList); // 無效編號重試
+                }
+            } else {
+                // 3. 原有的精確匹配刪除
+                newList = currentList.filter(i => i !== input);
+            }
+
+            this.config.set(k, newList as any);
             this.onRefresh();
         }
         this.manage(k);
