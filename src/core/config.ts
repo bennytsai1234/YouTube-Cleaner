@@ -1,9 +1,72 @@
-import { Utils } from './utils.js';
+import { Utils } from './utils';
+
+declare const GM_getValue: (key: string, defaultValue?: any) => any;
+declare const GM_setValue: (key: string, value: any) => void;
 
 // --- 1. Core: Configuration Management ---
-let instance = null;
+let instance: ConfigManager | null = null;
+
+export interface RuleEnables {
+    ad_block_popup: boolean;
+    ad_sponsor: boolean;
+    members_only: boolean;
+    shorts_item: boolean;
+    mix_only: boolean;
+    premium_banner: boolean;
+    news_block: boolean;
+    shorts_block: boolean;
+    posts_block: boolean;
+    playables_block: boolean;
+    fundraiser_block: boolean;
+    shorts_grid_shelf: boolean;
+    movies_shelf: boolean;
+    youtube_featured_shelf: boolean;
+    popular_gaming_shelf: boolean;
+    more_from_game_shelf: boolean;
+    trending_playlist: boolean;
+    inline_survey: boolean;
+    clarify_box: boolean;
+    explore_topics: boolean;
+    recommended_playlists: boolean;
+    members_early_access: boolean;
+}
+
+export interface ConfigState {
+    OPEN_IN_NEW_TAB: boolean;
+    OPEN_NOTIFICATIONS_IN_NEW_TAB: boolean;
+    ENABLE_LOW_VIEW_FILTER: boolean;
+    LOW_VIEW_THRESHOLD: number;
+    DEBUG_MODE: boolean;
+    ENABLE_REGION_CONVERT: boolean;
+    DISABLE_FILTER_ON_CHANNEL: boolean;
+    ENABLE_KEYWORD_FILTER: boolean;
+    KEYWORD_BLACKLIST: string[];
+    ENABLE_CHANNEL_FILTER: boolean;
+    CHANNEL_BLACKLIST: string[];
+    CHANNEL_WHITELIST: string[];
+    MEMBERS_WHITELIST: string[];
+    KEYWORD_WHITELIST: string[];
+    ENABLE_SECTION_FILTER: boolean;
+    SECTION_TITLE_BLACKLIST: string[];
+    ENABLE_DURATION_FILTER: boolean;
+    DURATION_MIN: number;
+    DURATION_MAX: number;
+    GRACE_PERIOD_HOURS: number;
+    RULE_ENABLES: RuleEnables;
+    
+    // Compiled regexes
+    compiledKeywords?: RegExp[];
+    compiledChannels?: RegExp[];
+    compiledChannelWhitelist?: RegExp[];
+    compiledMembersWhitelist?: RegExp[];
+    compiledKeywordWhitelist?: RegExp[];
+    compiledSectionBlacklist?: RegExp[];
+}
 
 export class ConfigManager {
+    public defaults: ConfigState;
+    public state: ConfigState;
+
     constructor() {
         if (instance) return instance;
         instance = this;
@@ -17,7 +80,6 @@ export class ConfigManager {
             // 進階過濾設定
             ENABLE_REGION_CONVERT: true,
             DISABLE_FILTER_ON_CHANNEL: true,
-            // ... (existing)
             ENABLE_KEYWORD_FILTER: true,
             KEYWORD_BLACKLIST: [],
             ENABLE_CHANNEL_FILTER: true,
@@ -53,7 +115,7 @@ export class ConfigManager {
         this.state = this._load();
     }
 
-    _compileList(list) {
+    private _compileList(list: string[]): RegExp[] {
         if (!Array.isArray(list)) return [];
         return list.map(k => {
             try {
@@ -64,22 +126,26 @@ export class ConfigManager {
             } catch (e) {
                 return null;
             }
-        }).filter(Boolean);
+        }).filter((x): x is RegExp => x !== null);
     }
 
-    _load() {
-        const get = (k, d) => GM_getValue(k, d);
-        const snake = str => str.replace(/[A-Z]/g, l => `_${l.toLowerCase()}`);
+    private _load(): ConfigState {
+        const get = (k: string, d: any) => GM_getValue(k, d);
+        const snake = (str: string) => str.replace(/[A-Z]/g, l => `_${l.toLowerCase()}`);
 
-        const loaded = {};
+        const loaded = {} as ConfigState;
         for (const key in this.defaults) {
-            if (key === 'RULE_ENABLES') {
+            const configKey = key as keyof ConfigState;
+            if (configKey === 'RULE_ENABLES') {
                 const saved = get('ruleEnables', {});
-                loaded[key] = { ...this.defaults.RULE_ENABLES, ...saved };
+                loaded[configKey] = { ...this.defaults.RULE_ENABLES, ...saved };
             } else {
-                loaded[key] = get(snake(key), this.defaults[key]);
-                if (Array.isArray(this.defaults[key]) && !Array.isArray(loaded[key])) {
-                    loaded[key] = [...this.defaults[key]];
+                // @ts-ignore
+                loaded[configKey] = get(snake(key), this.defaults[configKey]);
+                // @ts-ignore
+                if (Array.isArray(this.defaults[configKey]) && !Array.isArray(loaded[configKey])) {
+                    // @ts-ignore
+                    loaded[configKey] = [...this.defaults[configKey]];
                 }
             }
         }
@@ -95,16 +161,18 @@ export class ConfigManager {
         return loaded;
     }
 
-    get(key) { return this.state[key]; }
+    public get<K extends keyof ConfigState>(key: K): ConfigState[K] { 
+        return this.state[key]; 
+    }
 
-    set(key, value) {
+    public set<K extends keyof ConfigState>(key: K, value: ConfigState[K]): void {
         this.state[key] = value;
-        const snake = str => str.replace(/[A-Z]/g, l => `_${l.toLowerCase()}`);
+        const snake = (str: string) => str.replace(/[A-Z]/g, l => `_${l.toLowerCase()}`);
         if (key === 'RULE_ENABLES') GM_setValue('ruleEnables', value);
         else GM_setValue(snake(key), value);
 
         // Update compiled regexes if list changes
-        const compileMap = {
+        const compileMap: Partial<Record<keyof ConfigState, keyof ConfigState>> = {
             'KEYWORD_BLACKLIST': 'compiledKeywords',
             'CHANNEL_BLACKLIST': 'compiledChannels',
             'CHANNEL_WHITELIST': 'compiledChannelWhitelist',
@@ -113,12 +181,14 @@ export class ConfigManager {
             'SECTION_TITLE_BLACKLIST': 'compiledSectionBlacklist'
         };
 
-        if (compileMap[key]) {
-            this.state[compileMap[key]] = this._compileList(value);
+        const target = compileMap[key];
+        if (target) {
+            // @ts-ignore
+            this.state[target] = this._compileList(value as string[]);
         }
     }
 
-    toggleRule(ruleId) {
+    public toggleRule(ruleId: keyof RuleEnables): void {
         this.state.RULE_ENABLES[ruleId] = !this.state.RULE_ENABLES[ruleId];
         this.set('RULE_ENABLES', this.state.RULE_ENABLES);
     }
