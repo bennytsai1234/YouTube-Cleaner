@@ -20,7 +20,36 @@ const SECTION_CONTAINERS = [
 const ALL_CONTAINERS_STR = [...VIDEO_CONTAINERS, ...SECTION_CONTAINERS].join(', ');
 const VIDEO_CONTAINERS_STR = VIDEO_CONTAINERS.join(', ');
 
-export const SELECTORS = {
+export interface SelectorsMetadata {
+    TEXT: string;
+    TITLE_LINKS: string[];
+    DURATION: string;
+    CHANNEL: string;
+    TITLE: string;
+}
+
+export interface SelectorsBadges {
+    MEMBERS: string;
+    AD: string;
+    SHORTS: string;
+    MIX: string;
+}
+
+export interface SelectorsType {
+    VIDEO_CONTAINERS: string[];
+    SECTION_CONTAINERS: string[];
+    METADATA: SelectorsMetadata;
+    SHELF_TITLE: string[];
+    BADGES: SelectorsBadges;
+    INTERACTION_EXCLUDE: string;
+    CLICKABLE: string[];
+    PREVIEW_PLAYER: string;
+    LINK_CANDIDATES: string[];
+    allContainers: string;
+    videoContainersStr: string;
+}
+
+export const SELECTORS: SelectorsType = {
     VIDEO_CONTAINERS,
     SECTION_CONTAINERS,
 
