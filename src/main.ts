@@ -1,13 +1,34 @@
-import { ConfigManager } from './core/config.js';
-import { StyleManager } from './features/style-manager.js';
-import { AdBlockGuard } from './features/adblock-guard.js';
-import { VideoFilter } from './features/video-filter.js';
-import { InteractionEnhancer } from './features/interaction.js';
-import { UIManager } from './ui/menu.js';
-import { Logger } from './core/logger.js';
+import { ConfigManager } from './core/config';
+import { StyleManager } from './features/style-manager';
+import { AdBlockGuard } from './features/adblock-guard';
+import { VideoFilter } from './features/video-filter';
+import { InteractionEnhancer } from './features/interaction';
+import { UIManager } from './ui/menu';
+import { Logger } from './core/logger';
+
+declare const GM_registerMenuCommand: (name: string, fn: () => void) => void;
+declare const GM_info: {
+    script: {
+        version: string;
+    };
+};
+declare const OpenCC: any;
+
+declare global {
+    interface Window {
+        ytPurifierInitialized?: boolean;
+    }
+}
 
 // --- 10. App Entry ---
 class App {
+    private config: ConfigManager;
+    private styleManager: StyleManager;
+    private adGuard: AdBlockGuard;
+    private filter: VideoFilter;
+    private enhancer: InteractionEnhancer;
+    private ui: UIManager;
+
     constructor() {
         this.config = new ConfigManager();
         this.styleManager = new StyleManager(this.config);
@@ -17,7 +38,7 @@ class App {
         this.ui = new UIManager(this.config, () => this.refresh());
     }
 
-    init() {
+    public init(): void {
         Logger.enabled = this.config.get('DEBUG_MODE');
 
         this.styleManager.apply();
@@ -45,7 +66,7 @@ class App {
         Logger.info(`🚀 YouTube 淨化大師 v${GM_info.script.version} 啟動`);
     }
 
-    refresh() {
+    public refresh(): void {
         Logger.enabled = this.config.get('DEBUG_MODE');
         this.filter.reset();
         this.styleManager.apply();
@@ -56,6 +77,9 @@ class App {
 // 防止腳本重複初始化
 if (!window.ytPurifierInitialized) {
     window.ytPurifierInitialized = true;
-    if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', () => new App().init());
-    else new App().init();
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', () => new App().init());
+    } else {
+        new App().init();
+    }
 }
