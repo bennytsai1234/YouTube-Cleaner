@@ -4,6 +4,7 @@ import { Logger } from '../core/logger';
 import { FilterStats } from '../core/stats';
 import { CustomRuleManager } from './custom-rules';
 import { ConfigManager } from '../core/config';
+import { I18N } from '../ui/i18n';
 
 // --- 常數定義 ---
 const BATCH_SIZE = 50;
@@ -154,8 +155,9 @@ export class LazyVideoData {
 
     get isMembers(): boolean {
         if (this._isMembers === undefined) {
+            const pattern = I18N.filterPatterns[I18N.lang]?.members_only || /Members only/i;
             this._isMembers = !!this.el.querySelector(SELECTORS.BADGES.MEMBERS) ||
-                /會員專屬|Members only/.test((this.el as HTMLElement).innerText);
+                pattern.test((this.el as HTMLElement).innerText);
         }
         return this._isMembers;
     }
@@ -366,24 +368,43 @@ export class VideoFilter {
             filterDetail = filterDetail || this._getFilterPlaylist(item);
         }
 
-        // --- 第二階段：執行決策 (白名單審核) ---
+                // --- 第二階段：執行決策 (白名單審核) ---
+
+        
 
                 if (filterDetail) {
-                    // 1. 會員專屬特殊處理：檢查是否有會員白名單護體
-                    if (filterDetail.reason === 'members_only' || filterDetail.reason === 'members_only_js') {
-                        const compiledMembers = this.config.get('compiledMembersWhitelist');
-                        if (compiledMembers && compiledMembers.some(rx => rx.test(item.channel))) {
-                            Logger.info(`✅ Keep [Saved by Members Whitelist]: ${item.channel} | ${item.title}`); 
-                            this._markChecked(container, element);
-                            return;
-                        }
-                    }
-            // 2. 定義「強規則」：不論是否在普通白名單，一律隱藏 (如 Shorts、合輯)
-            const strongReasons = ['members_only', 'members_only_js', 'shorts_item_js', 'recommended_playlists'];
-            const isStrong = strongReasons.includes(filterDetail.reason);
 
-            // 3. 弱規則檢查：檢查普通頻道/關鍵字白名單
-            const whitelistReason = isStrong ? null : this._checkWhitelist(item);
+                    // 1. 會員專屬特殊處理：檢查是否有會員白名單護體
+
+                    if (filterDetail.reason === 'members_only' || filterDetail.reason === 'members_only_js') {
+
+                        const compiledMembers = this.config.get('compiledMembersWhitelist');
+
+                        if (compiledMembers && compiledMembers.some(rx => rx.test(item.channel))) {
+
+                            Logger.info(`✅ Keep [Saved by Members Whitelist]: ${item.channel} | ${item.title}`); 
+
+                            this._markChecked(container, element);
+
+                            return;
+
+                        }
+
+                    }
+
+        
+
+                    // 2. 獲取規則優先級
+
+                    const priorities = this.config.get('RULE_PRIORITIES');
+
+                    const isStrong = priorities[filterDetail.reason] === 'strong';
+
+        
+
+                    // 3. 弱規則檢查：檢查普通頻道/關鍵字白名單
+
+                    const whitelistReason = isStrong ? null : this._checkWhitelist(item);
 
             if (whitelistReason) {
                 const savedBy = whitelistReason === 'channel_whitelist' ? 'Channel' : 'Keyword';

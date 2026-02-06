@@ -58,7 +58,7 @@ export class AdBlockGuard {
                 config.EXPERIMENT_FLAGS.ad_blocker_notifications_disabled = true;
                 config.EXPERIMENT_FLAGS.web_enable_adblock_detection_block_playback = false;
             }
-        } catch (e) {
+        } catch {
             // 忽略錯誤
         }
     }

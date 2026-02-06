@@ -53,6 +53,7 @@ export interface ConfigState {
     DURATION_MAX: number;
     GRACE_PERIOD_HOURS: number;
     RULE_ENABLES: RuleEnables;
+    RULE_PRIORITIES: Record<string, 'strong' | 'weak'>;
     
     // Compiled regexes
     compiledKeywords?: RegExp[];
@@ -110,6 +111,16 @@ export class ConfigManager {
                 more_from_game_shelf: true, trending_playlist: true,
                 inline_survey: true, clarify_box: true, explore_topics: true,
                 recommended_playlists: true, members_early_access: true
+            },
+            RULE_PRIORITIES: {
+                members_only: 'strong',
+                members_only_js: 'strong',
+                shorts_item: 'strong',
+                shorts_item_js: 'strong',
+                mix_only: 'strong',
+                recommended_playlists: 'strong',
+                ad_sponsor: 'strong',
+                premium_banner: 'strong'
             }
         };
         this.state = this._load();
@@ -123,7 +134,7 @@ export class ConfigManager {
                     return Utils.generateCnRegex(k.substring(1), true) || new RegExp(`^${Utils.escapeRegex(k.substring(1))}$`, 'i');
                 }
                 return Utils.generateCnRegex(k) || new RegExp(Utils.escapeRegex(k), 'i');
-            } catch (e) {
+            } catch {
                 return null;
             }
         }).filter((x): x is RegExp => x !== null);
@@ -139,6 +150,9 @@ export class ConfigManager {
             if (configKey === 'RULE_ENABLES') {
                 const saved = get('ruleEnables', {});
                 loaded[configKey] = { ...this.defaults.RULE_ENABLES, ...saved };
+            } else if (configKey === 'RULE_PRIORITIES') {
+                const saved = get('rulePriorities', {});
+                loaded[configKey] = { ...this.defaults.RULE_PRIORITIES, ...saved };
             } else {
                 // @ts-ignore
                 loaded[configKey] = get(snake(key), this.defaults[configKey]);
@@ -169,6 +183,7 @@ export class ConfigManager {
         this.state[key] = value;
         const snake = (str: string) => str.replace(/[A-Z]/g, l => `_${l.toLowerCase()}`);
         if (key === 'RULE_ENABLES') GM_setValue('ruleEnables', value);
+        else if (key === 'RULE_PRIORITIES') GM_setValue('rulePriorities', value);
         else GM_setValue(snake(key), value);
 
         // Update compiled regexes if list changes

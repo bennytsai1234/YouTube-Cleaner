@@ -72,7 +72,7 @@ export class InteractionEnhancer {
                     e.stopImmediatePropagation();
                     window.open(targetLink.href, '_blank');
                 }
-            } catch (err) { /* ignore */ }
+            } catch { /* ignore */ }
         }, { capture: true });
     }
 }

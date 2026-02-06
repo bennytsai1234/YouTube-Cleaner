@@ -56,7 +56,10 @@ export class StyleManager {
             clarify_box: ['ytd-info-panel-container-renderer'],
             inline_survey: ['ytd-rich-section-renderer:has(ytd-inline-survey-renderer)'],
             playables_block: ['ytd-rich-section-renderer:has(ytd-rich-shelf-renderer[is-playables])', 'ytd-game-card-renderer'],
-            shorts_block: ['ytd-rich-section-renderer:has(ytd-rich-shelf-renderer[is-shorts])']
+            shorts_block: ['ytd-rich-section-renderer:has(ytd-rich-shelf-renderer[is-shorts])', 'ytd-reel-shelf-renderer'],
+            news_block: ['ytd-rich-section-renderer:has(ytd-rich-shelf-renderer[is-news])'],
+            movies_shelf: ['ytd-rich-section-renderer:has(ytd-rich-shelf-renderer:has(#title[title*="電影"], #title[title*="Movies"]))'],
+            fundraiser_block: ['ytd-rich-section-renderer:has(ytd-rich-shelf-renderer:has(#title[title*="募款"]))']
         };
 
         for (const [key, selectors] of Object.entries(map)) {

@@ -255,6 +255,26 @@ export const I18N = {
         }
     } as Record<SupportedLang, I18NStrings>,
 
+    // 過濾用的 Regex 模式
+    filterPatterns: {
+        'zh-TW': {
+            members_only: /頻道會員專屬|會員搶先看/i,
+            shorts: /Shorts/i
+        },
+        'zh-CN': {
+            members_only: /会员专属|会员抢先看/i,
+            shorts: /Shorts/i
+        },
+        'en': {
+            members_only: /Members only|Early access/i,
+            shorts: /Shorts/i
+        },
+        'ja': {
+            members_only: /メンバー限定|先行公開/i,
+            shorts: /Shorts/i
+        }
+    } as Record<SupportedLang, Record<string, RegExp>>,
+
     // 規則名稱翻譯
     ruleNames: {
         'zh-TW': {
@@ -360,7 +380,10 @@ export const I18N = {
     },
 
     detectLanguage(): SupportedLang {
-        const ytLang = document.documentElement.lang || navigator.language || 'zh-TW';
+        // 優先從 YouTube 內置配置獲取
+        const ytConfigLang = (window as any).yt?.config_?.HL || (window as any).ytcfg?.get?.('HL');
+        const ytLang = ytConfigLang || document.documentElement.lang || navigator.language || 'zh-TW';
+        
         if (ytLang.startsWith('zh-CN') || ytLang.startsWith('zh-Hans')) return 'zh-CN';
         if (ytLang.startsWith('zh')) return 'zh-TW';
         if (ytLang.startsWith('ja')) return 'ja';

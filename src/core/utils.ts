@@ -1,7 +1,9 @@
 /* global OpenCC */
 import { CLEANING_RULES } from './constants';
 
-declare const OpenCC: any;
+declare global {
+    const OpenCC: any;
+}
 
 // --- 常數定義 ---
 const TIME_UNITS = {
@@ -119,7 +121,7 @@ export const Utils = {
             Utils._openccToSimp = OpenCC.Converter({ from: 'tw', to: 'cn' });
             Utils._openccToTrad = OpenCC.Converter({ from: 'cn', to: 'tw' });
             return true;
-        } catch (e) {
+        } catch {
             return false;
         }
     },
@@ -141,12 +143,12 @@ export const Utils = {
                 const escTrad = escape(trad);
                 if (escSimp === escTrad) return new RegExp(wrap(escSimp), 'i');
                 return new RegExp(wrap(`(?:${escSimp}|${escTrad})`), 'i');
-            } catch (e) { /* fallback */ }
+            } catch { /* fallback */ }
         }
 
         try {
             return new RegExp(wrap(escape(text)), 'i');
-        } catch (e) {
+        } catch {
             return null;
         }
     },

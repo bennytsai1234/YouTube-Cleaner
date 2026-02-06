@@ -16,8 +16,7 @@ const TestRunner = {
 
     suite(name: string, fn: () => void) {
         this.currentSuite = name;
-        console.log(`
-📦 ${name}`);
+        console.log(`\n📦 ${name}`);
         console.log('─'.repeat(40));
         fn();
     },
@@ -45,8 +44,7 @@ const TestRunner = {
     },
 
     summary() {
-        console.log('
-' + '═'.repeat(40));
+        console.log('\n' + '═'.repeat(40));
         console.log(`📊 測試結果: ${this.passed} 通過, ${this.failed} 失敗`);
         console.log('═'.repeat(40));
         return this.failed === 0;

@@ -329,7 +329,7 @@ export class UIManager {
         try {
             GM_setClipboard(json);
             alert(this.t('export_success'));
-        } catch (e) {
+        } catch {
             prompt(this.t('export_copy'), json);
         }
         this.showExportImportMenu();
@@ -349,8 +349,8 @@ export class UIManager {
             if (data.language) I18N.lang = data.language;
             alert(this.t('import_success'));
             this.onRefresh();
-        } catch (e) {
-            alert(this.t('import_fail') + (e as Error).message);
+        } catch (err) {
+            alert(this.t('import_fail') + (err as Error).message);
         }
         this.showExportImportMenu();
     }
