@@ -34,7 +34,7 @@
 | 問題場景 | 解決方案 |
 | :--- | :--- |
 | **代碼編輯 (replace) 失敗** | **嚴禁**改用 `write_file`。正確做法：<br>1. **精準錨點**：僅替換變動的 1-3 行，並包含前後一行作為唯一識別錨點。<br>2. **禁止盲試**：失敗後必須重新 `read_file` 檢查不可見字元 (如行尾空格)。<br>3. **分段執行**：將大變更拆分為多個小的 `replace` 呼叫。 |
-| **PowerShell 語法錯誤** | Windows 下不支援 `&&`。**必須**改用 `;` 作為指令分隔符。 |
+| **PowerShell 語法錯誤** | Windows 下不支援 `&&`。**必須**改用 `;` 作為指令分隔符。<br>2. **禁止使用 CMD 語法**：`dir /s /b` 為 CMD 語法，在 PowerShell 會報錯。應使用 `glob` 工具或 `Get-ChildItem -Recurse`。 |
 | **grep 指令未找到** | Windows 環境不支援 `grep`。應優先使用 `search_file_content` 工具，或使用 `findstr` / `Select-String`。 |
 | **Git CRLF 警告** | Windows 預設行為。**徹底修復法**：<br>1. 執行 `git config core.autocrlf false`<br>2. 執行 `git config core.safecrlf false` (關閉警告)<br>3. 執行 `git rm --cached -r .` 再 `git add .` |
 | **代碼遺失/截斷** | 立即執行 `git checkout <file>` 恢復至上一次自動備份的穩定版本。 |
