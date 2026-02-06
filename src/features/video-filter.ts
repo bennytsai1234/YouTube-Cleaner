@@ -242,7 +242,7 @@ export class VideoFilter {
         if (!sample) return; // 頁面可能還在載入中，下次 processPage 再試
 
         this.hasValidatedSelectors = true;
-        let issues: string[] = [];
+        const issues: string[] = [];
 
         // Check Critical Selectors
         if (!sample.querySelector(SELECTORS.METADATA.CHANNEL)) issues.push('METADATA.CHANNEL');
