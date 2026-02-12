@@ -13,6 +13,18 @@ import { JSDOM } from 'jsdom';
 (global as any).GM_setValue = (key: string, value: any) => {};
 
 
+// ==================== 全域環境設定 ====================
+const dom = new JSDOM('<!DOCTYPE html><p>Hello world</p>');
+(global as any).window = dom.window;
+(global as any).document = dom.window.document;
+if (typeof (global as any).navigator === 'undefined') {
+    (global as any).navigator = {
+        language: 'en-US',
+        languages: ['en-US', 'en'],
+        userAgent: 'Mozilla/5.0 (Test Environment)'
+    };
+}
+
 // ==================== 測試工具 ====================
 const TestRunner = {
     passed: 0,
@@ -177,8 +189,8 @@ TestRunner.suite('CustomRuleManager', () => {
 
 // ==================== LazyVideoData 測試 (DOM Mock) ====================
 TestRunner.suite('LazyVideoData', () => {
-    // Setup JSDOM environment
-    const dom = new JSDOM(`
+    // Setup JSDOM environment for this specific test suite
+    const suiteDom = new JSDOM(`
         <div id="video-root">
             <a id="video-title">Test Video Title</a>
             <div id="metadata-line">
@@ -191,11 +203,15 @@ TestRunner.suite('LazyVideoData', () => {
         </div>
     `);
 
-    (global as any).window = dom.window;
-    (global as any).document = dom.window.document;
-    (global as any).HTMLElement = dom.window.HTMLElement;
-    (global as any).Element = dom.window.Element;
-    (global as any).Node = dom.window.Node;
+    // Temporarily override global document/window for this test
+    const oldWindow = (global as any).window;
+    const oldDocument = (global as any).document;
+
+    (global as any).window = suiteDom.window;
+    (global as any).document = suiteDom.window.document;
+    (global as any).HTMLElement = suiteDom.window.HTMLElement;
+    (global as any).Element = suiteDom.window.Element;
+    (global as any).Node = suiteDom.window.Node;
 
     const el = document.getElementById('video-root') as HTMLElement;
     const video = new LazyVideoData(el);

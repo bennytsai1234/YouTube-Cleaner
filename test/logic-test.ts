@@ -118,6 +118,12 @@ class MockVideoData {
 const dom = new JSDOM('<!DOCTYPE html><p>Hello world</p>');
 (global as any).window = dom.window;
 (global as any).document = dom.window.document;
+if (typeof (global as any).navigator === 'undefined') {
+    (global as any).navigator = dom.window.navigator;
+}
+if (typeof (global as any).location === 'undefined') {
+    (global as any).location = dom.window.location;
+}
 (global as any).requestIdleCallback = (fn: any) => fn({ timeRemaining: () => 10, didTimeout: false });
 
 
