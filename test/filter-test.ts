@@ -8,6 +8,11 @@ import { CustomRuleManager } from '../src/features/custom-rules';
 import { LazyVideoData } from '../src/features/video-filter';
 import { JSDOM } from 'jsdom';
 
+// Mock GM functions for test environment
+(global as any).GM_getValue = (key: string, defaultValue: any) => defaultValue;
+(global as any).GM_setValue = (key: string, value: any) => {};
+
+
 // ==================== 測試工具 ====================
 const TestRunner = {
     passed: 0,
@@ -159,7 +164,7 @@ TestRunner.suite('CustomRuleManager', () => {
     // 測試文字匹配
     const newsMatch = manager.check({} as Element, 'Breaking News Today');
     TestRunner.assert('匹配新聞關鍵字', newsMatch && newsMatch.key === 'news_block');
-    
+
     const shortsMatch = manager.check({} as Element, 'Shorts');
     TestRunner.assert('匹配 Shorts 關鍵字', shortsMatch && shortsMatch.key === 'shorts_block');
 
