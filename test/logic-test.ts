@@ -2,6 +2,11 @@
 import { VideoFilter } from '../src/features/video-filter';
 import { JSDOM } from 'jsdom';
 
+// Mock GM functions for test environment
+(global as any).GM_getValue = (key: string, defaultValue: any) => defaultValue;
+(global as any).GM_setValue = (key: string, value: any) => {};
+
+
 // ==================== 測試基礎建設 ====================
 const TestRunner = {
     passed: 0,
