@@ -10,8 +10,8 @@
     "forceConsistentCasingInFileNames": true,
     "noEmit": true,
     "isolatedModules": true,
-    "types": ["tampermonkey"]
+    "types": ["tampermonkey", "node", "jsdom"]
   },
-  "include": ["src/**/*.ts"],
+  "include": ["src/**/*.ts", "test/**/*.ts"],
   "exclude": ["node_modules", "youtube-homepage-cleaner.user.js"]
 }
