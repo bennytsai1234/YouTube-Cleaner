@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 - **Test Environment**: Fixed `ReferenceError: GM_getValue is not defined` when running tests by adding mock implementations for `GM_getValue` and `GM_setValue`.
+- **Badge Filter**: Updated "Members Only" filter to correctly identify and block "Member Priority" (`yt-badge-shape--commerce`) and "YouTube Featured" (`yt-badge-shape--promoted`) videos.
 
 ## [2.0.2] - 2026-02-06
 
