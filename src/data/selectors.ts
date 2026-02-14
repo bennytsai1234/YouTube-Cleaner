@@ -82,7 +82,7 @@ export const SELECTORS: SelectorsType = {
 
     // 會員/廣告標記
     BADGES: {
-        MEMBERS: '.badge-style-type-members-only, [aria-label*="會員專屬"], [aria-label*="Members only"]',
+        MEMBERS: '.badge-style-type-members-only, .yt-badge-shape--commerce, .yt-badge-shape--promoted, [aria-label*="會員專屬"], [aria-label*="Members only"], [aria-label*="會員優先"], [aria-label*="YouTube 精選"]',
         AD: '[aria-label*="廣告"], [aria-label*="Sponsor"], ad-badge-view-model, feed-ad-metadata-view-model',
         SHORTS: 'a[href*="/shorts/"]',
         MIX: 'a[aria-label*="合輯"], a[aria-label*="Mix"]'
