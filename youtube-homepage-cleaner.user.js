@@ -2,7 +2,7 @@
 // @name        YouTube Cleaner - Remove Shorts, Recommendations & Clutter
 // @description Clean YouTube interface by hiding Shorts, suggestions, and clutter elements. 20+ custom rules.
 // @namespace   http://tampermonkey.net/
-// @version     2.0.2
+// @version     2.0.3
 // @author      Benny & AI Collaborators
 // @match       https://www.youtube.com/*
 // @exclude     https://www.youtube.com/embed/*
@@ -816,7 +816,7 @@
             '.ytd-shelf-renderer #title'
         ],
         BADGES: {
-            MEMBERS: '.badge-style-type-members-only, [aria-label*="會員專屬"], [aria-label*="Members only"]',
+            MEMBERS: '.badge-style-type-members-only, .yt-badge-shape--commerce, .yt-badge-shape--promoted, [aria-label*="會員專屬"], [aria-label*="Members only"], [aria-label*="會員優先"], [aria-label*="YouTube 精選"]',
             SHORTS: 'a[href*="/shorts/"]',
             MIX: 'a[aria-label*="合輯"], a[aria-label*="Mix"]'
         },
