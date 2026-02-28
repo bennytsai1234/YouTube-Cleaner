@@ -266,7 +266,8 @@ export class VideoFilter {
         if (this.config.get('DISABLE_FILTER_ON_CHANNEL') && /^\/(@|channel\/|c\/|user\/)/.test(path)) return true;
 
         return /^\/feed\/(playlists|library|subscriptions)/.test(path) ||
-               /\/playlists$/.test(path);
+               /^\/playlists?$/.test(path) ||
+               /^\/playlist/.test(path);
     }
 
     public processMutations(mutations: MutationRecord[]): void {
