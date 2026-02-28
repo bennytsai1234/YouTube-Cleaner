@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.0.4] - 2026-02-28
+
+### Fixed
+- **New Tab Interaction**: Fixed an issue where middle-clicking or Ctrl+clicking links in the left sidebar (Guide/Sidebar Menu) would not open in a new tab due to YouTube's SPA routing. Left-clicking these items with the "Open in New Tab" option enabled now correctly intercepts and forces a new tab.
+
 ## [2.0.3] - 2026-02-14
 
 ### Fixed
