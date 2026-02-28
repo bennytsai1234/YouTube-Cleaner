@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.0.5] - 2026-02-28
+
+### Fixed
+- **Filter Whitelist**: Fixed an issue where videos within a playlist page (`/playlist?list=...`) were incorrectly hidden as algorithmic recommendations (`recommended_playlists`). The filter now properly bypasses single playlist pages and strictly limits Mix/Playlist detection to actual playlist icons.
+
 ## [2.0.4] - 2026-02-28
 
 ### Fixed
