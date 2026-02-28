@@ -57,9 +57,15 @@ export class InteractionEnhancer {
                 const container = target.closest<HTMLElement>(SELECTORS.CLICKABLE.join(', '));
                 if (!container) return;
 
-                // 頻道連結處理
-                const channelLink = target.closest<HTMLAnchorElement>('a#avatar-link, .ytd-channel-name a, a[href^="/@"], a[href^="/channel/"]');
-                targetLink = channelLink?.href ? channelLink : this.findPrimaryLink(container);
+                // 側欄導覽連結處理
+                if (container.tagName.toLowerCase() === 'ytd-guide-entry-renderer') {
+                    const guideLink = container.querySelector<HTMLAnchorElement>('a#endpoint');
+                    targetLink = guideLink?.href ? guideLink : null;
+                } else {
+                    // 頻道連結處理
+                    const channelLink = target.closest<HTMLAnchorElement>('a#avatar-link, .ytd-channel-name a, a[href^="/@"], a[href^="/channel/"]');
+                    targetLink = channelLink?.href ? channelLink : this.findPrimaryLink(container);
+                }
             }
 
             if (!targetLink) return;
