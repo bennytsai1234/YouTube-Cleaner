@@ -41,7 +41,7 @@ export class LazyVideoData {
     private _isMembers: boolean | undefined = undefined;
     private _isUserPlaylist: boolean | undefined = undefined;
     private _isPlaylist: boolean | undefined = undefined;
-    
+
     // 儲存原始文字以便 Log
     public raw = { views: '', time: '', duration: '', viewers: '' };
 
@@ -77,8 +77,8 @@ export class LazyVideoData {
 
     get url(): string {
         if (this._url === undefined) {
-             const anchor = this.el.querySelector<HTMLAnchorElement>('a[href*="/watch?"], a[href*="/shorts/"]');
-             this._url = anchor ? anchor.href : '';
+            const anchor = this.el.querySelector<HTMLAnchorElement>('a[href*="/watch?"], a[href*="/shorts/"]');
+            this._url = anchor ? anchor.href : '';
         }
         return this._url;
     }
@@ -148,7 +148,7 @@ export class LazyVideoData {
 
     get isShorts(): boolean {
         if (this._isShorts === undefined) {
-             this._isShorts = !!this.el.querySelector(SELECTORS.BADGES.SHORTS);
+            this._isShorts = !!this.el.querySelector(SELECTORS.BADGES.SHORTS);
         }
         return this._isShorts;
     }
@@ -180,7 +180,7 @@ export class LazyVideoData {
 
     get isPlaylist(): boolean {
         if (this._isPlaylist === undefined) {
-            const link = this.el.querySelector('a[href*="list="], [content-id^="PL"]');
+            const link = this.el.querySelector('a[href^="/playlist?list="], [content-id^="PL"]');
             if (link) {
                 this._isPlaylist = true;
                 return true;
@@ -217,11 +217,11 @@ export class VideoFilter {
 
     public start(): void {
         if (this.observer) return;
-        
+
         // 優化：使用單一隊列處理 Mutation，由 Filter 內部狀態機管理進度
         this.observer = new MutationObserver((mutations) => this.processMutations(mutations));
         this.observer.observe(document.body, { childList: true, subtree: true });
-        
+
         Logger.info('👁️ VideoFilter observer started');
     }
 
@@ -237,13 +237,13 @@ export class VideoFilter {
         if (!elements || elements.length === 0) return;
 
         // 尋找一個已經渲染完成且「可見」的影片元素作為樣本
-        const sample = elements.find(el => 
-            /VIDEO|LOCKUP|RICH-ITEM/.test(el.tagName) && 
-            !el.hidden && 
+        const sample = elements.find(el =>
+            /VIDEO|LOCKUP|RICH-ITEM/.test(el.tagName) &&
+            !el.hidden &&
             el.offsetParent !== null &&
             el.querySelector(SELECTORS.METADATA.TITLE) // 至少要看到標題才算渲染完成
         );
-        
+
         if (!sample) return; // 頁面可能還在載入中，下次 processPage 再試
 
         this.hasValidatedSelectors = true;
@@ -251,7 +251,7 @@ export class VideoFilter {
 
         // Check Critical Selectors
         if (!sample.querySelector(SELECTORS.METADATA.CHANNEL)) issues.push('METADATA.CHANNEL');
-        
+
         if (issues.length > 0) {
             Logger.warn(`⚠️ Selector Health Check Failed: ${issues.join(', ')} not found in active element`, sample);
         } else {
@@ -266,8 +266,8 @@ export class VideoFilter {
         if (this.config.get('DISABLE_FILTER_ON_CHANNEL') && /^\/(@|channel\/|c\/|user\/)/.test(path)) return true;
 
         return /^\/feed\/(playlists|library|subscriptions)/.test(path) ||
-               /^\/playlists?$/.test(path) ||
-               /^\/playlist/.test(path);
+            /^\/playlists?$/.test(path) ||
+            /^\/playlist/.test(path);
     }
 
     public processMutations(mutations: MutationRecord[]): void {
@@ -291,7 +291,7 @@ export class VideoFilter {
 
     public processPage(): void {
         const elements = Array.from(document.querySelectorAll<HTMLElement>(SELECTORS.allContainers));
-        
+
         // Debug Health Check (Run once per page load)
         this._validateSelectors(elements);
 
@@ -359,62 +359,62 @@ export class VideoFilter {
 
             filterDetail = filterDetail || this._getFilterKeyword(item);
             filterDetail = filterDetail || this._getFilterChannel(item);
-            
+
             if (!filterDetail && this.config.get('RULE_ENABLES').shorts_item && item.isShorts) {
                 filterDetail = { reason: 'shorts_item_js', trigger: 'Shorts video detected' };
             }
             if (!filterDetail && this.config.get('RULE_ENABLES').members_only && item.isMembers) {
                 filterDetail = { reason: 'members_only_js' };
             }
-            
+
             filterDetail = filterDetail || this._getFilterView(item);
             filterDetail = filterDetail || this._getFilterDuration(item);
             filterDetail = filterDetail || this._getFilterPlaylist(item);
         }
 
-                // --- 第二階段：執行決策 (白名單審核) ---
+        // --- 第二階段：執行決策 (白名單審核) ---
 
-        
 
-                if (filterDetail) {
 
-                    // 1. 會員專屬特殊處理：檢查是否有會員白名單護體
+        if (filterDetail) {
 
-                    if (filterDetail.reason === 'members_only' || filterDetail.reason === 'members_only_js') {
+            // 1. 會員專屬特殊處理：檢查是否有會員白名單護體
 
-                        const compiledMembers = this.config.get('compiledMembersWhitelist');
+            if (filterDetail.reason === 'members_only' || filterDetail.reason === 'members_only_js') {
 
-                        if (compiledMembers && compiledMembers.some(rx => rx.test(item.channel))) {
+                const compiledMembers = this.config.get('compiledMembersWhitelist');
 
-                            Logger.info(`✅ Keep [Saved by Members Whitelist]: ${item.channel} | ${item.title}`); 
+                if (compiledMembers && compiledMembers.some(rx => rx.test(item.channel))) {
 
-                            this._markChecked(container, element);
+                    Logger.info(`✅ Keep [Saved by Members Whitelist]: ${item.channel} | ${item.title}`);
 
-                            return;
+                    this._markChecked(container, element);
 
-                        }
+                    return;
 
-                    }
+                }
 
-        
+            }
 
-                    // 2. 獲取規則優先級
 
-                    const priorities = this.config.get('RULE_PRIORITIES');
 
-                    const isStrong = priorities[filterDetail.reason] === 'strong';
+            // 2. 獲取規則優先級
 
-        
+            const priorities = this.config.get('RULE_PRIORITIES');
 
-                    // 3. 弱規則檢查：檢查普通頻道/關鍵字白名單
+            const isStrong = priorities[filterDetail.reason] === 'strong';
 
-                    const whitelistReason = isStrong ? null : this._checkWhitelist(item);
+
+
+            // 3. 弱規則檢查：檢查普通頻道/關鍵字白名單
+
+            const whitelistReason = isStrong ? null : this._checkWhitelist(item);
 
             if (whitelistReason) {
                 const savedBy = whitelistReason === 'channel_whitelist' ? 'Channel' : 'Keyword';
                 const trigger = filterDetail.trigger ? ` [${filterDetail.trigger}]` : '';
                 const ruleInfo = filterDetail.rule ? ` {Rule: ${filterDetail.rule}}` : '';
-                
+
                 Logger.info(`✅ Keep [Saved by ${savedBy} Whitelist]: ${item.channel} | ${item.title}
 (Originally Triggered: ${filterDetail.reason}${trigger}${ruleInfo})`);
                 this._markChecked(container, element);
@@ -467,7 +467,7 @@ export class VideoFilter {
         // 1. 頻道白名單檢查
         const compiledChannels = config.get('compiledChannelWhitelist');
         const rawChannels = config.get('CHANNEL_WHITELIST') || [];
-        
+
         if (channel) {
             // 優先使用編譯後的 Regex
             if (compiledChannels && compiledChannels.length > 0) {
@@ -482,7 +482,7 @@ export class VideoFilter {
         // 2. 關鍵字白名單檢查
         const compiledKeywords = config.get('compiledKeywordWhitelist');
         const rawKeywords = config.get('KEYWORD_WHITELIST') || [];
-        
+
         if (title) {
             if (compiledKeywords && compiledKeywords.length > 0) {
                 if (compiledKeywords.some(rx => rx.test(title))) return 'keyword_whitelist';
@@ -543,7 +543,7 @@ export class VideoFilter {
 
         if (!item.isLive && item.viewCount !== null && item.timeAgo !== null &&
             item.timeAgo > grace && item.viewCount < th) {
-            return { reason: 'low_view', trigger: `Views: ${item.viewCount} < Threshold: ${th} | Age: ${Math.floor(item.timeAgo/60)}h (Grace: ${this.config.get('GRACE_PERIOD_HOURS')}h) | Raw: "${item.raw.views}"` };
+            return { reason: 'low_view', trigger: `Views: ${item.viewCount} < Threshold: ${th} | Age: ${Math.floor(item.timeAgo / 60)}h (Grace: ${this.config.get('GRACE_PERIOD_HOURS')}h) | Raw: "${item.raw.views}"` };
         }
         return null;
     }
@@ -575,7 +575,7 @@ export class VideoFilter {
         const ruleInfo = detail.rule ? ` {Rule: ${detail.rule}}` : '';
 
         const container = element.closest<HTMLElement>('ytd-rich-item-renderer, ytd-grid-video-renderer, ytd-compact-video-renderer, ytd-playlist-renderer, ytd-rich-section-renderer, ytd-reel-shelf-renderer, ytd-playlist-panel-video-renderer') || element;
-        
+
         // 如果已經隱藏過了，直接標記並退出，防止重複 Log
         if (container.dataset.ypHidden) {
             element.dataset.ypChecked = 'true';
