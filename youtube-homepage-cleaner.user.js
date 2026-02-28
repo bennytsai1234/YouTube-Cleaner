@@ -825,7 +825,7 @@
             'ytd-rich-item-renderer', 'ytd-video-renderer', 'ytd-compact-video-renderer',
             'yt-lockup-view-model', 'ytd-playlist-renderer', 'ytd-compact-playlist-renderer',
             'ytd-video-owner-renderer', 'ytd-grid-video-renderer', 'ytd-playlist-video-renderer',
-            'ytd-playlist-panel-video-renderer'
+            'ytd-playlist-panel-video-renderer', 'ytd-guide-entry-renderer'
         ],
         PREVIEW_PLAYER: 'ytd-video-preview',
         LINK_CANDIDATES: [
@@ -1640,8 +1640,14 @@ URL: ${item.url}`);
                     const container = target.closest(SELECTORS.CLICKABLE.join(', '));
                     if (!container)
                         return;
-                    const channelLink = target.closest('a#avatar-link, .ytd-channel-name a, a[href^="/@"], a[href^="/channel/"]');
-                    targetLink = channelLink?.href ? channelLink : this.findPrimaryLink(container);
+                    if (container.tagName.toLowerCase() === 'ytd-guide-entry-renderer') {
+                        const guideLink = container.querySelector('a#endpoint');
+                        targetLink = guideLink?.href ? guideLink : null;
+                    }
+                    else {
+                        const channelLink = target.closest('a#avatar-link, .ytd-channel-name a, a[href^="/@"], a[href^="/channel/"]');
+                        targetLink = channelLink?.href ? channelLink : this.findPrimaryLink(container);
+                    }
                 }
                 if (!targetLink)
                     return;
