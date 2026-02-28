@@ -2,7 +2,7 @@
 // @name        YouTube Cleaner - Remove Shorts, Recommendations & Clutter
 // @description Clean YouTube interface by hiding Shorts, suggestions, and clutter elements. 20+ custom rules.
 // @namespace   http://tampermonkey.net/
-// @version     2.0.4
+// @version     2.0.5
 // @author      Benny & AI Collaborators
 // @match       https://www.youtube.com/*
 // @exclude     https://www.youtube.com/embed/*
@@ -1226,7 +1226,7 @@
         }
         get isPlaylist() {
             if (this._isPlaylist === undefined) {
-                const link = this.el.querySelector('a[href*="list="], [content-id^="PL"]');
+                const link = this.el.querySelector('a[href^="/playlist?list="], [content-id^="PL"]');
                 if (link) {
                     this._isPlaylist = true;
                     return true;
@@ -1296,7 +1296,8 @@
             if (this.config.get('DISABLE_FILTER_ON_CHANNEL') && /^\/(@|channel\/|c\/|user\/)/.test(path))
                 return true;
             return /^\/feed\/(playlists|library|subscriptions)/.test(path) ||
-                /\/playlists$/.test(path);
+                /^\/playlists?$/.test(path) ||
+                /^\/playlist/.test(path);
         }
         processMutations(mutations) {
             if (mutations.length > MUTATION_THRESHOLD) {
