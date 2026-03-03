@@ -2,44 +2,24 @@ import { Logger } from '../core/logger';
 import { SELECTORS } from '../data/selectors';
 import { ConfigManager } from '../core/config';
 import { I18N } from '../ui/i18n';
+import baseStyles from '../styles/youtube-cleaner.css';
 
 // --- 5. Module: Style Manager (CSS) ---
 export class StyleManager {
     private config: ConfigManager;
 
-    constructor(config: ConfigManager) { 
-        this.config = config; 
+    constructor(config: ConfigManager) {
+        this.config = config;
     }
 
     public apply(): void {
         const rules: string[] = [];
         const enables = this.config.get('RULE_ENABLES');
 
-        // 5.1 Global Fixes
-        rules.push('body, html { font-family: "YouTube Noto", Roboto, Arial, "PingFang SC", "Microsoft YaHei", sans-serif !important; }');
-
-        // 5.2 Anti-Adblock (完整還原 v1.4.0)
+        // 5.1 Global Fixes & Anti-Adblock
+        // Base static styles are now handled via CSS-in-JS import
         if (enables.ad_block_popup) {
-            rules.push(`
-                tp-yt-paper-dialog:has(ytd-enforcement-message-view-model),
-                ytd-enforcement-message-view-model,
-                #immersive-translate-browser-popup,
-                tp-yt-iron-overlay-backdrop:has(~ tp-yt-paper-dialog ytd-enforcement-message-view-model),
-                tp-yt-iron-overlay-backdrop.opened,
-                yt-playability-error-supported-renderers:has(ytd-enforcement-message-view-model) { display: none !important; }
-
-                ytd-app:has(ytd-enforcement-message-view-model), body:has(ytd-enforcement-message-view-model), html:has(ytd-enforcement-message-view-model) {
-                    overflow: auto !important; overflow-y: auto !important; position: static !important;
-                    pointer-events: auto !important; height: auto !important; top: 0 !important;
-                    margin-right: 0 !important; overscroll-behavior: auto !important;
-                }
-
-                ytd-app[aria-hidden="true"]:has(ytd-enforcement-message-view-model) {
-                    display: block !important;
-                }
-
-                ytd-app { --ytd-app-scroll-offset: 0 !important; }
-            `);
+            rules.push(baseStyles);
         }
 
         // 5.3 Simple Selection (CSS)

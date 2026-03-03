@@ -1,13 +1,8 @@
 import { Logger } from '../core/logger';
 import { Utils } from '../core/utils';
+import { YtConfig } from '../core/types'; // Import strict typings
 
 declare global {
-    interface Window {
-        yt?: any;
-        ytcfg?: {
-            data_?: any;
-        };
-    }
     interface HTMLElement {
         _adGuardObserved?: boolean;
     }
@@ -50,8 +45,8 @@ export class AdBlockGuard {
     // **ANTI-ADBLOCK PATCH**: 透過 YouTube 自身的配置對象來阻止偵測
     public patchConfig(): void {
         try {
-            const config = window.yt?.config_ || window.ytcfg?.data_;
-            if (config?.openPopupConfig?.supportedPopups?.adBlockMessageViewModel) {
+            const config = (window.yt?.config_ || window.ytcfg?.data_) as YtConfig | undefined;
+            if (config?.openPopupConfig?.supportedPopups?.adBlockMessageViewModel !== undefined) {
                 config.openPopupConfig.supportedPopups.adBlockMessageViewModel = false;
             }
             if (config?.EXPERIMENT_FLAGS) {
@@ -140,7 +135,7 @@ export class AdBlockGuard {
             this.lastTrigger = Date.now();
             const video = document.querySelector('video');
             if (video?.paused && !video.ended) {
-                video.play().catch(() => {});
+                video.play().catch(() => { });
             }
         }
     }

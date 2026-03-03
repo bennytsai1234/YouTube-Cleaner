@@ -834,6 +834,8 @@
         ],
         allContainers: ALL_CONTAINERS_STR};
 
+    var baseStyles = "/* --- YouTube Cleaner Static Global CSS --- */\n\n/* 1. Global Font Fixes */\nbody, html {\n    font-family: \"YouTube Noto\", Roboto, Arial, \"PingFang SC\", \"Microsoft YaHei\", sans-serif !important;\n}\n\n/* 2. Anti-Adblock popup and scroll unlocking */\ntp-yt-paper-dialog:has(ytd-enforcement-message-view-model),\nytd-enforcement-message-view-model,\n#immersive-translate-browser-popup,\ntp-yt-iron-overlay-backdrop:has(~ tp-yt-paper-dialog ytd-enforcement-message-view-model),\ntp-yt-iron-overlay-backdrop.opened,\nyt-playability-error-supported-renderers:has(ytd-enforcement-message-view-model) {\n    display: none !important;\n}\n\nytd-app:has(ytd-enforcement-message-view-model), \nbody:has(ytd-enforcement-message-view-model), \nhtml:has(ytd-enforcement-message-view-model) {\n    overflow: auto !important; \n    overflow-y: auto !important; \n    position: static !important;\n    pointer-events: auto !important; \n    height: auto !important; \n    top: 0 !important;\n    margin-right: 0 !important; \n    overscroll-behavior: auto !important;\n}\n\nytd-app[aria-hidden=\"true\"]:has(ytd-enforcement-message-view-model) {\n    display: block !important;\n}\n\nytd-app {\n    --ytd-app-scroll-offset: 0 !important;\n}\n";
+
     class StyleManager {
         config;
         constructor(config) {
@@ -842,28 +844,8 @@
         apply() {
             const rules = [];
             const enables = this.config.get('RULE_ENABLES');
-            rules.push('body, html { font-family: "YouTube Noto", Roboto, Arial, "PingFang SC", "Microsoft YaHei", sans-serif !important; }');
             if (enables.ad_block_popup) {
-                rules.push(`
-                tp-yt-paper-dialog:has(ytd-enforcement-message-view-model),
-                ytd-enforcement-message-view-model,
-                #immersive-translate-browser-popup,
-                tp-yt-iron-overlay-backdrop:has(~ tp-yt-paper-dialog ytd-enforcement-message-view-model),
-                tp-yt-iron-overlay-backdrop.opened,
-                yt-playability-error-supported-renderers:has(ytd-enforcement-message-view-model) { display: none !important; }
-
-                ytd-app:has(ytd-enforcement-message-view-model), body:has(ytd-enforcement-message-view-model), html:has(ytd-enforcement-message-view-model) {
-                    overflow: auto !important; overflow-y: auto !important; position: static !important;
-                    pointer-events: auto !important; height: auto !important; top: 0 !important;
-                    margin-right: 0 !important; overscroll-behavior: auto !important;
-                }
-
-                ytd-app[aria-hidden="true"]:has(ytd-enforcement-message-view-model) {
-                    display: block !important;
-                }
-
-                ytd-app { --ytd-app-scroll-offset: 0 !important; }
-            `);
+                rules.push(baseStyles);
             }
             const map = {
                 ad_sponsor: [
@@ -941,8 +923,8 @@
         }
         patchConfig() {
             try {
-                const config = window.yt?.config_ || window.ytcfg?.data_;
-                if (config?.openPopupConfig?.supportedPopups?.adBlockMessageViewModel) {
+                const config = (window.yt?.config_ || window.ytcfg?.data_);
+                if (config?.openPopupConfig?.supportedPopups?.adBlockMessageViewModel !== undefined) {
                     config.openPopupConfig.supportedPopups.adBlockMessageViewModel = false;
                 }
                 if (config?.EXPERIMENT_FLAGS) {

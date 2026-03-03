@@ -15,6 +15,8 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # Need full history for changelog generation
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -31,22 +33,27 @@ jobs:
       - name: Build UserScript
         run: npm run build
 
-      - name: Extract Release Notes
-        id: extract_release_notes
-        # Simple extraction: gets the latest version block from README or uses git log
-        # For simplicity, we'll use the tag message or a placeholder first.
-        # A more robust solution would parse CHANGELOG.md or README.md
+      - name: Generate Release Notes
+        id: release_notes
         run: |
-            # Try to grab the first section from README changelog if it matches version
-            VERSION=${GITHUB_REF#refs/tags/}
-            echo "RELEASE_VERSION=$VERSION" >> $GITHUB_ENV
+          PREVIOUS_TAG=$(git describe --tags --abbrev=0 HEAD^ 2>/dev/null || echo "")
+          if [ -z "$PREVIOUS_TAG" ]; then
+            echo "notes<<EOF" >> $GITHUB_OUTPUT
+            echo "Initial Release" >> $GITHUB_OUTPUT
+            echo "EOF" >> $GITHUB_OUTPUT
+          else
+            echo "notes<<EOF" >> $GITHUB_OUTPUT
+            git log ${PREVIOUS_TAG}..HEAD --pretty=format:"- %s (%h)" >> $GITHUB_OUTPUT
+            echo "" >> $GITHUB_OUTPUT
+            echo "EOF" >> $GITHUB_OUTPUT
+          fi
 
       - name: Create Release
         uses: softprops/action-gh-release@v2
         with:
           files: youtube-homepage-cleaner.user.js
-          name: ${{ env.RELEASE_VERSION }}
-          generate_release_notes: true
+          name: Release ${{ github.ref_name }}
+          body: ${{ steps.release_notes.outputs.notes }}
           draft: false
           prerelease: false
         env:

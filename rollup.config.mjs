@@ -3,6 +3,7 @@ import resolve from '@rollup/plugin-node-resolve';
 import typescript from '@rollup/plugin-typescript';
 import cleanup from 'rollup-plugin-cleanup';
 import metablock from 'rollup-plugin-userscript-metablock';
+import { string } from 'rollup-plugin-string';
 
 const pkg = JSON.parse(readFileSync('./package.json', 'utf8'));
 
@@ -15,6 +16,9 @@ export default {
   },
   plugins: [
     resolve(),
+    string({
+      include: '**/*.css'
+    }),
     typescript(),
     metablock({
       file: './src/meta.json',
