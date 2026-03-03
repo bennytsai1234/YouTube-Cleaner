@@ -1310,9 +1310,17 @@
                     if (node.nodeType !== 1)
                         continue;
                     const el = node;
-                    if (el.matches?.(SELECTORS.allContainers))
+                    if (el.matches?.(SELECTORS.allContainers)) {
                         candidates.add(el);
+                    }
                     el.querySelectorAll?.(SELECTORS.allContainers).forEach(c => candidates.add(c));
+                    const parentContainer = el.closest?.(SELECTORS.allContainers);
+                    if (parentContainer) {
+                        if (parentContainer.dataset.ypChecked) {
+                            delete parentContainer.dataset.ypChecked;
+                        }
+                        candidates.add(parentContainer);
+                    }
                 }
             }
             if (candidates.size > 0)
