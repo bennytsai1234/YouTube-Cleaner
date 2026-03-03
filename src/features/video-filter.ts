@@ -281,8 +281,24 @@ export class VideoFilter {
             for (const node of Array.from(mutation.addedNodes)) {
                 if (node.nodeType !== 1) continue;
                 const el = node as HTMLElement;
-                if (el.matches?.(SELECTORS.allContainers)) candidates.add(el);
+
+                // 1. 本身是容器
+                if (el.matches?.(SELECTORS.allContainers)) {
+                    candidates.add(el);
+                }
+
+                // 2. 內部包含容器 (大量節點插入)
                 el.querySelectorAll?.(SELECTORS.allContainers).forEach(c => candidates.add(c as HTMLElement));
+
+                // 3. 本身是內部組件 (如 Badge, Metadata)，往上尋找容器進行重新判斷
+                // 防止骨架屏(Skeleton)提早被標記而錯失後續加入的徽章
+                const parentContainer = el.closest?.(SELECTORS.allContainers) as HTMLElement;
+                if (parentContainer) {
+                    if (parentContainer.dataset.ypChecked) {
+                        delete parentContainer.dataset.ypChecked;
+                    }
+                    candidates.add(parentContainer);
+                }
             }
         }
 
