@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.0.6] - 2026-03-03
+
+### Fixed
+- **Filter Whitelist**: Fixed an issue where the `MutationObserver` would not correctly re-evaluate the parent container when YouTube dynamically appended inner elements, like "YouTube 精選" (Featured) or "會員活動" (Members Priority) badges, to an already rendered skeleton.
+
 ## [2.0.5] - 2026-02-28
 
 ### Fixed
