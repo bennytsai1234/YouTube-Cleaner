@@ -1,8 +1,8 @@
 {
-  "name": "youtube-homepage-cleaner",
+  "name": "youtube-cleaner",
   "version": "2.0.6",
   "type": "module",
-  "description": "Clean YouTube interface by hiding Shorts, suggestions, and clutter elements.",
+  "description": "Clean YouTube interface by hiding garbage Shorts, suggestions, and clutter elements. Say goodbye to clickbait.",
   "scripts": {
     "build": "rollup -c",
     "dev": "rollup -c -w",

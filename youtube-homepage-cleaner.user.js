@@ -1,6 +1,6 @@
 // ==UserScript==
-// @name        YouTube Cleaner - Remove Shorts, Recommendations & Clutter
-// @description Clean YouTube interface by hiding Shorts, suggestions, and clutter elements. 20+ custom rules.
+// @name        YouTube Cleaner - Remove Garbage & Suggestions
+// @description Clean YouTube interface by hiding garbage Shorts, suggestions, and clutter elements. Say goodbye to clickbait!
 // @namespace   http://tampermonkey.net/
 // @version     2.0.6
 // @author      Benny & AI Collaborators
@@ -9,7 +9,7 @@
 // @require     https://cdn.jsdelivr.net/npm/opencc-js@1.0.5/dist/umd/full.js
 // @run-at      document-start
 // @license     MIT
-// @icon        https://www.google.com/s2/favicons?sz=64&domain=youtube.com
+// @icon        https://raw.githubusercontent.com/bennytsai1234/YouTube-Cleaner/main/assets/icon.png
 // @downloadURL https://raw.githubusercontent.com/bennytsai1234/YouTube-Cleaner/main/youtube-homepage-cleaner.user.js
 // @updateURL   https://raw.githubusercontent.com/bennytsai1234/YouTube-Cleaner/main/youtube-homepage-cleaner.user.js
 // @grant       GM_info
