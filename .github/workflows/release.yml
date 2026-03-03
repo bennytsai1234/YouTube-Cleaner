@@ -33,27 +33,12 @@ jobs:
       - name: Build UserScript
         run: npm run build
 
-      - name: Generate Release Notes
-        id: release_notes
-        run: |
-          PREVIOUS_TAG=$(git describe --tags --abbrev=0 HEAD^ 2>/dev/null || echo "")
-          if [ -z "$PREVIOUS_TAG" ]; then
-            echo "notes<<EOF" >> $GITHUB_OUTPUT
-            echo "Initial Release" >> $GITHUB_OUTPUT
-            echo "EOF" >> $GITHUB_OUTPUT
-          else
-            echo "notes<<EOF" >> $GITHUB_OUTPUT
-            git log ${PREVIOUS_TAG}..HEAD --pretty=format:"- %s (%h)" >> $GITHUB_OUTPUT
-            echo "" >> $GITHUB_OUTPUT
-            echo "EOF" >> $GITHUB_OUTPUT
-          fi
-
       - name: Create Release
         uses: softprops/action-gh-release@v2
         with:
           files: youtube-homepage-cleaner.user.js
           name: Release ${{ github.ref_name }}
-          body: ${{ steps.release_notes.outputs.notes }}
+          generate_release_notes: true
           draft: false
           prerelease: false
         env:
