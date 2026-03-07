@@ -6,13 +6,13 @@ YouTube Cleaner 是一個高效能、模組化的瀏覽器腳本 (Userscript)，
 ## 🚀 v2.0.0 重大里程碑
 2.0.0 版本是本專案的一個重要轉折點，從單一腳本進化為**結構化、元件化**的成熟架構。
 
-### 1. 架構重構 (Modularization)
-- **職責分離**：將原本肥大的 `App` 類別拆分為多個核心模組：
+### 1. 架構重構 (Modularization & TypeScript)
+- **職責分離**：將原本肥大的 `App` 類別拆分為多個核心模組，並全面遷移至 **TypeScript** 以提升型別安全與維護性：
     - `AdBlockGuard`: 獨立負責反廣告攔截邏輯與配置補丁。
     - `VideoFilter`: 核心過濾引擎，負責 DOM 監聽與過濾決策。
     - `UIManager`: 採用宣告式選單系統，優化互動邏輯。
     - `StyleManager`: 統一管理 CSS 注入。
-- **組合根模式 (Composition Root)**：`main.js` 現在僅作為啟動器，負責協調各模組的初始化，大幅提升代碼可讀性。
+- **組合根模式 (Composition Root)**：`main.ts` 現在僅作為啟動器，負責協調各模組的初始化，大幅提升代碼可讀性。
 
 ### 2. 穩定性與健康檢查 (Reliability)
 - **選擇器健康檢查 (Selector Health Check)**：新增自動診斷工具，在 DEBUG 模式下自動驗證 YouTube DOM 結構是否發生變化，並在控制台拋出具體警告，縮短修復週期。
@@ -33,13 +33,12 @@ YouTube Cleaner 是一個高效能、模組化的瀏覽器腳本 (Userscript)，
     - **頻道白名單 (Regular)**：保護喜愛創作者不被弱規則影響。
     - **會員白名單 (Members)**：唯一能放行會員影片的機制。
 - **區塊過濾器**：可依標題隱藏特定首頁區塊。
-- **多國語言與分頁選單**：支援四種語言，選單具備分頁功能，確保長列表不被瀏覽器截斷。
+- **原生繁體中文**：專案已全面重構為純繁體中文環境，移除多語系帶來的效能與維護負擔，提供更一致的本地化體驗。
 
 ## 🛠️ 技術棧 (Tech Stack)
-- **Language**: JavaScript (ES6+)
+- **Language**: TypeScript
 - **Build Tool**: Rollup.js (模組化打包)
 - **Testing**: Node.js 自研測試套件 (涵蓋 70+ 測試案例)
-- **Libraries**: OpenCC-JS (繁簡轉換)
 
 ---
 *Last Updated: 2026-02-06*
