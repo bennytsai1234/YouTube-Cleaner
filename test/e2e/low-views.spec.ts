@@ -24,10 +24,12 @@ test.describe('Low Views Filter E2E', () => {
         
         // 確保不會出現明顯小於一億的字串 (例如 "10K views", "50萬次觀看")
         const hasLowViews = viewTexts.some(text => {
-            // 極低觀看只有數字沒有單位
-            if (/^\d+\s*(views|觀看)/i.test(text)) return true;
-            // 千級別
-            if (/\d+K\s*(views|觀看)/i.test(text)) return true;
+            // 確保不會出現明顯小於一億的字串 (不含 M, B, 億, 万 等大單位)
+            // 即匹配純數字或只有 K 的狀況
+            if (/^\d+(\.\d+)?\s*(K|k|千)?\s*(views|觀看|次觀看|次观看|次阅读)/i.test(text)) {
+                 // 有 K 代表幾千，純字串代表幾百
+                 return true;
+            }
             return false;
         });
         
