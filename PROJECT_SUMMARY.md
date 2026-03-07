@@ -1,4 +1,4 @@
-# YouTube Cleaner Project Summary (v2.0.0)
+# YouTube Cleaner Project Summary (v2.0.6)
 
 ## 📋 專案概述
 YouTube Cleaner 是一個高效能、模組化的瀏覽器腳本 (Userscript)，旨在透過過濾 Shorts、推薦內容、低品質影片及廣告攔截警告，為使用者打造純淨的 YouTube 瀏覽體驗。
@@ -39,7 +39,8 @@ YouTube Cleaner 是一個高效能、模組化的瀏覽器腳本 (Userscript)，
 - **Language**: TypeScript
 - **Build Tool**: Rollup.js (模組化打包)
 - **Testing**: Node.js 自研測試套件 (涵蓋 70+ 測試案例)
+- **Libraries**: OpenCC-JS (繁簡通用過濾核心引擎)
 
 ---
-*Last Updated: 2026-02-06*
+*Last Updated: 2026-03-07*
 *Status: Stable / Released*
