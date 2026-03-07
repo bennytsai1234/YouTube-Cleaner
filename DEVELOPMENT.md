@@ -10,31 +10,33 @@
 
 ```
 src/
-├── main.js           # 程式進入點 (Entry Point)
+├── main.ts           # 程式進入點 (Entry Point)
 ├── meta.json         # UserScript Metadata (版本、@match、@require)
 ├── core/             # 核心基礎設施
-│   ├── config.js     # 設定管理 (ConfigManager)
-│   ├── logger.js     # 日誌封裝 (Logger)
-│   ├── stats.js      # 統計資料 (FilterStats)
-│   └── utils.js      # 通用工具 (數字解析、時間計算、OpenCC)
+│   ├── config.ts     # 設定管理 (ConfigManager)
+│   ├── logger.ts     # 日誌封裝 (Logger)
+│   ├── stats.ts      # 統計資料 (FilterStats)
+│   ├── constants.ts  # 全局常數 (Constants)
+│   ├── types.ts      # TypeScript 型別定義 (Types)
+│   └── utils.ts      # 通用工具 (數字解析、時間計算)
 ├── data/
-│   └── selectors.js  # CSS 選擇器集中管理 (Critical!)
+│   └── selectors.ts  # CSS 選擇器集中管理 (Critical!)
 ├── features/         # 業務邏輯模組
-│   ├── video-filter.js    # 影片過濾核心邏輯
-│   ├── style-manager.js   # CSS 樣式注入 (高效過濾)
-│   ├── adblock-guard.js   # 反廣告封鎖彈窗處理
-│   ├── custom-rules.js    # 擴充規則定義
-│   └── interaction.js     # 互動增強 (如新分頁開啟)
+│   ├── video-filter.ts    # 影片過濾核心邏輯
+│   ├── style-manager.ts   # CSS 樣式注入 (高效過濾)
+│   ├── adblock-guard.ts   # 反廣告封鎖彈窗處理
+│   ├── custom-rules.ts    # 擴充規則定義
+│   └── interaction.ts     # 互動增強 (如新分頁開啟)
 └── ui/               # 使用者介面
-    ├── menu.js       # Tampermonkey 選單實作
-    └── i18n.js       # 多語言支援 (I18N)
+    ├── menu.ts       # Tampermonkey 選單實作
+    └── i18n.ts       # 繁體中文語系支援與文案集中處理
 ```
 
 **運作流程**:
-1. `main.js`: 初始化 `ConfigManager` 與 `StyleManager`。
+1. `main.ts`: 初始化 `ConfigManager` 與 `StyleManager`。
 2. `StyleManager`: 注入 CSS 規則 (First Pass Filter)。
 3. `MutationObserver`: 監控 DOM 變化，將新增元素傳遞給 `VideoFilter`。
-4. `VideoFilter`: 透過 `utils.js` 解析影片資訊，判斷是否隱藏 (Second Pass Filter)。
+4. `VideoFilter`: 透過 `utils.ts` 解析影片資訊，判斷是否隱藏 (Second Pass Filter)。
 
 ---
 
@@ -52,12 +54,12 @@ src/
 2. **MutationObserver**: 監控 DOM 樹變化 (Debounce 處理)。
 3. **事件監聽**: 監聽 `yt-navigate-finish` 處理頁面跳轉。
 
-### 2.3 最小外部依賴 (Dependencies)
-**原則**: 核心功能零依賴，增強功能 (如繁簡轉換) 使用 CDN。
-**原因**: 確保腳本輕量 (<100KB)、載入快速，且在 CDN 失效時仍能運作 (Graceful Degradation)。
+### 2.3 嚴謹的型別系統與穩定性 (Type Safety & Reliability)
+**原則**: 全面採用 TypeScript，拒絕因拼寫錯誤或無效參數導致的執行階段中斷。
+**優勢**: 基於 TypeScript 與編譯階段的嚴格檢查，增進了開發流程的可控性，減少了重構階段潛在的破壞性變更 (Breaking Changes)。
 
 ### 2.4 選擇器集中管理 (Maintainability)
-**原則**: 所有 CSS Selector 必須定義在 `src/data/selectors.js`。
+**原則**: 所有 CSS Selector 必須定義在 `src/data/selectors.ts`。
 **原因**: YouTube 前端代碼經常變動。集中管理讓我們能在單一檔案中修復大部分的 DOM 變更問題。
 
 ### 2.5 原生 UI (Simplicity)
@@ -68,6 +70,6 @@ src/
 
 ## 🧪 3. 測試與發布
 
-- **單元測試**: `npm test` (使用 `test/` 目錄下的腳本驗證邏輯)。
-- **構建**: `npm run build` (使用 rollup 打包)。
-- **發布**: 使用 GitHub Actions 自動發布新版本到 Release 頁面。
+- **單元測試**: `npm test` (使用 `tsx` 執行 `test/` 目錄下的測試腳本，驗證核心邏輯與組件)。
+- **構建**: `npm run build` (使用 rollup 打包 ts 模組)。
+- **發布**: `npm run version` 可自動更新 README 版號。
