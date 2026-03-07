@@ -14,8 +14,8 @@ test.describe('Whitelist Filter E2E', () => {
         
         await page.goto('https://www.youtube.com/results?search_query=PlayStation', { waitUntil: 'domcontentloaded' });
         
-        // 等待腳本處理
-        await page.waitForTimeout(4000);
+        // 等待腳本處理，增加到 6 秒確保所有 API 都成功返回資料
+        await page.waitForTimeout(6000);
         
         // 取得頁面上 *仍然可見* 的頻道名稱
         const visibleChannels = await page.locator('ytd-video-renderer ytd-channel-name').allInnerTexts();

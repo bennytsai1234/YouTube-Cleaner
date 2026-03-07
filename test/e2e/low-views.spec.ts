@@ -13,8 +13,8 @@ test.describe('Low Views Filter E2E', () => {
         
         await page.goto('https://www.youtube.com/results?search_query=music', { waitUntil: 'domcontentloaded' });
         
-        // 等待影片與腳本處理完畢
-        await page.waitForTimeout(4000);
+        // 等待影片與腳本處理完畢，增加到 6 秒確保所有 API 都成功返回資料
+        await page.waitForTimeout(6000);
         
         // 抓取畫面上仍然可見的影片觀看數 (從 metadata 中)
         const metadataItems = await page.locator('ytd-video-renderer .inline-metadata-item').allInnerTexts();

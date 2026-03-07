@@ -12,12 +12,27 @@ test.describe('Keyword Filter E2E', () => {
         
         await page.goto('https://www.youtube.com/results?search_query=遊戲', { waitUntil: 'domcontentloaded' });
         
-        // 等待影片與腳本處理完畢
-        await page.waitForTimeout(4000);
+        // 等待影片與腳本處理完畢，增加到 6 秒確保所有 API 都成功返回資料
+        await page.waitForTimeout(6000);
         
-        // 收集頁面上 *仍然可見* 的影片標題
-        // allInnerTexts 只會回傳 visible 元素的文字，因此被腳本隱藏的元素文字不會出現在這裡
-        const visibleTitles = await page.locator('ytd-video-renderer #video-title').allInnerTexts();
+        // 收集頁面上 *未被腳本徹底隱藏* 的影片標題
+        // 腳本運作時可能會將 parent renderer 設定為 hidden / display:none / opacity:0
+        // 為確保測試精確，我們直接抓所有視為「有效」的 #video-title
+        const visibleTitles = [];
+        const titles = page.locator('ytd-video-renderer #video-title');
+        
+        for (let i = 0; i < await titles.count(); i++) {
+            const el = titles.nth(i);
+            const isVisible = await el.evaluate(node => {
+                const renderer = node.closest('ytd-video-renderer');
+                if (!renderer) return true;
+                const style = window.getComputedStyle(renderer);
+                return style.display !== 'none' && !renderer.hasAttribute('hidden') && !renderer.hasAttribute('data-yp-hidden');
+            });
+            if (isVisible) {
+                visibleTitles.push((await el.innerText()).toLowerCase());
+            }
+        }
         
         // 驗證仍可見的影片中，有沒有標題包含 "遊戲" 或 "游戏"
         const hasVisibleKeyword = visibleTitles.some(title => 

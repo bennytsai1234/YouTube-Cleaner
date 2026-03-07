@@ -46,10 +46,14 @@ export async function injectUserScript(page: Page, customConfig: any = {}) {
         };
     }, customConfig);
 
-    // 載入與執行腳本
-    const scriptPath = path.resolve(process.cwd(), 'youtube-homepage-cleaner.user.js');
+    // 載入與執行腳本，動態尋找專案根目錄
+    const rootDir = process.cwd().includes('YouTube-Cleaner') 
+        ? process.cwd() 
+        : path.resolve(__dirname, '../../');
+        
+    const scriptPath = path.resolve(rootDir, 'youtube-homepage-cleaner.user.js');
     if (!fs.existsSync(scriptPath)) {
-        throw new Error('找不到 youtube-homepage-cleaner.user.js，請先執行 npm run build');
+        throw new Error(`找不到 youtube-homepage-cleaner.user.js (探索路徑: ${scriptPath})，請先執行 npm run build`);
     }
     const scriptContent = fs.readFileSync(scriptPath, 'utf8');
     
