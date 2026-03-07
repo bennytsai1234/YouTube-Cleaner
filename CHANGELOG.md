@@ -8,8 +8,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 ### 🚀 Architecture & Localization
 - **TypeScript Migration**: 全面將專案由 JavaScript (ES6) 遷移至 TypeScript，提供更嚴格的型別安全與穩定的編譯期檢查。
-- **Native Traditional Chinese**: 移除臃腫的多語種 (英/日/簡中) 切換系統，提供原生的繁體中文體驗，降低執行期負擔並簡化文案維護。
-- **Documentation Overhaul**: 根據最新的 TypeScript 架構與原生繁中特色，全面更新與優化 `README.md`、`DEVELOPMENT.md` 與 `PROJECT_SUMMARY.md`。
+- **Multi-language Continuity**: 在 TypeScript 架構重構中完整保留並優化了 `i18n` 模組（支援繁、簡、英、日），並確保各語言過濾正則（RegExp）的精確性。
+- **Documentation Overhaul**: 根據最新的 TypeScript 架構與實際代碼功能，全面更新與優化 `README.md`、`DEVELOPMENT.md` 與 `PROJECT_SUMMARY.md`。
 ## [2.0.6] - 2026-03-03
 
 ### Fixed
