@@ -18,7 +18,7 @@ src/
 │   ├── stats.ts      # 統計資料 (FilterStats)
 │   ├── constants.ts  # 全局常數 (Constants)
 │   ├── types.ts      # TypeScript 型別定義 (Types)
-│   └── utils.ts      # 通用工具 (數字解析、時間計算)
+│   └── utils.ts      # 通用工具 (數字解析、時間計算、OpenCC-JS)
 ├── data/
 │   └── selectors.ts  # CSS 選擇器集中管理 (Critical!)
 ├── features/         # 業務邏輯模組
@@ -58,11 +58,15 @@ src/
 **原則**: 全面採用 TypeScript，拒絕因拼寫錯誤或無效參數導致的執行階段中斷。
 **優勢**: 基於 TypeScript 與編譯階段的嚴格檢查，增進了開發流程的可控性，減少了重構階段潛在的破壞性變更 (Breaking Changes)。
 
-### 2.4 選擇器集中管理 (Maintainability)
+### 2.4 最小外部依賴 (Dependencies)
+**原則**: 核心功能零依賴，增強功能 (繁簡轉換過濾 `adv_region_convert`) 依賴外部的 CDN (`opencc-js`)。
+**原因**: 確保打包出來的腳本輕量 (<100KB)、載入快速，並且在引入外部函式庫前經過深思熟慮。若 CDN 失效，過濾機制仍有本機原生的 Fallback 保護 (Graceful Degradation)。
+
+### 2.5 選擇器集中管理 (Maintainability)
 **原則**: 所有 CSS Selector 必須定義在 `src/data/selectors.ts`。
 **原因**: YouTube 前端代碼經常變動。集中管理讓我們能在單一檔案中修復大部分的 DOM 變更問題。
 
-### 2.5 原生 UI (Simplicity)
+### 2.6 原生 UI (Simplicity)
 **原則**: 使用 Tampermonkey 原生選單 (`GM_registerMenuCommand`) 與 `prompt`/`alert`。
 **原因**: 避免注入複雜的 React/Vue UI 到頁面中，減少與 YouTube CSS 衝突的風險，並降低維護成本。
 
