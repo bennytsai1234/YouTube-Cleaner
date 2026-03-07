@@ -6,7 +6,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
-
+### 🚀 Architecture & Localization
+- **TypeScript Migration**: 全面將專案由 JavaScript (ES6) 遷移至 TypeScript，提供更嚴格的型別安全與穩定的編譯期檢查。
+- **Native Traditional Chinese**: 移除臃腫的多語種 (英/日/簡中) 切換系統，提供原生的繁體中文體驗，降低執行期負擔並簡化文案維護。
+- **Documentation Overhaul**: 根據最新的 TypeScript 架構與原生繁中特色，全面更新與優化 `README.md`、`DEVELOPMENT.md` 與 `PROJECT_SUMMARY.md`。
 ## [2.0.6] - 2026-03-03
 
 ### Fixed
