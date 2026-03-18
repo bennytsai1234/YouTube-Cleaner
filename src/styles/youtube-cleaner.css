@@ -1,11 +1,6 @@
 /* --- YouTube Cleaner Static Global CSS --- */
 
-/* 1. Global Font Fixes */
-body, html {
-    font-family: "YouTube Noto", Roboto, Arial, "PingFang SC", "Microsoft YaHei", sans-serif !important;
-}
-
-/* 2. Anti-Adblock popup and scroll unlocking */
+/* 1. Anti-Adblock popup and scroll unlocking */
 tp-yt-paper-dialog:has(ytd-enforcement-message-view-model),
 ytd-enforcement-message-view-model,
 #immersive-translate-browser-popup,

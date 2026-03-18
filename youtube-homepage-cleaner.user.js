@@ -265,7 +265,8 @@
                 next_page: '下一頁',
                 prev_page: '上一頁',
                 movies_keyword: '電影',
-                fundraiser_keyword: '募款'
+                fundraiser_keyword: '募款',
+                menu_font_fix: '字體修正 (中文優化)'
             },
             'zh-CN': {
                 title: 'YouTube 净化大师',
@@ -327,7 +328,8 @@
                 next_page: '下一页',
                 prev_page: '上一頁',
                 movies_keyword: '电影',
-                fundraiser_keyword: '募款'
+                fundraiser_keyword: '募款',
+                menu_font_fix: '字体修正 (中文优化)'
             },
             'en': {
                 title: 'YouTube Cleaner',
@@ -389,7 +391,8 @@
                 next_page: 'Next Page',
                 prev_page: 'Prev Page',
                 movies_keyword: 'Movies',
-                fundraiser_keyword: 'Fundraiser'
+                fundraiser_keyword: 'Fundraiser',
+                menu_font_fix: 'Font Fix (CJK Optimized)'
             },
             'ja': {
                 title: 'YouTube 浄化大師',
@@ -451,7 +454,8 @@
                 next_page: '次へ',
                 prev_page: '前へ',
                 movies_keyword: '映画',
-                fundraiser_keyword: '募金'
+                fundraiser_keyword: '募金',
+                menu_font_fix: 'フォント修正 (CJK 最適化)'
             }
         },
         filterPatterns: {
@@ -649,6 +653,7 @@
             this.defaults = {
                 OPEN_IN_NEW_TAB: true,
                 OPEN_NOTIFICATIONS_IN_NEW_TAB: true,
+                FONT_FIX: false,
                 ENABLE_LOW_VIEW_FILTER: true,
                 LOW_VIEW_THRESHOLD: 1000,
                 DEBUG_MODE: true,
@@ -834,7 +839,7 @@
         ],
         allContainers: ALL_CONTAINERS_STR};
 
-    var baseStyles = "/* --- YouTube Cleaner Static Global CSS --- */\n\n/* 1. Global Font Fixes */\nbody, html {\n    font-family: \"YouTube Noto\", Roboto, Arial, \"PingFang SC\", \"Microsoft YaHei\", sans-serif !important;\n}\n\n/* 2. Anti-Adblock popup and scroll unlocking */\ntp-yt-paper-dialog:has(ytd-enforcement-message-view-model),\nytd-enforcement-message-view-model,\n#immersive-translate-browser-popup,\ntp-yt-iron-overlay-backdrop:has(~ tp-yt-paper-dialog ytd-enforcement-message-view-model),\ntp-yt-iron-overlay-backdrop.opened,\nyt-playability-error-supported-renderers:has(ytd-enforcement-message-view-model) {\n    display: none !important;\n}\n\nytd-app:has(ytd-enforcement-message-view-model), \nbody:has(ytd-enforcement-message-view-model), \nhtml:has(ytd-enforcement-message-view-model) {\n    overflow: auto !important; \n    overflow-y: auto !important; \n    position: static !important;\n    pointer-events: auto !important; \n    height: auto !important; \n    top: 0 !important;\n    margin-right: 0 !important; \n    overscroll-behavior: auto !important;\n}\n\nytd-app[aria-hidden=\"true\"]:has(ytd-enforcement-message-view-model) {\n    display: block !important;\n}\n\nytd-app {\n    --ytd-app-scroll-offset: 0 !important;\n}\n";
+    var baseStyles = "/* --- YouTube Cleaner Static Global CSS --- */\n\n/* 1. Anti-Adblock popup and scroll unlocking */\ntp-yt-paper-dialog:has(ytd-enforcement-message-view-model),\nytd-enforcement-message-view-model,\n#immersive-translate-browser-popup,\ntp-yt-iron-overlay-backdrop:has(~ tp-yt-paper-dialog ytd-enforcement-message-view-model),\ntp-yt-iron-overlay-backdrop.opened,\nyt-playability-error-supported-renderers:has(ytd-enforcement-message-view-model) {\n    display: none !important;\n}\n\nytd-app:has(ytd-enforcement-message-view-model), \nbody:has(ytd-enforcement-message-view-model), \nhtml:has(ytd-enforcement-message-view-model) {\n    overflow: auto !important; \n    overflow-y: auto !important; \n    position: static !important;\n    pointer-events: auto !important; \n    height: auto !important; \n    top: 0 !important;\n    margin-right: 0 !important; \n    overscroll-behavior: auto !important;\n}\n\nytd-app[aria-hidden=\"true\"]:has(ytd-enforcement-message-view-model) {\n    display: block !important;\n}\n\nytd-app {\n    --ytd-app-scroll-offset: 0 !important;\n}\n";
 
     class StyleManager {
         config;
@@ -846,6 +851,9 @@
             const enables = this.config.get('RULE_ENABLES');
             if (enables.ad_block_popup) {
                 rules.push(baseStyles);
+            }
+            if (this.config.get('FONT_FIX')) {
+                rules.push('body, html { font-family: "YouTube Noto", Roboto, Arial, "PingFang SC", "Microsoft YaHei", sans-serif !important; }');
             }
             const map = {
                 ad_sponsor: [
@@ -1727,7 +1735,8 @@ URL: ${item.url}`);
                 { label: `${i('OPEN_IN_NEW_TAB')} ${this.t('menu_new_tab')}`, action: () => this.toggle('OPEN_IN_NEW_TAB', 'ux') },
                 { label: `${i('OPEN_NOTIFICATIONS_IN_NEW_TAB')} ${this.t('menu_notification_new_tab')}`, action: () => this.toggle('OPEN_NOTIFICATIONS_IN_NEW_TAB', 'ux') },
                 { label: `${i('ENABLE_REGION_CONVERT')} ${this.t('adv_region_convert')}`, action: () => this.toggle('ENABLE_REGION_CONVERT', 'ux') },
-                { label: `${i('DISABLE_FILTER_ON_CHANNEL')} ${this.t('adv_disable_channel')}`, action: () => this.toggle('DISABLE_FILTER_ON_CHANNEL', 'ux') }
+                { label: `${i('DISABLE_FILTER_ON_CHANNEL')} ${this.t('adv_disable_channel')}`, action: () => this.toggle('DISABLE_FILTER_ON_CHANNEL', 'ux') },
+                { label: `${i('FONT_FIX')} ${this.t('menu_font_fix')}`, action: () => this.toggle('FONT_FIX', 'ux') }
             ];
             this._renderMenu(this.t('menu_ux'), items, () => this.showMainMenu());
         }

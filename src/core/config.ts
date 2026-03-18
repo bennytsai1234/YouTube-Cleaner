@@ -35,6 +35,7 @@ export interface RuleEnables {
 export interface ConfigState {
     OPEN_IN_NEW_TAB: boolean;
     OPEN_NOTIFICATIONS_IN_NEW_TAB: boolean;
+    FONT_FIX: boolean;
     ENABLE_LOW_VIEW_FILTER: boolean;
     LOW_VIEW_THRESHOLD: number;
     DEBUG_MODE: boolean;
@@ -76,6 +77,7 @@ export class ConfigManager {
             // 主選單設定
             OPEN_IN_NEW_TAB: true,
             OPEN_NOTIFICATIONS_IN_NEW_TAB: true,
+            FONT_FIX: false,
             ENABLE_LOW_VIEW_FILTER: true,
             LOW_VIEW_THRESHOLD: 1000,
             DEBUG_MODE: true,

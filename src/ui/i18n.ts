@@ -73,7 +73,8 @@ export const I18N = {
             next_page: '下一頁',
             prev_page: '上一頁',
             movies_keyword: '電影',
-            fundraiser_keyword: '募款'
+            fundraiser_keyword: '募款',
+            menu_font_fix: '字體修正 (中文優化)'
         },
         'zh-CN': {
             title: 'YouTube 净化大师',
@@ -135,7 +136,8 @@ export const I18N = {
             next_page: '下一页',
             prev_page: '上一頁',
             movies_keyword: '电影',
-            fundraiser_keyword: '募款'
+            fundraiser_keyword: '募款',
+            menu_font_fix: '字体修正 (中文优化)'
         },
         'en': {
             title: 'YouTube Cleaner',
@@ -197,7 +199,8 @@ export const I18N = {
             next_page: 'Next Page',
             prev_page: 'Prev Page',
             movies_keyword: 'Movies',
-            fundraiser_keyword: 'Fundraiser'
+            fundraiser_keyword: 'Fundraiser',
+            menu_font_fix: 'Font Fix (CJK Optimized)'
         },
         'ja': {
             title: 'YouTube 浄化大師',
@@ -259,7 +262,8 @@ export const I18N = {
             next_page: '次へ',
             prev_page: '前へ',
             movies_keyword: '映画',
-            fundraiser_keyword: '募金'
+            fundraiser_keyword: '募金',
+            menu_font_fix: 'フォント修正 (CJK 最適化)'
         }
     } as Record<SupportedLang, I18NStrings>,
 

@@ -22,6 +22,11 @@ export class StyleManager {
             rules.push(baseStyles);
         }
 
+        // 5.2 Optional Font Fix
+        if (this.config.get('FONT_FIX')) {
+            rules.push('body, html { font-family: "YouTube Noto", Roboto, Arial, "PingFang SC", "Microsoft YaHei", sans-serif !important; }');
+        }
+
         // 5.3 Simple Selection (CSS)
         // ★ Add new Selector-based rules here
         const map: Partial<Record<keyof typeof enables, string[]>> = {
