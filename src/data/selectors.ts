@@ -62,12 +62,27 @@ export const SELECTORS: SelectorsType = {
             'a#video-title-link[aria-label]',
             'a#thumbnail[aria-label]',
             'a.yt-lockup-metadata-view-model__title[aria-label]',
+            'a.yt-lockup-view-model__content-image[aria-label]',
             'a[href*="/watch?"][aria-label]'
         ],
         // 時長
         DURATION: 'ytd-thumbnail-overlay-time-status-renderer, span.ytd-thumbnail-overlay-time-status-renderer, badge-shape .yt-badge-shape__text, yt-thumbnail-badge-view-model .yt-badge-shape__text',
         // 頻道名稱
-        CHANNEL: 'ytd-channel-name, .ytd-channel-name, a[href^="/@"], .yt-content-metadata-view-model__metadata-text, yt-decorated-avatar-view-model',
+        CHANNEL: [
+            'ytd-channel-name a',
+            '.ytd-channel-name a',
+            'a.yt-core-attributed-string__link[href^="/@"]',
+            'a.yt-core-attributed-string__link[href^="/channel/"]',
+            'a.yt-core-attributed-string__link[href^="/c/"]',
+            'a.yt-core-attributed-string__link[href^="/user/"]',
+            'a[href^="/@"]',
+            'a[href^="/channel/"]',
+            'a[href^="/c/"]',
+            'a[href^="/user/"]',
+            'ytd-channel-name',
+            '.ytd-channel-name',
+            'yt-decorated-avatar-view-model'
+        ].join(', '),
         // 標題文字
         TITLE: '#video-title, #title, .yt-lockup-metadata-view-model__title, .yt-lockup-metadata-view-model__heading-reset, h3'
     },
@@ -105,7 +120,12 @@ export const SELECTORS: SelectorsType = {
     // 連結候選
     LINK_CANDIDATES: [
         'a#thumbnail[href*="/watch?"]', 'a#thumbnail[href*="/shorts/"]', 'a#thumbnail[href*="/playlist?"]',
-        'a#video-title-link', 'a#video-title', 'a.yt-simple-endpoint#video-title', 'a.yt-lockup-view-model-wiz__title'
+        'a#video-title-link', 'a#video-title', 'a.yt-simple-endpoint#video-title',
+        'a.yt-lockup-metadata-view-model__title[href*="/watch?"]',
+        'a.yt-lockup-metadata-view-model__title[href*="/shorts/"]',
+        'a.yt-lockup-view-model__content-image[href*="/watch?"]',
+        'a.yt-lockup-view-model__content-image[href*="/shorts/"]',
+        'a.yt-lockup-view-model-wiz__title'
     ],
 
     // 生成組合選擇器 (Properties)

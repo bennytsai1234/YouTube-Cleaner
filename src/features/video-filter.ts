@@ -53,21 +53,33 @@ export class LazyVideoData {
         if (this._title === null) {
             const el = this.el.querySelector<HTMLElement>(SELECTORS.METADATA.TITLE);
             this._title = el?.title?.trim() || el?.textContent?.trim() || '';
+
+            if (!this._title) {
+                for (const sel of SELECTORS.METADATA.TITLE_LINKS) {
+                    const link = this.el.querySelector<HTMLElement>(sel);
+                    const text = link?.getAttribute('title')?.trim() || link?.ariaLabel?.trim() || link?.textContent?.trim() || '';
+                    if (text) {
+                        this._title = text;
+                        break;
+                    }
+                }
+            }
         }
         return this._title;
     }
 
     get channel(): string {
         if (this._channel === null) {
-            const el = this.el.querySelector(SELECTORS.METADATA.CHANNEL);
-            if (!el) return '';
-
             let rawName = '';
-            if (el.tagName === 'YT-DECORATED-AVATAR-VIEW-MODEL') {
-                const avatarBtn = el.querySelector('[aria-label]');
-                rawName = avatarBtn?.getAttribute('aria-label') || '';
-            } else {
-                rawName = el.textContent?.trim() || '';
+            const el = this.el.querySelector<HTMLElement>(SELECTORS.METADATA.CHANNEL);
+
+            if (el) {
+                if (el.tagName === 'YT-DECORATED-AVATAR-VIEW-MODEL') {
+                    const avatarBtn = el.querySelector<HTMLElement>('[aria-label]');
+                    rawName = avatarBtn?.getAttribute('aria-label') || '';
+                } else {
+                    rawName = el.getAttribute('aria-label') || el.textContent?.trim() || '';
+                }
             }
 
             this._channel = Utils.cleanChannelName(rawName);
@@ -77,7 +89,8 @@ export class LazyVideoData {
 
     get url(): string {
         if (this._url === undefined) {
-            const anchor = this.el.querySelector<HTMLAnchorElement>('a[href*="/watch?"], a[href*="/shorts/"]');
+            const anchor = this.el.querySelector<HTMLAnchorElement>(SELECTORS.LINK_CANDIDATES.join(', ')) ||
+                this.el.querySelector<HTMLAnchorElement>('a[href*="/watch?"], a[href*="/shorts/"]');
             this._url = anchor ? anchor.href : '';
         }
         return this._url;
@@ -125,6 +138,21 @@ export class LazyVideoData {
             if (this._timeAgo === null && isAgo) {
                 this.raw.time = text;
                 this._timeAgo = Utils.parseTimeAgo(text);
+            }
+        }
+
+        // 新版 yt-lockup 佈局有時只顯示裸數字，旁邊用圖示代表 views。
+        if (this._viewCount === null) {
+            for (const t of texts) {
+                const text = t.textContent?.trim() || '';
+                if (!text || patterns.ago.test(text) || patterns.live.test(text) || text === this.channel) continue;
+
+                const parsed = Utils.parseNumeric(text, 'view');
+                if (parsed !== null) {
+                    this.raw.views = text;
+                    this._viewCount = parsed;
+                    break;
+                }
             }
         }
     }

@@ -808,10 +808,25 @@
                 'a#video-title-link[aria-label]',
                 'a#thumbnail[aria-label]',
                 'a.yt-lockup-metadata-view-model__title[aria-label]',
+                'a.yt-lockup-view-model__content-image[aria-label]',
                 'a[href*="/watch?"][aria-label]'
             ],
             DURATION: 'ytd-thumbnail-overlay-time-status-renderer, span.ytd-thumbnail-overlay-time-status-renderer, badge-shape .yt-badge-shape__text, yt-thumbnail-badge-view-model .yt-badge-shape__text',
-            CHANNEL: 'ytd-channel-name, .ytd-channel-name, a[href^="/@"], .yt-content-metadata-view-model__metadata-text, yt-decorated-avatar-view-model',
+            CHANNEL: [
+                'ytd-channel-name a',
+                '.ytd-channel-name a',
+                'a.yt-core-attributed-string__link[href^="/@"]',
+                'a.yt-core-attributed-string__link[href^="/channel/"]',
+                'a.yt-core-attributed-string__link[href^="/c/"]',
+                'a.yt-core-attributed-string__link[href^="/user/"]',
+                'a[href^="/@"]',
+                'a[href^="/channel/"]',
+                'a[href^="/c/"]',
+                'a[href^="/user/"]',
+                'ytd-channel-name',
+                '.ytd-channel-name',
+                'yt-decorated-avatar-view-model'
+            ].join(', '),
             TITLE: '#video-title, #title, .yt-lockup-metadata-view-model__title, .yt-lockup-metadata-view-model__heading-reset, h3'
         },
         SHELF_TITLE: [
@@ -835,7 +850,12 @@
         PREVIEW_PLAYER: 'ytd-video-preview',
         LINK_CANDIDATES: [
             'a#thumbnail[href*="/watch?"]', 'a#thumbnail[href*="/shorts/"]', 'a#thumbnail[href*="/playlist?"]',
-            'a#video-title-link', 'a#video-title', 'a.yt-simple-endpoint#video-title', 'a.yt-lockup-view-model-wiz__title'
+            'a#video-title-link', 'a#video-title', 'a.yt-simple-endpoint#video-title',
+            'a.yt-lockup-metadata-view-model__title[href*="/watch?"]',
+            'a.yt-lockup-metadata-view-model__title[href*="/shorts/"]',
+            'a.yt-lockup-view-model__content-image[href*="/watch?"]',
+            'a.yt-lockup-view-model__content-image[href*="/shorts/"]',
+            'a.yt-lockup-view-model-wiz__title'
         ],
         allContainers: ALL_CONTAINERS_STR};
 
@@ -1100,21 +1120,31 @@
             if (this._title === null) {
                 const el = this.el.querySelector(SELECTORS.METADATA.TITLE);
                 this._title = el?.title?.trim() || el?.textContent?.trim() || '';
+                if (!this._title) {
+                    for (const sel of SELECTORS.METADATA.TITLE_LINKS) {
+                        const link = this.el.querySelector(sel);
+                        const text = link?.getAttribute('title')?.trim() || link?.ariaLabel?.trim() || link?.textContent?.trim() || '';
+                        if (text) {
+                            this._title = text;
+                            break;
+                        }
+                    }
+                }
             }
             return this._title;
         }
         get channel() {
             if (this._channel === null) {
-                const el = this.el.querySelector(SELECTORS.METADATA.CHANNEL);
-                if (!el)
-                    return '';
                 let rawName = '';
-                if (el.tagName === 'YT-DECORATED-AVATAR-VIEW-MODEL') {
-                    const avatarBtn = el.querySelector('[aria-label]');
-                    rawName = avatarBtn?.getAttribute('aria-label') || '';
-                }
-                else {
-                    rawName = el.textContent?.trim() || '';
+                const el = this.el.querySelector(SELECTORS.METADATA.CHANNEL);
+                if (el) {
+                    if (el.tagName === 'YT-DECORATED-AVATAR-VIEW-MODEL') {
+                        const avatarBtn = el.querySelector('[aria-label]');
+                        rawName = avatarBtn?.getAttribute('aria-label') || '';
+                    }
+                    else {
+                        rawName = el.getAttribute('aria-label') || el.textContent?.trim() || '';
+                    }
                 }
                 this._channel = Utils.cleanChannelName(rawName);
             }
@@ -1122,7 +1152,8 @@
         }
         get url() {
             if (this._url === undefined) {
-                const anchor = this.el.querySelector('a[href*="/watch?"], a[href*="/shorts/"]');
+                const anchor = this.el.querySelector(SELECTORS.LINK_CANDIDATES.join(', ')) ||
+                    this.el.querySelector('a[href*="/watch?"], a[href*="/shorts/"]');
                 this._url = anchor ? anchor.href : '';
             }
             return this._url;
@@ -1166,6 +1197,19 @@
                 if (this._timeAgo === null && isAgo) {
                     this.raw.time = text;
                     this._timeAgo = Utils.parseTimeAgo(text);
+                }
+            }
+            if (this._viewCount === null) {
+                for (const t of texts) {
+                    const text = t.textContent?.trim() || '';
+                    if (!text || patterns.ago.test(text) || patterns.live.test(text) || text === this.channel)
+                        continue;
+                    const parsed = Utils.parseNumeric(text, 'view');
+                    if (parsed !== null) {
+                        this.raw.views = text;
+                        this._viewCount = parsed;
+                        break;
+                    }
                 }
             }
         }

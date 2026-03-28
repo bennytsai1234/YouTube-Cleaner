@@ -231,6 +231,72 @@ TestRunner.suite('LazyVideoData', () => {
     TestRunner.assert('偵測非直播', !video.isLive);
 });
 
+TestRunner.suite('LazyVideoData - 新版 yt-lockup 卡片', () => {
+    const suiteDom = new JSDOM(`
+        <ytd-rich-item-renderer id="video-root">
+            <div id="content">
+                <yt-lockup-view-model class="ytd-rich-item-renderer lockup yt-lockup-view-model--wrapper">
+                    <a href="/watch?v=pYIf-IPHqfg" class="yt-lockup-view-model__content-image" aria-hidden="true">
+                        <yt-thumbnail-view-model>
+                            <yt-thumbnail-badge-view-model>
+                                <badge-shape><div class="yt-badge-shape__text">4:40</div></badge-shape>
+                            </yt-thumbnail-badge-view-model>
+                        </yt-thumbnail-view-model>
+                    </a>
+                    <div class="yt-lockup-view-model__metadata">
+                        <yt-lockup-metadata-view-model>
+                            <div class="yt-lockup-metadata-view-model__avatar">
+                                <yt-decorated-avatar-view-model>
+                                    <div aria-label="前往頻道：比特币鹏先生" role="button"></div>
+                                </yt-decorated-avatar-view-model>
+                            </div>
+                            <div class="yt-lockup-metadata-view-model__text-container">
+                                <h3 class="yt-lockup-metadata-view-model__heading-reset" title="比特币复杂调整！走势不确定性增加？涨还是跌？">
+                                    <a href="/watch?v=pYIf-IPHqfg" class="yt-lockup-metadata-view-model__title" aria-label="比特币复杂调整！走势不确定性增加？涨还是跌？ 4 分鐘 40 秒">
+                                        <span>比特币复杂调整！走势不确定性增加？涨还是跌？</span>
+                                    </a>
+                                </h3>
+                                <yt-content-metadata-view-model>
+                                    <div class="yt-content-metadata-view-model__metadata-row">
+                                        <span class="yt-content-metadata-view-model__metadata-text">
+                                            <a class="yt-core-attributed-string__link" href="/@Crypto_Mrpeng">比特币鹏先生</a>
+                                        </span>
+                                        <span class="yt-content-metadata-view-model__metadata-text">260</span>
+                                        <span class="yt-content-metadata-view-model__metadata-text">3 天前</span>
+                                    </div>
+                                </yt-content-metadata-view-model>
+                            </div>
+                        </yt-lockup-metadata-view-model>
+                    </div>
+                </yt-lockup-view-model>
+            </div>
+        </ytd-rich-item-renderer>
+    `, { url: 'https://www.youtube.com/' });
+
+    const oldWindow = (global as any).window;
+    const oldDocument = (global as any).document;
+
+    (global as any).window = suiteDom.window;
+    (global as any).document = suiteDom.window.document;
+    (global as any).HTMLElement = suiteDom.window.HTMLElement;
+    (global as any).Element = suiteDom.window.Element;
+    (global as any).Node = suiteDom.window.Node;
+
+    const el = document.getElementById('video-root') as HTMLElement;
+    const video = new LazyVideoData(el);
+
+    TestRunner.assertEqual('新版卡片提取標題', video.title, '比特币复杂调整！走势不确定性增加？涨还是跌？');
+    TestRunner.assertEqual('新版卡片提取頻道', video.channel, '比特币鹏先生');
+    TestRunner.assertEqual('新版卡片不誤抓觀看數為頻道', video.channel === '260', false);
+    TestRunner.assertEqual('新版卡片提取觀看數', video.viewCount, 260);
+    TestRunner.assertEqual('新版卡片提取發布時間 (分)', video.timeAgo, 4320);
+    TestRunner.assertEqual('新版卡片提取時長 (秒)', video.duration, 280);
+    TestRunner.assert('新版卡片提取影片網址', video.url.includes('/watch?v=pYIf-IPHqfg'));
+
+    (global as any).window = oldWindow;
+    (global as any).document = oldDocument;
+});
+
 TestRunner.suite('Utils.generateCnRegex - 繁簡轉換', () => {
     const config = new MockConfig();
 

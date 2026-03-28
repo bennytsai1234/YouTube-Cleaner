@@ -2,8 +2,12 @@ name: "E2E YouTube Selector Health Check"
 
 on:
   schedule:
-    - cron: '0 0 * * 0' # Run weekly
-  workflow_dispatch: # Allow manual trigger
+    - cron: '0 0 * * 0' # Weekly on Sunday 00:00 UTC
+  workflow_dispatch:
+
+concurrency:
+  group: youtube-selector-health-check
+  cancel-in-progress: false
 
 jobs:
   test:
@@ -30,16 +34,63 @@ jobs:
       
     - name: Run Playwright tests
       run: npx playwright test test/e2e
+
+    - name: Upload selector debug artifacts
+      if: always()
+      uses: actions/upload-artifact@v4
+      with:
+        name: selector-health-debug-${{ github.run_id }}
+        path: |
+          test-results/**
+          playwright-report/**
+        if-no-files-found: ignore
+        retention-days: 14
       
-    - name: Create Issue on Failure
+    - name: Create or update issue on failure
       if: failure()
       uses: actions/github-script@v7
       with:
         script: |
-          github.rest.issues.create({
-            owner: context.repo.owner,
-            repo: context.repo.repo,
-            title: "🚨 YouTube DOM Selectors Check Failed",
-            body: "The automated Playwright E2E test detected that some critical YouTube DOM selectors might have changed.\n\nPlease check the Actions tab for more details: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}",
-            labels: ['bug', 'maintenance']
-          })
+          const owner = context.repo.owner;
+          const repo = context.repo.repo;
+          const title = 'YouTube DOM selector health check failed';
+          const runUrl = `https://github.com/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`;
+          const body = [
+            'The scheduled YouTube selector health check failed.',
+            '',
+            `Run: ${runUrl}`,
+            '',
+            'What this means:',
+            '- One or more selectors no longer matched expected YouTube DOM structure.',
+            '- Check the uploaded workflow artifacts for captured HTML, screenshots, and Playwright output.',
+            '',
+            'Notes:',
+            '- This workflow intentionally checks search results and channel sections instead of the logged-out homepage.',
+            '- The logged-out homepage is often sparse or empty, so it is not a reliable health-check target.'
+          ].join('\n');
+
+          const { data: issues } = await github.rest.issues.listForRepo({
+            owner,
+            repo,
+            state: 'open',
+            labels: 'bug,maintenance'
+          });
+
+          const existing = issues.find(issue => issue.title === title);
+
+          if (existing) {
+            await github.rest.issues.createComment({
+              owner,
+              repo,
+              issue_number: existing.number,
+              body
+            });
+          } else {
+            await github.rest.issues.create({
+              owner,
+              repo,
+              title,
+              body,
+              labels: ['bug', 'maintenance']
+            });
+          }
