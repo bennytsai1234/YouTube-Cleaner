@@ -1199,6 +1199,17 @@
                     this._timeAgo = Utils.parseTimeAgo(text);
                 }
             }
+            if (this._timeAgo === null) {
+                for (const t of texts) {
+                    const text = t.textContent?.trim() || '';
+                    const parsed = Utils.parseTimeAgo(text);
+                    if (parsed !== null) {
+                        this.raw.time = text;
+                        this._timeAgo = parsed;
+                        break;
+                    }
+                }
+            }
             if (this._viewCount === null) {
                 for (const t of texts) {
                     const text = t.textContent?.trim() || '';

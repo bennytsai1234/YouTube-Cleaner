@@ -141,6 +141,19 @@ export class LazyVideoData {
             }
         }
 
+        // 回退處理：YouTube 卡片文案可能與目前 UI 語言不同，例如英文介面混到「3 天前」。
+        if (this._timeAgo === null) {
+            for (const t of texts) {
+                const text = t.textContent?.trim() || '';
+                const parsed = Utils.parseTimeAgo(text);
+                if (parsed !== null) {
+                    this.raw.time = text;
+                    this._timeAgo = parsed;
+                    break;
+                }
+            }
+        }
+
         // 新版 yt-lockup 佈局有時只顯示裸數字，旁邊用圖示代表 views。
         if (this._viewCount === null) {
             for (const t of texts) {

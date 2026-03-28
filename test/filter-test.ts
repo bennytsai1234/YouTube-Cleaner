@@ -6,6 +6,7 @@
 import { Utils } from '../src/core/utils';
 import { CustomRuleManager } from '../src/features/custom-rules';
 import { LazyVideoData } from '../src/features/video-filter';
+import { I18N } from '../src/ui/i18n';
 import { JSDOM } from 'jsdom';
 
 // Mock GM functions for test environment
@@ -293,6 +294,38 @@ TestRunner.suite('LazyVideoData - 新版 yt-lockup 卡片', () => {
     TestRunner.assertEqual('新版卡片提取時長 (秒)', video.duration, 280);
     TestRunner.assert('新版卡片提取影片網址', video.url.includes('/watch?v=pYIf-IPHqfg'));
 
+    (global as any).window = oldWindow;
+    (global as any).document = oldDocument;
+});
+
+TestRunner.suite('LazyVideoData - 跨語系時間回退', () => {
+    const previousLang = I18N._lang;
+    I18N._lang = 'en';
+
+    const suiteDom = new JSDOM(`
+        <div id="video-root">
+            <yt-content-metadata-view-model>
+                <span class="yt-content-metadata-view-model__metadata-text">260</span>
+                <span class="yt-content-metadata-view-model__metadata-text">3 天前</span>
+            </yt-content-metadata-view-model>
+        </div>
+    `, { url: 'https://www.youtube.com/' });
+
+    const oldWindow = (global as any).window;
+    const oldDocument = (global as any).document;
+
+    (global as any).window = suiteDom.window;
+    (global as any).document = suiteDom.window.document;
+    (global as any).HTMLElement = suiteDom.window.HTMLElement;
+    (global as any).Element = suiteDom.window.Element;
+    (global as any).Node = suiteDom.window.Node;
+
+    const el = document.getElementById('video-root') as HTMLElement;
+    const video = new LazyVideoData(el);
+
+    TestRunner.assertEqual('英文語系也能解析中文時間', video.timeAgo, 4320);
+
+    I18N._lang = previousLang;
     (global as any).window = oldWindow;
     (global as any).document = oldDocument;
 });
