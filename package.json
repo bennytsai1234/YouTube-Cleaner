@@ -7,7 +7,7 @@
     "build": "rollup -c",
     "dev": "rollup -c -w",
     "lint": "eslint src",
-    "test": "tsx test/filter-test.ts && tsx test/logic-test.ts",
+    "test": "tsx test/filter-test.ts && tsx test/logic-test.ts && tsx test/interaction-test.ts",
     "version": "node scripts/update-readme.js && git add README.md"
   },
   "repository": {

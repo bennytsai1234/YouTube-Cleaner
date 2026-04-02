@@ -111,7 +111,8 @@ export const SELECTORS: SelectorsType = {
         'ytd-rich-item-renderer', 'ytd-video-renderer', 'ytd-compact-video-renderer',
         'yt-lockup-view-model', 'ytd-playlist-renderer', 'ytd-compact-playlist-renderer',
         'ytd-video-owner-renderer', 'ytd-grid-video-renderer', 'ytd-playlist-video-renderer',
-        'ytd-playlist-panel-video-renderer', 'ytd-guide-entry-renderer'
+        'ytd-playlist-panel-video-renderer', 'ytd-guide-entry-renderer',
+        'a.ytp-modern-videowall-still'
     ],
 
     // 內嵌預覽

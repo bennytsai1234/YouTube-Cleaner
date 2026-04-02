@@ -11,6 +11,9 @@ export class InteractionEnhancer {
 
     private findPrimaryLink(container: HTMLElement | null): HTMLAnchorElement | null {
         if (!container) return null;
+        if (container instanceof HTMLAnchorElement && !!container.href) {
+            return container;
+        }
         for (const sel of SELECTORS.LINK_CANDIDATES) {
             const a = container.querySelector<HTMLAnchorElement>(sel);
             if (a?.href) return a;
