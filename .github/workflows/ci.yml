@@ -31,17 +31,14 @@ jobs:
     - name: Build Userscript (Required for E2E)
       run: npm run build
       
-    - name: Run filter tests
-      run: npx tsx test/filter-test.ts
-
-    - name: Run logic tests
-      run: npx tsx test/logic-test.ts
+    - name: Run unit tests
+      run: npm run test:unit
       
     - name: Install Playwright Browsers
       run: npx playwright install --with-deps chromium
       
     - name: Run Playwright E2E Tests
-      run: npx playwright test --project=chromium
+      run: npm run test:e2e
       
     - name: Upload Playwright Report
       if: always()

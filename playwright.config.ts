@@ -1,5 +1,7 @@
 import { defineConfig, devices } from '@playwright/test';
 
+const storageState = process.env.PLAYWRIGHT_AUTH_STATE;
+
 export default defineConfig({
   testDir: './test/e2e',
   timeout: 30000,
@@ -14,6 +16,7 @@ export default defineConfig({
   use: {
     actionTimeout: 0,
     trace: 'on-first-retry',
+    storageState,
     locale: 'zh-TW', // Ensure consistent localized tests
     geolocation: { longitude: 121.5654, latitude: 25.0330 }, // Taiwan, typical for this script
     permissions: ['geolocation'],

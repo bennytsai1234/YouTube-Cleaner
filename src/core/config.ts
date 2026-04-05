@@ -1,5 +1,6 @@
 import { Utils } from './utils';
 import { I18N } from '../ui/i18n';
+import { buildDefaultRuleEnables, buildDefaultRulePriorities, RulePriority } from '../data/rules';
 
 declare const GM_getValue: (key: string, defaultValue?: any) => any;
 declare const GM_setValue: (key: string, value: any) => void;
@@ -55,7 +56,7 @@ export interface ConfigState {
     DURATION_MAX: number;
     GRACE_PERIOD_HOURS: number;
     RULE_ENABLES: RuleEnables;
-    RULE_PRIORITIES: Record<string, 'strong' | 'weak'>;
+    RULE_PRIORITIES: Record<string, RulePriority>;
     
     // Compiled regexes
     compiledKeywords?: RegExp[];
@@ -98,26 +99,8 @@ export class ConfigManager {
             DURATION_MAX: 0,
             GRACE_PERIOD_HOURS: 4,
             // These connect to simple toggle switches
-            RULE_ENABLES: {
-                ad_block_popup: true, ad_sponsor: true, members_only: true, shorts_item: true,
-                mix_only: true, premium_banner: true, news_block: true, shorts_block: true,
-                posts_block: true, playables_block: true, fundraiser_block: true,
-                shorts_grid_shelf: true, movies_shelf: true,
-                youtube_featured_shelf: true, popular_gaming_shelf: true,
-                more_from_game_shelf: true, trending_playlist: true,
-                inline_survey: true, clarify_box: true, explore_topics: true,
-                recommended_playlists: true, members_early_access: true
-            },
-            RULE_PRIORITIES: {
-                members_only: 'strong',
-                members_only_js: 'strong',
-                shorts_item: 'strong',
-                shorts_item_js: 'strong',
-                mix_only: 'strong',
-                recommended_playlists: 'strong',
-                ad_sponsor: 'strong',
-                premium_banner: 'strong'
-            }
+            RULE_ENABLES: buildDefaultRuleEnables() as unknown as RuleEnables,
+            RULE_PRIORITIES: buildDefaultRulePriorities()
         };
         this.state = this._load();
     }

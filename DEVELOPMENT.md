@@ -75,5 +75,27 @@ src/
 ## 🧪 3. 測試與發布
 
 - **單元測試**: `npm test` (使用 `tsx` 執行 `test/` 目錄下的測試腳本，驗證核心邏輯與組件)。
+- **E2E 測試**: `npm run test:e2e` (使用 Playwright 驗證不需登入的公開頁面，例如搜尋結果頁、公開頻道頁與播放頁相關區塊)。
+- **選擇器健康檢查**: `npm run test:e2e:selectors`。
+- **完整驗證**: `npm run verify`。
 - **構建**: `npm run build` (使用 rollup 打包 ts 模組)。
 - **發布**: `npm run version` 可自動更新 README 版號。
+
+### E2E 策略備註
+
+- 不把「登出狀態的 YouTube 首頁」當成主要測試目標，因為它現在常常是空白或要求登入，穩定性太差。
+- 主要 E2E 應優先驗證公開可訪問頁面，例如搜尋結果頁、公開頻道頁、播放清單頁或播放頁推薦區。
+- 如需測登入後首頁，請使用專用測試帳號，並透過 `PLAYWRIGHT_AUTH_STATE` 指向本機登入態檔案。
+- 建議把登入態存放在 `playwright/.auth/`，此目錄已加入 `.gitignore`，不應提交到版本庫。
+
+## 🧩 4. 重構後的主要責任分工
+
+- `src/features/video-filter.ts`: 掃描協調與生命週期。
+- `src/features/filter-engine.ts`: 規則判斷、白名單裁決與過濾原因生成。
+- `src/features/video-data.ts`: DOM 卡片資料抽取。
+- `src/features/dom-visibility.ts`: 隱藏、標記、重置 DOM 狀態。
+- `src/data/rules.ts`: 規則定義、優先級與白名單策略。
+- `src/ui/menu.ts`: 選單流程編排。
+- `src/ui/list-manager.ts`: 黑白名單編修。
+- `src/ui/settings-io.ts`: 匯入匯出設定。
+- `src/ui/i18n.ts`: 語系入口；文案、regex 與預設資料已拆到獨立模組。

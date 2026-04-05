@@ -27,11 +27,8 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Run Tests
-        run: npm test
-
-      - name: Build UserScript
-        run: npm run build
+      - name: Verify release build
+        run: npm run release:check
 
       - name: Create Release
         uses: softprops/action-gh-release@v2
