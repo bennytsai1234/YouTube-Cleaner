@@ -1,4 +1,5 @@
 .gemini/
+.codex
 gha-creds-*.json
 node_modules/
 
