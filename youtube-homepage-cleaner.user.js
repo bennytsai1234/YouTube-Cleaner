@@ -1,8 +1,8 @@
 // ==UserScript==
 // @name        YouTube Cleaner - Remove Garbage & Suggestions
-// @description Clean YouTube interface by hiding garbage Shorts, suggestions, and clutter elements. Say goodbye to clickbait!
+// @description Clean YouTube interface by hiding garbage Shorts, suggestions, and clutter elements. Say goodbye to clickbait.
 // @namespace   http://tampermonkey.net/
-// @version     2.1.3
+// @version     2.1.4
 // @author      Benny & AI Collaborators
 // @match       https://www.youtube.com/*
 // @exclude     https://www.youtube.com/embed/*
@@ -840,11 +840,12 @@
     const SELECTORS = {
         VIDEO_CONTAINERS,
         METADATA: {
-            TEXT: '.inline-metadata-item, #metadata-line span, .yt-content-metadata-view-model__metadata-text, yt-content-metadata-view-model .yt-core-attributed-string',
+            TEXT: '.inline-metadata-item, #metadata-line span, .yt-content-metadata-view-model__metadata-text, .ytContentMetadataViewModelMetadataText, yt-content-metadata-view-model .yt-core-attributed-string',
             TITLE_LINKS: [
                 'a#video-title-link[aria-label]',
                 'a#thumbnail[aria-label]',
                 'a.yt-lockup-metadata-view-model__title[aria-label]',
+                'a.ytLockupMetadataViewModelTitle[aria-label]',
                 'a.yt-lockup-view-model__content-image[aria-label]',
                 'a[href*="/watch?"][aria-label]'
             ],
@@ -864,7 +865,7 @@
                 '.ytd-channel-name',
                 'yt-decorated-avatar-view-model'
             ].join(', '),
-            TITLE: '#video-title, #title, .yt-lockup-metadata-view-model__title, .yt-lockup-metadata-view-model__heading-reset, h3'
+            TITLE: '#video-title, #title, .yt-lockup-metadata-view-model__title, .ytLockupMetadataViewModelTitle, .yt-lockup-metadata-view-model__heading-reset, .ytLockupMetadataViewModelHeadingReset, h3'
         },
         SHELF_TITLE: [
             '#rich-shelf-header #title',
@@ -890,9 +891,13 @@
             'a#thumbnail[href*="/watch?"]', 'a#thumbnail[href*="/shorts/"]', 'a#thumbnail[href*="/playlist?"]',
             'a#video-title-link', 'a#video-title', 'a.yt-simple-endpoint#video-title',
             'a.yt-lockup-metadata-view-model__title[href*="/watch?"]',
+            'a.ytLockupMetadataViewModelTitle[href*="/watch?"]',
             'a.yt-lockup-metadata-view-model__title[href*="/shorts/"]',
+            'a.ytLockupMetadataViewModelTitle[href*="/shorts/"]',
             'a.yt-lockup-view-model__content-image[href*="/watch?"]',
+            'a.ytLockupViewModelContentImage[href*="/watch?"]',
             'a.yt-lockup-view-model__content-image[href*="/shorts/"]',
+            'a.ytLockupViewModelContentImage[href*="/shorts/"]',
             'a.yt-lockup-view-model-wiz__title'
         ],
         allContainers: ALL_CONTAINERS_STR};
@@ -1185,20 +1190,22 @@
             const patterns = I18N.filterPatterns[I18N.lang];
             for (const t of texts) {
                 const text = t.textContent || '';
-                const isLive = patterns.live.test(text);
-                const isView = patterns.views.test(text);
-                const isAgo = patterns.ago.test(text);
+                const aria = t.ariaLabel || '';
+                const combined = `${text} ${aria}`;
+                const isLive = patterns.live.test(combined);
+                const isView = patterns.views.test(combined);
+                const isAgo = patterns.ago.test(combined);
                 if (this._liveViewers === null && isLive) {
-                    this.raw.viewers = text;
-                    this._liveViewers = Utils.parseLiveViewers(text);
+                    this.raw.viewers = combined;
+                    this._liveViewers = Utils.parseLiveViewers(combined);
                 }
                 if (this._viewCount === null && isView && !isLive) {
-                    this.raw.views = text;
-                    this._viewCount = Utils.parseNumeric(text, 'view');
+                    this.raw.views = combined;
+                    this._viewCount = Utils.parseNumeric(combined, 'view');
                 }
                 if (this._timeAgo === null && isAgo) {
-                    this.raw.time = text;
-                    this._timeAgo = Utils.parseTimeAgo(text);
+                    this.raw.time = combined;
+                    this._timeAgo = Utils.parseTimeAgo(combined);
                 }
             }
             if (this._timeAgo === null) {

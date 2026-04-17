@@ -6,6 +6,24 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+
+## [2.1.4] - 2026-04-17
+### 🐛 Fixed
+- **UI Compatibility**: 修復 YouTube 新型 `yt-lockup-view-model` 與 `yt-content-metadata-view-model` 組件（CamelCase 類名）導致過濾失效的問題。
+- **Metadata Parsing**: 優化觀看數與時間解析邏輯，支持從 `aria-label` 屬性提取隱藏的元數據資訊。
+
+## [2.1.3] - 2026-04-14
+### 🐛 Fixed
+- **Filter Stability**: 修復部分情境下影片容器重複檢查的問題。
+- **AdBlock**: 優化廣告偵測規則以減少誤報。
+
+## [2.1.2] - 2026-04-10
+### 🚀 Features
+- **Whitelist**: 新增會員頻道專屬白名單 (`MEMBERS_WHITELIST`)。
+- **I18N**: 更新日文與德文過濾字串。
+- **Performance**: 優化 DOM 監聽器處理大型首頁時的響應速度。
+
+## [2.1.1] - 2026-04-05
 ### 🚀 Architecture & Localization
 - **TypeScript Migration**: 全面將專案由 JavaScript (ES6) 遷移至 TypeScript，提供更嚴格的型別安全與穩定的編譯期檢查。
 - **Multi-language Continuity**: 在 TypeScript 架構重構中完整保留並優化了 `i18n` 模組（支援繁、簡、英、日），並確保各語言過濾正則（RegExp）的精確性。
