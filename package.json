@@ -8,7 +8,7 @@
     "dev": "rollup -c -w",
     "lint": "eslint src",
     "test": "npm run test:unit",
-    "test:unit": "tsx test/filter-test.ts && tsx test/logic-test.ts && tsx test/interaction-test.ts",
+    "test:unit": "tsx test/filter-test.ts && tsx test/logic-test.ts && tsx test/interaction-test.ts && tsx test/adblock-guard-test.ts && tsx test/config-manager-test.ts && tsx test/filter-engine-test.ts",
     "test:e2e": "playwright test test/e2e --grep-invert @auth",
     "test:e2e:selectors": "playwright test test/e2e/youtube-selectors.spec.ts",
     "test:all": "npm run lint && npm run test:unit && npm run build && npm run test:e2e",
