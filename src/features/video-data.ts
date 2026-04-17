@@ -101,21 +101,24 @@ export class LazyVideoData {
 
         for (const t of texts) {
             const text = t.textContent || '';
-            const isLive = patterns.live.test(text);
-            const isView = patterns.views.test(text);
-            const isAgo = patterns.ago.test(text);
+            const aria = t.ariaLabel || '';
+            const combined = `${text} ${aria}`;
+
+            const isLive = patterns.live.test(combined);
+            const isView = patterns.views.test(combined);
+            const isAgo = patterns.ago.test(combined);
 
             if (this._liveViewers === null && isLive) {
-                this.raw.viewers = text;
-                this._liveViewers = Utils.parseLiveViewers(text);
+                this.raw.viewers = combined;
+                this._liveViewers = Utils.parseLiveViewers(combined);
             }
             if (this._viewCount === null && isView && !isLive) {
-                this.raw.views = text;
-                this._viewCount = Utils.parseNumeric(text, 'view');
+                this.raw.views = combined;
+                this._viewCount = Utils.parseNumeric(combined, 'view');
             }
             if (this._timeAgo === null && isAgo) {
-                this.raw.time = text;
-                this._timeAgo = Utils.parseTimeAgo(text);
+                this.raw.time = combined;
+                this._timeAgo = Utils.parseTimeAgo(combined);
             }
         }
 
