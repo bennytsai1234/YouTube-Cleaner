@@ -56,12 +56,13 @@ export const SELECTORS: SelectorsType = {
     // Metadata 選擇器 (新舊版相容)
     METADATA: {
         // 觀看數/時間
-        TEXT: '.inline-metadata-item, #metadata-line span, .yt-content-metadata-view-model__metadata-text, yt-content-metadata-view-model .yt-core-attributed-string',
+        TEXT: '.inline-metadata-item, #metadata-line span, .yt-content-metadata-view-model__metadata-text, .ytContentMetadataViewModelMetadataText, yt-content-metadata-view-model .yt-core-attributed-string',
         // 標題連結 (用於 aria-label 提取)
         TITLE_LINKS: [
             'a#video-title-link[aria-label]',
             'a#thumbnail[aria-label]',
             'a.yt-lockup-metadata-view-model__title[aria-label]',
+            'a.ytLockupMetadataViewModelTitle[aria-label]',
             'a.yt-lockup-view-model__content-image[aria-label]',
             'a[href*="/watch?"][aria-label]'
         ],
@@ -84,7 +85,7 @@ export const SELECTORS: SelectorsType = {
             'yt-decorated-avatar-view-model'
         ].join(', '),
         // 標題文字
-        TITLE: '#video-title, #title, .yt-lockup-metadata-view-model__title, .yt-lockup-metadata-view-model__heading-reset, h3'
+        TITLE: '#video-title, #title, .yt-lockup-metadata-view-model__title, .ytLockupMetadataViewModelTitle, .yt-lockup-metadata-view-model__heading-reset, .ytLockupMetadataViewModelHeadingReset, h3'
     },
 
     // 欄位/區塊標題選擇器 (用於整區過濾)
@@ -123,9 +124,13 @@ export const SELECTORS: SelectorsType = {
         'a#thumbnail[href*="/watch?"]', 'a#thumbnail[href*="/shorts/"]', 'a#thumbnail[href*="/playlist?"]',
         'a#video-title-link', 'a#video-title', 'a.yt-simple-endpoint#video-title',
         'a.yt-lockup-metadata-view-model__title[href*="/watch?"]',
+        'a.ytLockupMetadataViewModelTitle[href*="/watch?"]',
         'a.yt-lockup-metadata-view-model__title[href*="/shorts/"]',
+        'a.ytLockupMetadataViewModelTitle[href*="/shorts/"]',
         'a.yt-lockup-view-model__content-image[href*="/watch?"]',
+        'a.ytLockupViewModelContentImage[href*="/watch?"]',
         'a.yt-lockup-view-model__content-image[href*="/shorts/"]',
+        'a.ytLockupViewModelContentImage[href*="/shorts/"]',
         'a.yt-lockup-view-model-wiz__title'
     ],
 
