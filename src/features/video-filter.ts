@@ -137,6 +137,10 @@ export class VideoFilter {
         resetHiddenState();
     }
 
+    public async scanSubscriptions(): Promise<void> {
+        await this.engine.subManager.scan();
+    }
+
     private _checkSectionFilter(element: HTMLElement): FilterDetail | null {
         return this.engine.checkSectionFilter(element);
     }
