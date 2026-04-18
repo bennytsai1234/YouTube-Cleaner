@@ -52,9 +52,11 @@ class App {
             this.filter.clearCache(); // 清除快取，防止 DOM 重用導致過濾失效
             this.filter.processPage();
             this.adGuard.checkAndClean();
+            this.filter.scanSubscriptions(); // 新增：背景掃描訂閱清單
         });
 
         this.filter.processPage();
+        this.filter.scanSubscriptions(); // 初始化掃描
 
         // 檢測 OpenCC-JS 載入狀態
         if (typeof OpenCC !== 'undefined') {
