@@ -73,8 +73,11 @@ export class SubscriptionManager {
             const href = link.getAttribute('href') || '';
             if (!href.startsWith('/@') && !href.startsWith('/channel/')) return;
 
-            const name = link.innerText?.split('\n')[0].trim() || link.getAttribute('title')?.trim();
-            if (name && !['顯示更多', '顯示較少', 'Show more', 'Show less'].includes(name)) {
+            // 效能優化：使用 textContent 代替 innerText 避免 Reflow
+            const rawName = link.textContent?.split('\n')[0].trim() || link.getAttribute('title')?.trim();
+            const name = Utils.cleanChannelName(rawName); // 統一清洗名稱確保匹配一致性
+
+            if (name && !['顯示更多', '顯示較少', 'Show more', 'Show less', 'ShowMore', 'ShowLess'].includes(name)) {
                 foundChannels.add(name);
             }
         });

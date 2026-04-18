@@ -1158,8 +1158,9 @@
                 const href = link.getAttribute('href') || '';
                 if (!href.startsWith('/@') && !href.startsWith('/channel/'))
                     return;
-                const name = link.innerText?.split('\n')[0].trim() || link.getAttribute('title')?.trim();
-                if (name && !['顯示更多', '顯示較少', 'Show more', 'Show less'].includes(name)) {
+                const rawName = link.textContent?.split('\n')[0].trim() || link.getAttribute('title')?.trim();
+                const name = Utils.cleanChannelName(rawName);
+                if (name && !['顯示更多', '顯示較少', 'Show more', 'Show less', 'ShowMore', 'ShowLess'].includes(name)) {
                     foundChannels.add(name);
                 }
             });
