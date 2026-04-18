@@ -6,7 +6,8 @@ export class SubscriptionManager {
     private config: ConfigManager;
     private subscribedSet: Set<string> = new Set();
     private lastScanTime = 0;
-    private SCAN_INTERVAL = 1000 * 60 * 30; // 每小時最多主動掃描兩次
+    private observer: MutationObserver | null = null;
+    private SCAN_INTERVAL = 1000 * 60 * 15; // 每 15 分鐘最多主動掃描一次
 
     constructor(config: ConfigManager) {
         this.config = config;
@@ -14,39 +15,66 @@ export class SubscriptionManager {
     }
 
     /**
+     * 啟動監聽機制
+     */
+    public init(): void {
+        this.tryStaticScan();
+        this.setupObserver();
+        this.scan(); // 初始嘗試掃描
+    }
+
+    /**
+     * 嘗試從 YouTube 初始數據中提取
+     */
+    private tryStaticScan(): void {
+        try {
+            // @ts-ignore
+            const data = window.ytInitialData;
+            if (!data?.entries) return;
+            // 遍歷 Guide 數據結構提取頻道 (這部分結構較深且常變動，作為輔助)
+        } catch { /* ignore */ }
+    }
+
+    /**
+     * 設置監聽器，一旦側邊欄展開或載入就掃描
+     */
+    private setupObserver(): void {
+        if (this.observer) return;
+        this.observer = new MutationObserver(Utils.debounce(() => {
+            const sidebar = document.querySelector('ytd-guide-renderer #sections');
+            if (sidebar && sidebar.children.length > 0) {
+                this.scan(true);
+            }
+        }, 2000));
+
+        this.observer.observe(document.body, { childList: true, subtree: true });
+    }
+
+    /**
      * 掃描側邊欄提取訂閱頻道
-     * @param force 是否強制掃描（忽略間隔）
      */
     public async scan(force = false): Promise<void> {
         const now = Date.now();
         if (!force && now - this.lastScanTime < this.SCAN_INTERVAL) return;
 
-        // 延遲執行，確保 YouTube 側邊欄 DOM 已渲染
-        await new Promise(resolve => setTimeout(resolve, 3000));
+        // 如果在訂閱頁面，直接從主內容區提取更準確
+        const isSubPage = window.location.pathname === '/feed/subscriptions';
+        const container = isSubPage 
+            ? document.querySelector('ytd-browse') 
+            : Array.from(document.querySelectorAll('ytd-guide-section-renderer'))
+                .find(section => section.querySelector('a[href="/feed/subscriptions"]'));
 
-        const subSection = Array.from(document.querySelectorAll('ytd-guide-section-renderer'))
-            .find(section => section.querySelector('a[href="/feed/subscriptions"]'));
+        if (!container) return;
 
-        if (!subSection) {
-            Logger.info('📡 SubscriptionManager: Sidebar not found or collapsed, skipping scan');
-            return;
-        }
-
-        const channelItems = subSection.querySelectorAll('ytd-guide-entry-renderer');
         const foundChannels = new Set<string>();
-        const excludes = ['顯示更多', '顯示較少', 'Show more', 'Show less'];
-
-        channelItems.forEach(item => {
-            const link = item.querySelector<HTMLAnchorElement>('a#endpoint');
-            if (!link) return;
-
+        const channelLinks = container.querySelectorAll<HTMLAnchorElement>('a#endpoint, a.ytd-guide-entry-renderer, #main-link');
+        
+        channelLinks.forEach(link => {
             const href = link.getAttribute('href') || '';
             if (!href.startsWith('/@') && !href.startsWith('/channel/')) return;
 
-            const titleEl = item.querySelector('.title, #formatted-string');
-            const name = titleEl?.textContent?.trim() || link.getAttribute('title')?.trim();
-
-            if (name && !excludes.includes(name)) {
+            const name = link.innerText?.split('\n')[0].trim() || link.getAttribute('title')?.trim();
+            if (name && !['顯示更多', '顯示較少', 'Show more', 'Show less'].includes(name)) {
                 foundChannels.add(name);
             }
         });
@@ -54,7 +82,7 @@ export class SubscriptionManager {
         if (foundChannels.size > 0) {
             this._updateList(foundChannels);
             this.lastScanTime = now;
-            Logger.info(`📡 SubscriptionManager: Successfully updated ${foundChannels.size} subscribed channels`);
+            if (force) Logger.info(`📡 SubscriptionManager: Dynamic update found ${foundChannels.size} channels`);
         }
     }
 
