@@ -49,6 +49,7 @@ export interface ConfigState {
     CHANNEL_WHITELIST: string[];
     MEMBERS_WHITELIST: string[];
     KEYWORD_WHITELIST: string[];
+    SUBSCRIBED_CHANNELS: string[]; // 新增：自動掃描的訂閱頻道清單
     ENABLE_SECTION_FILTER: boolean;
     SECTION_TITLE_BLACKLIST: string[];
     ENABLE_DURATION_FILTER: boolean;
@@ -92,6 +93,7 @@ export class ConfigManager {
             CHANNEL_WHITELIST: [],
             MEMBERS_WHITELIST: [], // 新增：會員影片專屬白名單
             KEYWORD_WHITELIST: [], // 新增：關鍵字白名單
+            SUBSCRIBED_CHANNELS: [],
             ENABLE_SECTION_FILTER: true,
             SECTION_TITLE_BLACKLIST: Object.values(I18N.defaultSectionBlacklist).flat(),
             ENABLE_DURATION_FILTER: true,
