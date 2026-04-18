@@ -3,16 +3,19 @@ import { SELECTORS } from '../data/selectors';
 import { Logger } from '../core/logger';
 import { getWhitelistScope, isStrongRule } from '../data/rules';
 import { CustomRuleManager } from './custom-rules';
+import { SubscriptionManager } from './subscription-manager';
 import { FilterDetail, WhitelistReason } from './filter-types';
 import { LazyVideoData } from './video-data';
 
 export class FilterEngine {
     private config: ConfigManager;
     private customRules: CustomRuleManager;
+    public subManager: SubscriptionManager;
 
     constructor(config: ConfigManager) {
         this.config = config;
         this.customRules = new CustomRuleManager(config);
+        this.subManager = new SubscriptionManager(config);
     }
 
     public findFilterDetail(element: HTMLElement, allowPageContent: boolean): FilterDetail | null {
@@ -175,6 +178,15 @@ export class FilterEngine {
     public applyWhitelistDecision(item: LazyVideoData, detail: FilterDetail): WhitelistReason | null {
         const priorities = this.config.get('RULE_PRIORITIES');
         const scope = getWhitelistScope(detail.reason);
+
+        // 訂閱頻道保護：自動赦免非強規則的過濾
+        if (scope !== 'none' && !isStrongRule(detail.reason, priorities)) {
+            if (this.subManager.isSubscribed(item.channel)) {
+                Logger.info(`✅ Keep [Protected by Subscription]: ${item.channel} | ${item.title}
+(Originally Triggered: ${detail.reason})`);
+                return 'channel_whitelist';
+            }
+        }
 
         if (scope === 'members') {
             const compiledMembers = this.config.get('compiledMembersWhitelist');
