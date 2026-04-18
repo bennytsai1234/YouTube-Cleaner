@@ -38,6 +38,7 @@ export class VideoFilter {
 
         this.observer = new MutationObserver((mutations) => this.processMutations(mutations));
         this.observer.observe(document.body, { childList: true, subtree: true });
+        this.engine.subManager.init(); // 初始化訂閱監聽
         Logger.info('👁️ VideoFilter observer started');
     }
 
