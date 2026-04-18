@@ -1,46 +1,217 @@
-# YouTube Cleaner Project Summary (v2.0.6)
+# YouTube Cleaner — Project Summary (v2.1.5)
 
 ## 📋 專案概述
-YouTube Cleaner 是一個高效能、模組化的瀏覽器腳本 (Userscript)，旨在透過過濾 Shorts、推薦內容、低品質影片及廣告攔截警告，為使用者打造純淨的 YouTube 瀏覽體驗。
 
-## 🚀 v2.0.0 重大里程碑
-2.0.0 版本是本專案的一個重要轉折點，從單一腳本進化為**結構化、元件化**的成熟架構。
+**YouTube Cleaner（YouTube 淨化大師）** 是一個高效能、模組化的 Tampermonkey Userscript，核心目標是替使用者打造一個純淨、無干擾的 YouTube 瀏覽體驗。
 
-### 1. 架構重構 (Modularization & TypeScript)
-- **職責分離**：將原本肥大的 `App` 類別拆分為多個核心模組，並全面遷移至 **TypeScript** 以提升型別安全與維護性：
-    - `AdBlockGuard`: 獨立負責反廣告攔截邏輯與配置補丁。
-    - `VideoFilter`: 核心過濾引擎，負責 DOM 監聽與過濾決策。
-    - `UIManager`: 採用宣告式選單系統，優化互動邏輯。
-    - `StyleManager`: 統一管理 CSS 注入。
-- **組合根模式 (Composition Root)**：`main.ts` 現在僅作為啟動器，負責協調各模組的初始化，大幅提升代碼可讀性。
-
-### 2. 穩定性與健康檢查 (Reliability)
-- **選擇器健康檢查 (Selector Health Check)**：新增自動診斷工具，在 DEBUG 模式下自動驗證 YouTube DOM 結構是否發生變化，並在控制台拋出具體警告，縮短修復週期。
-- **狀態機過濾**：引入 Mutation 隊列與狀態管理，避免在 YouTube 頻繁更新 DOM 時產生競態條件 (Race Conditions) 或效能瓶頸。
-
-### 3. 效能優化 (Performance)
-- **增量處理**：由全頁掃描改為增量掃描，僅處理 MutationObserver 回傳的新增節點。
-- **Idle-Time 執行**：利用 `requestIdleCallback` 將過濾任務分配至瀏覽器空閒時間，確保滾動流暢度。
-- **快取機制**：在 `VideoFilter` 與 `LazyVideoData` 中大量使用快取，避免重複的 DOM 查詢與數值解析。
-
-### 4. 核心功能 (Core Features)
-- **反廣告攔截警告**：自動關閉 YouTube 彈窗並自動恢復影片播放。
-- **Shorts 全面封鎖**：移除首頁、搜尋與側欄的所有 Shorts 入口。
-- **智慧分層過濾**：
-    - **強過濾**：Shorts、合輯、會員影片預設強制隱藏。
-    - **弱過濾**：觀看數、時長、關鍵字過濾，可被白名單豁免。
-- **專屬白名單系統**：
-    - **頻道白名單 (Regular)**：保護喜愛創作者不被弱規則影響。
-    - **會員白名單 (Members)**：唯一能放行會員影片的機制。
-- **區塊過濾器**：可依標題隱藏特定首頁區塊。
-- **多國語言與分頁選單**：內建完整的 `i18n` 機制，支援繁中、簡中、英文、日文四種語言，選單具備分頁功能，確保長列表不被瀏覽器截斷。
-
-## 🛠️ 技術棧 (Tech Stack)
-- **Language**: TypeScript
-- **Build Tool**: Rollup.js (模組化打包)
-- **Testing**: Node.js 自研測試套件 (涵蓋 70+ 測試案例)
-- **Libraries**: OpenCC-JS (繁簡通用過濾核心引擎)
+專案以 **TypeScript** 撰寫，透過 **Rollup** 打包成單一 `.user.js` 發布，具備完整的單元測試（tsx）與 E2E 測試（Playwright）覆蓋。
 
 ---
-*Last Updated: 2026-03-07*
-*Status: Stable / Released*
+
+## 🏗️ 整體架構
+
+```
+src/
+├── main.ts                        # App 進入點（Composition Root）
+├── meta.json                      # UserScript Metadata
+├── env.d.ts                       # 環境型別聲明
+│
+├── core/                          # 核心基礎設施
+│   ├── config.ts                  # 設定管理 (ConfigManager, Singleton)
+│   ├── constants.ts               # 頻道名稱清洗常數 (CLEANING_RULES)
+│   ├── logger.ts                  # 統一日誌輸出 (Logger)
+│   ├── stats.ts                   # 過濾統計 (FilterStats)
+│   ├── types.ts                   # YouTube 內部物件型別 (YtConfig)
+│   └── utils.ts                   # 通用工具函式 (Utils)
+│
+├── data/                          # 靜態資料層（純資料，不含邏輯）
+│   ├── selectors.ts               # 所有 CSS 選擇器集中管理 (SELECTORS)
+│   ├── rules.ts                   # 規則定義、優先級、白名單策略 (RULE_DEFINITIONS)
+│   ├── rule-names.ts              # 各語系規則顯示名稱 (RULE_NAMES)
+│   ├── default-section-blacklist.ts  # 預設區塊黑名單
+│   └── i18n-filter-patterns.ts   # 各語系偵測 RegExp (FILTER_PATTERNS)
+│
+├── features/                      # 業務邏輯模組
+│   ├── video-filter.ts            # MutationObserver 協調中心（掃描生命週期）
+│   ├── filter-engine.ts           # 過濾規則裁決（核心判斷邏輯）
+│   ├── video-data.ts              # DOM 卡片資料懶惰抽取 (LazyVideoData)
+│   ├── dom-visibility.ts          # DOM 隱藏、標記、重置操作
+│   ├── custom-rules.ts            # 文字型規則管理 (CustomRuleManager)
+│   ├── subscription-manager.ts   # 訂閱頻道自動感應與保護
+│   ├── style-manager.ts           # 動態 CSS 注入 (StyleManager)
+│   ├── adblock-guard.ts           # 反廣告封鎖彈窗處理 (AdBlockGuard)
+│   ├── interaction.ts             # 互動增強（新分頁開啟）
+│   └── filter-types.ts            # 過濾相關型別定義
+│
+├── styles/                        # CSS 模組（由 Rollup 內嵌）
+│   └── youtube-cleaner.css        # 基礎反廣告 CSS 規則
+│
+└── ui/                            # 使用者介面層
+    ├── menu.ts                    # 選單流程編排 (UIManager)
+    ├── menu-renderer.ts           # 選單渲染邏輯
+    ├── menu-types.ts              # 選單型別定義
+    ├── list-manager.ts            # 黑白名單 CRUD (ListManager)
+    ├── settings-io.ts             # 設定匯出/匯入 (SettingsIO)
+    ├── i18n.ts                    # i18n 入口與語系偵測
+    └── i18n-strings.ts            # 各語系 UI 文案
+```
+
+---
+
+## 🔄 核心運作流程
+
+```
+App.init()
+  │
+  ├── StyleManager.apply()           ← CSS 第一道過濾（零閃爍）
+  │     └── 注入 display:none 規則（廣告、Premium、Shorts Shelf 等）
+  │
+  ├── AdBlockGuard.start()           ← Patch YouTube 內部 config + MutationObserver
+  │     └── 監聽 ytd-popup-container，自動移除反廣告彈窗
+  │
+  ├── VideoFilter.start()            ← 啟動主要 MutationObserver
+  │     └── SubscriptionManager.init() ← 啟動訂閱掃描與監聽
+  │
+  ├── InteractionEnhancer.init()     ← 攔截 click 事件（新分頁邏輯）
+  │
+  └── GM_registerMenuCommand()       ← 註冊 Tampermonkey 選單入口
+  
+每次 DOM 變化（MutationObserver）→ processMutations()
+  → processElement()
+      → FilterEngine.findFilterDetail()   ← 多層規則判斷
+          → CustomRuleManager.check()     (文字型規則)
+          → checkSectionFilter()          (區塊黑名單)
+          → getFilterKeyword()            (關鍵字黑名單)
+          → getFilterChannel()            (頻道黑名單)
+          → getStrongRuleMatch()          (Shorts / 會員)
+          → getFilterView()               (低觀看數)
+          → getFilterDuration()           (時長過濾)
+          → getFilterPlaylist()           (推薦合輯)
+      → FilterEngine.applyWhitelistDecision()  ← 白名單裁決
+          → SubscriptionManager.isSubscribed() (訂閱保護)
+          → checkWhitelist()                   (頻道/關鍵字白名單)
+      → dom-visibility.hideElement()      ← 執行隱藏
+```
+
+---
+
+## 🧩 模組職責分工
+
+| 模組 | 職責 |
+|------|------|
+| `main.ts` | 組合根，初始化所有模組，監聽 `yt-navigate-finish` |
+| `core/config.ts` | Singleton ConfigManager，讀寫 GM 儲存，預編譯 RegExp |
+| `core/utils.ts` | 數字解析、時間計算、繁簡轉換、頻道名稱清洗 |
+| `core/stats.ts` | 過濾次數統計（Session 級別） |
+| `data/selectors.ts` | **唯一** CSS 選擇器來源，YouTube DOM 變動只需改這裡 |
+| `data/rules.ts` | 規則定義（ID、預設開關、強弱優先級、白名單範疇、文字規則） |
+| `features/video-filter.ts` | MutationObserver 生命週期管理，批次處理（requestIdleCallback）|
+| `features/filter-engine.ts` | 過濾決策引擎，同時處理白名單豁免裁決 |
+| `features/video-data.ts` | `LazyVideoData`：懶讀 title/channel/views/duration 等欄位 |
+| `features/dom-visibility.ts` | hideElement / markChecked / clearFilterState / resetHiddenState |
+| `features/subscription-manager.ts` | 從側邊欄自動抓取訂閱名單，提供 `isSubscribed()` 保護 |
+| `features/adblock-guard.ts` | Patch `window.yt.config_` + MutationObserver 移除彈窗 |
+| `features/style-manager.ts` | 動態組裝 CSS 規則字串，注入 `<style id="yt-cleaner-css">` |
+| `features/interaction.ts` | 攔截 click，實作「背景新分頁」與「通知新分頁」 |
+| `ui/menu.ts` | 四層選單流程：過濾 / 名單 / 體驗 / 系統 |
+| `ui/list-manager.ts` | 黑白名單新增（含精確模式 `=名稱`）/移除/清空/恢復預設 |
+| `ui/settings-io.ts` | JSON 格式設定匯出（`GM_setClipboard`）/ 匯入 |
+| `ui/i18n.ts` | 語系偵測（優先讀 `yt.config_.HL`）、`t()` 翻譯函式 |
+
+---
+
+## ⚙️ 設定系統 (ConfigManager)
+
+所有設定以 `snake_case` key 存入 Tampermonkey `GM_getValue`/`GM_setValue`。
+
+| 設定 Key | 類型 | 說明 |
+|----------|------|------|
+| `OPEN_IN_NEW_TAB` | bool | 影片在新分頁開啟 |
+| `OPEN_NOTIFICATIONS_IN_NEW_TAB` | bool | 通知在新分頁開啟 |
+| `FONT_FIX` | bool | 啟用字型修正 |
+| `ENABLE_LOW_VIEW_FILTER` | bool | 啟用低觀看數過濾 |
+| `LOW_VIEW_THRESHOLD` | number | 最低觀看數門檻 |
+| `GRACE_PERIOD_HOURS` | number | 新影片豁免期（小時）|
+| `ENABLE_DURATION_FILTER` | bool | 啟用時長過濾 |
+| `DURATION_MIN` / `DURATION_MAX` | number | 時長下/上限（秒）|
+| `ENABLE_KEYWORD_FILTER` | bool | 啟用關鍵字過濾 |
+| `KEYWORD_BLACKLIST` | string[] | 標題關鍵字黑名單 |
+| `KEYWORD_WHITELIST` | string[] | 標題關鍵字白名單 |
+| `ENABLE_CHANNEL_FILTER` | bool | 啟用頻道過濾 |
+| `CHANNEL_BLACKLIST` | string[] | 頻道黑名單 |
+| `CHANNEL_WHITELIST` | string[] | 頻道白名單 |
+| `MEMBERS_WHITELIST` | string[] | 會員影片專屬白名單 |
+| `ENABLE_SECTION_FILTER` | bool | 啟用區塊過濾 |
+| `SECTION_TITLE_BLACKLIST` | string[] | 區塊標題黑名單 |
+| `ENABLE_REGION_CONVERT` | bool | 啟用繁簡互通過濾（OpenCC）|
+| `DISABLE_FILTER_ON_CHANNEL` | bool | 進入頻道頁時停用內容過濾 |
+| `DEBUG_MODE` | bool | 啟用詳細日誌 |
+| `SUBSCRIBED_CHANNELS` | string[] | 自動掃描的訂閱頻道緩存 |
+| `RULE_ENABLES` | RuleEnables | 各規則開關（布林值 map）|
+| `RULE_PRIORITIES` | Record | 各規則強弱優先級 |
+
+---
+
+## 🛡️ 過濾優先級系統
+
+```
+強規則 (Strong) → 白名單無效
+  • shorts_item / shorts_item_js  → Shorts 影片
+  • ad_sponsor                    → 廣告贊助
+  • mix_only                      → 合輯 Mix
+  • premium_banner                → Premium 橫幅
+  • recommended_playlists         → 推薦合輯/播放清單
+
+弱規則 (Weak) → 白名單可豁免
+  • keyword_blacklist             → 關鍵字命中
+  • channel_blacklist             → 頻道黑名單
+  • low_view / low_viewer_live    → 低觀看數
+  • duration_filter               → 時長超出範圍
+  • section_blacklist             → 區塊標題命中
+  • members_only_js               → 會員影片（僅 MEMBERS_WHITELIST 可豁免）
+
+白名單優先級
+  1. 訂閱保護（SubscriptionManager）— 自動生效，對弱規則有效
+  2. 頻道白名單 / 關鍵字白名單   — 手動設定，對弱規則有效
+  3. 會員白名單（MEMBERS_WHITELIST）— 唯一能放行會員影片的路徑
+```
+
+---
+
+## 🧪 測試涵蓋
+
+| 測試類型 | 指令 | 涵蓋範圍 |
+|----------|------|----------|
+| 單元測試 | `npm test` | filter-test, logic-test, interaction-test, adblock-guard-test, config-manager-test, filter-engine-test |
+| E2E 測試 | `npm run test:e2e` | 搜尋頁、公開頻道頁、播放頁（不需登入）|
+| 選擇器驗證 | `npm run test:e2e:selectors` | 驗證 CSS 選擇器在真實 YouTube DOM 中可命中 |
+| 完整驗證 | `npm run verify` | lint + 單元 + build + E2E |
+
+---
+
+## 🛠️ 技術棧
+
+| 技術 | 用途 |
+|------|------|
+| TypeScript 5.x | 全體源碼語言 |
+| Rollup 4.x | 模組打包（輸出 IIFE UserScript）|
+| rollup-plugin-userscript-metablock | 自動插入 UserScript 標頭 |
+| rollup-plugin-string | 將 CSS 文件以字串內嵌打包 |
+| tsx | 單元測試執行器（無需編譯步驟）|
+| Playwright | E2E 瀏覽器自動化測試 |
+| ESLint + eslint-plugin-userscripts | 代碼風格與 UserScript 規範檢查 |
+| OpenCC-JS (CDN) | 繁簡中文互通過濾引擎 |
+
+---
+
+## 📦 版本與發布
+
+- **當前版本**：`v2.1.5`
+- **發布平台**：Greasy Fork、GitHub Releases
+- **版本管理**：`npm version <patch/minor/major>`（自動觸發 `scripts/update-readme.js` 更新 README 版號）
+- **輸出檔案**：`youtube-homepage-cleaner.user.js`（根目錄，直接發布）
+
+---
+
+*Last Updated: 2026-04-18*  
+*Status: Stable / Active Development*

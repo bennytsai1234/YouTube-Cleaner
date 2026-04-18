@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.1.5-docs] - 2026-04-18
+### 📖 Documentation
+- **PROJECT_SUMMARY.md**: 全面更新至 v2.1.5，補充 `SubscriptionManager`、`dom-visibility`、`filter-types` 等新增模組說明；新增完整模組職責分工表、設定系統對照表、過濾優先級系統與測試涵蓋一覽。
+- **DEVELOPMENT.md**: 重寫資料夾結構（含所有新模組）；補充「如何新增規則」逐步教學；新增常見問題排查表；更新測試指令說明與 E2E 策略備註。
+- **README.md**: 修正版本號 badge 至 v2.1.5。
+- **ROADMAP.md**: 新建功能規劃文件，涵蓋 26 項潛在功能（A~F 六大分類），每項包含技術可行性分析、複雜度與影響面評估。
+
 ## [2.1.5] - 2026-04-17
 ### 🚀 Features
 - **Subscription Protection**: 新增「訂閱頻道保護」功能。腳本將自動感應並記憶您的訂閱名單，確保您喜愛的頻道影片不會被關鍵字、低觀看數等規則隱藏。
