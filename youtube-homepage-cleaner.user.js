@@ -2,7 +2,7 @@
 // @name        YouTube Cleaner - Remove Garbage & Suggestions
 // @description Clean YouTube interface by hiding garbage Shorts, suggestions, and clutter elements. Say goodbye to clickbait.
 // @namespace   http://tampermonkey.net/
-// @version     2.1.4
+// @version     2.1.5
 // @author      Benny & AI Collaborators
 // @match       https://www.youtube.com/*
 // @exclude     https://www.youtube.com/embed/*
@@ -721,6 +721,7 @@
                 CHANNEL_WHITELIST: [],
                 MEMBERS_WHITELIST: [],
                 KEYWORD_WHITELIST: [],
+                SUBSCRIBED_CHANNELS: [],
                 ENABLE_SECTION_FILTER: true,
                 SECTION_TITLE_BLACKLIST: Object.values(I18N.defaultSectionBlacklist).flat(),
                 ENABLE_DURATION_FILTER: true,
@@ -1106,6 +1107,83 @@
         }
     }
 
+    class SubscriptionManager {
+        config;
+        subscribedSet = new Set();
+        lastScanTime = 0;
+        observer = null;
+        SCAN_INTERVAL = 1000 * 60 * 15;
+        constructor(config) {
+            this.config = config;
+            this.subscribedSet = new Set(this.config.get('SUBSCRIBED_CHANNELS'));
+        }
+        init() {
+            this.tryStaticScan();
+            this.setupObserver();
+            this.scan();
+        }
+        tryStaticScan() {
+            try {
+                const data = window.ytInitialData;
+                if (!data?.entries)
+                    return;
+            }
+            catch {  }
+        }
+        setupObserver() {
+            if (this.observer)
+                return;
+            this.observer = new MutationObserver(Utils.debounce(() => {
+                const sidebar = document.querySelector('ytd-guide-renderer #sections');
+                if (sidebar && sidebar.children.length > 0) {
+                    this.scan(true);
+                }
+            }, 2000));
+            this.observer.observe(document.body, { childList: true, subtree: true });
+        }
+        async scan(force = false) {
+            const now = Date.now();
+            if (!force && now - this.lastScanTime < this.SCAN_INTERVAL)
+                return;
+            const isSubPage = window.location.pathname === '/feed/subscriptions';
+            const container = isSubPage
+                ? document.querySelector('ytd-browse')
+                : Array.from(document.querySelectorAll('ytd-guide-section-renderer'))
+                    .find(section => section.querySelector('a[href="/feed/subscriptions"]'));
+            if (!container)
+                return;
+            const foundChannels = new Set();
+            const channelLinks = container.querySelectorAll('a#endpoint, a.ytd-guide-entry-renderer, #main-link');
+            channelLinks.forEach(link => {
+                const href = link.getAttribute('href') || '';
+                if (!href.startsWith('/@') && !href.startsWith('/channel/'))
+                    return;
+                const name = link.innerText?.split('\n')[0].trim() || link.getAttribute('title')?.trim();
+                if (name && !['顯示更多', '顯示較少', 'Show more', 'Show less'].includes(name)) {
+                    foundChannels.add(name);
+                }
+            });
+            if (foundChannels.size > 0) {
+                this._updateList(foundChannels);
+                this.lastScanTime = now;
+                if (force)
+                    Logger.info(`📡 SubscriptionManager: Dynamic update found ${foundChannels.size} channels`);
+            }
+        }
+        isSubscribed(channelName) {
+            if (!channelName)
+                return false;
+            return this.subscribedSet.has(channelName);
+        }
+        _updateList(newList) {
+            const oldSize = this.subscribedSet.size;
+            newList.forEach(name => this.subscribedSet.add(name));
+            if (this.subscribedSet.size !== oldSize) {
+                this.config.set('SUBSCRIBED_CHANNELS', Array.from(this.subscribedSet));
+            }
+        }
+    }
+
     class LazyVideoData {
         el;
         _title = null;
@@ -1297,9 +1375,11 @@
     class FilterEngine {
         config;
         customRules;
+        subManager;
         constructor(config) {
             this.config = config;
             this.customRules = new CustomRuleManager(config);
+            this.subManager = new SubscriptionManager(config);
         }
         findFilterDetail(element, allowPageContent) {
             const textMatch = this.customRules.check(element, element.textContent || '');
@@ -1449,6 +1529,13 @@
         applyWhitelistDecision(item, detail) {
             const priorities = this.config.get('RULE_PRIORITIES');
             const scope = getWhitelistScope(detail.reason);
+            if (scope !== 'none' && !isStrongRule(detail.reason, priorities)) {
+                if (this.subManager.isSubscribed(item.channel)) {
+                    Logger.info(`✅ Keep [Protected by Subscription]: ${item.channel} | ${item.title}
+(Originally Triggered: ${detail.reason})`);
+                    return 'channel_whitelist';
+                }
+            }
             if (scope === 'members') {
                 const compiledMembers = this.config.get('compiledMembersWhitelist');
                 if (compiledMembers && compiledMembers.some(rx => rx.test(item.channel))) {
@@ -1580,6 +1667,7 @@ URL: ${item.url}`);
                 return;
             this.observer = new MutationObserver((mutations) => this.processMutations(mutations));
             this.observer.observe(document.body, { childList: true, subtree: true });
+            this.engine.subManager.init();
             Logger.info('👁️ VideoFilter observer started');
         }
         stop() {
@@ -1665,6 +1753,9 @@ URL: ${item.url}`);
         }
         reset() {
             resetHiddenState();
+        }
+        async scanSubscriptions() {
+            await this.engine.subManager.scan();
         }
         _checkSectionFilter(element) {
             return this.engine.checkSectionFilter(element);
@@ -2171,8 +2262,10 @@ URL: ${item.url}`);
                 this.filter.clearCache();
                 this.filter.processPage();
                 this.adGuard.checkAndClean();
+                this.filter.scanSubscriptions();
             });
             this.filter.processPage();
+            this.filter.scanSubscriptions();
             if (typeof OpenCC !== 'undefined') {
                 Logger.info('✅ 成功載入 OpenCC-JS 繁簡轉換庫');
             }

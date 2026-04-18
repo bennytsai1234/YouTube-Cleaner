@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.1.5] - 2026-04-17
+### 🚀 Features
+- **Subscription Protection**: 新增「訂閱頻道保護」功能。腳本將自動感應並記憶您的訂閱名單，確保您喜愛的頻道影片不會被關鍵字、低觀看數等規則隱藏。
+- **Dynamic Scanning**: 實作智慧掃描機制，當展開左側導航選單或進入訂閱頁面時，自動完成名單同步。
+
 ## [2.1.4] - 2026-04-17
 ### 🐛 Fixed
 - **UI Compatibility**: 修復 YouTube 新型 `yt-lockup-view-model` 與 `yt-content-metadata-view-model` 組件（CamelCase 類名）導致過濾失效的問題。
