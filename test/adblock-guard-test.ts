@@ -97,6 +97,42 @@ TestRunner.suite('AdBlockGuard - patchConfig', () => {
     restore();
 });
 
+TestRunner.suite('AdBlockGuard - disabled rule skips patch and cleanup', () => {
+    const restore = suppressConsoleError();
+
+    const mockConfig = {
+        openPopupConfig: {
+            supportedPopups: {
+                adBlockMessageViewModel: true
+            }
+        },
+        EXPERIMENT_FLAGS: {
+            ad_blocker_notifications_disabled: false,
+            web_enable_adblock_detection_block_playback: true
+        }
+    };
+
+    const dom = createEnv(`
+        <body>
+            <tp-yt-paper-dialog id="ad-dialog">Ad blockers are not allowed</tp-yt-paper-dialog>
+        </body>
+    `);
+    (window as any).yt = { config_: mockConfig };
+
+    const guard = new AdBlockGuard({
+        get: (key: string) => key === 'RULE_ENABLES' ? { ad_block_popup: false } : undefined
+    } as any);
+    guard.patchConfig();
+    guard.checkAndClean();
+
+    TestRunner.assert('disabled 時不應 patch adBlockMessageViewModel', mockConfig.openPopupConfig.supportedPopups.adBlockMessageViewModel === true);
+    TestRunner.assert('disabled 時不應 patch experiment flags', mockConfig.EXPERIMENT_FLAGS.ad_blocker_notifications_disabled === false);
+    TestRunner.assert('disabled 時不應移除 adblock dialog', document.getElementById('ad-dialog') !== null);
+
+    dom.window.close();
+    restore();
+});
+
 TestRunner.suite('AdBlockGuard - isWhitelisted', () => {
     const restore = suppressConsoleError();
     const dom = createEnv(`

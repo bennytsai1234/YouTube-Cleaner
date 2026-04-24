@@ -8,10 +8,16 @@ export class SubscriptionManager {
     private lastScanTime = 0;
     private observer: MutationObserver | null = null;
     private SCAN_INTERVAL = 1000 * 60 * 15; // 每 15 分鐘最多主動掃描一次
+    private MAX_SUBSCRIPTIONS = 500;
 
     constructor(config: ConfigManager) {
         this.config = config;
-        this.subscribedSet = new Set(this.config.get('SUBSCRIBED_CHANNELS'));
+        const savedChannels = this.config.get('SUBSCRIBED_CHANNELS');
+        const storedChannels = Array.isArray(savedChannels) ? savedChannels.slice(0, this.MAX_SUBSCRIPTIONS) : [];
+        this.subscribedSet = new Set(storedChannels);
+        if (Array.isArray(savedChannels) && storedChannels.length !== savedChannels.length) {
+            this.config.set('SUBSCRIBED_CHANNELS', storedChannels);
+        }
     }
 
     /**
@@ -54,6 +60,8 @@ export class SubscriptionManager {
      * 掃描側邊欄提取訂閱頻道
      */
     public async scan(force = false): Promise<void> {
+        if (this.config.get('ENABLE_SUBSCRIPTION_PROTECTION') === false) return;
+
         const now = Date.now();
         if (!force && now - this.lastScanTime < this.SCAN_INTERVAL) return;
 
@@ -93,6 +101,7 @@ export class SubscriptionManager {
      * 檢查是否為已訂閱頻道
      */
     public isSubscribed(channelName: string): boolean {
+        if (this.config.get('ENABLE_SUBSCRIPTION_PROTECTION') === false) return false;
         if (!channelName) return false;
         // 優先精確匹配，未來可考慮模糊匹配
         return this.subscribedSet.has(channelName);
@@ -101,7 +110,13 @@ export class SubscriptionManager {
     private _updateList(newList: Set<string>): void {
         const oldSize = this.subscribedSet.size;
         // 增量更新：保留舊的，加入新的（防止 YouTube 因為分頁沒加載完而漏掉）
-        newList.forEach(name => this.subscribedSet.add(name));
+        for (const name of newList) {
+            if (this.subscribedSet.size >= this.MAX_SUBSCRIPTIONS && !this.subscribedSet.has(name)) {
+                Logger.warn(`SubscriptionManager: reached ${this.MAX_SUBSCRIPTIONS} channel limit, skip "${name}"`);
+                continue;
+            }
+            this.subscribedSet.add(name);
+        }
 
         if (this.subscribedSet.size !== oldSize) {
             this.config.set('SUBSCRIBED_CHANNELS', Array.from(this.subscribedSet));

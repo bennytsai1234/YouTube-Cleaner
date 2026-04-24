@@ -32,7 +32,7 @@ class App {
     constructor() {
         this.config = new ConfigManager();
         this.styleManager = new StyleManager(this.config);
-        this.adGuard = new AdBlockGuard();
+        this.adGuard = new AdBlockGuard(this.config);
         this.filter = new VideoFilter(this.config);
         this.enhancer = new InteractionEnhancer(this.config);
         this.ui = new UIManager(this.config, () => this.refresh());
@@ -42,7 +42,7 @@ class App {
         Logger.enabled = this.config.get('DEBUG_MODE');
 
         this.styleManager.apply();
-        this.adGuard.start(); // Internally calls patchConfig
+        this.adGuard.sync(); // Internally starts or stops based on ad_block_popup
         this.filter.start();  // Internally starts MutationObserver
         this.enhancer.init();
         GM_registerMenuCommand('⚙️ 淨化大師設定', () => this.ui.showMainMenu());
@@ -70,9 +70,11 @@ class App {
 
     public refresh(): void {
         Logger.enabled = this.config.get('DEBUG_MODE');
+        this.adGuard.sync();
         this.filter.reset();
         this.styleManager.apply();
         this.filter.processPage();
+        this.filter.scanSubscriptions();
     }
 }
 

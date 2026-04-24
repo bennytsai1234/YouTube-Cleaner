@@ -7,6 +7,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.1.6] - 2026-04-24
+### 🐛 Fixed
+- **Safe DOM Hiding**: 修復隱藏元素時覆蓋 YouTube 原始 inline style 的問題，切換設定或重新掃描時會完整還原原本樣式。
+- **AdBlock Guard Toggle**: 關閉 `ad_block_popup` 規則時，現在會同步停用 JS patch、彈窗移除與 observer。
+- **CSS Scope**: 收窄反廣告 CSS，避免影響其他擴充套件 popup 與非反廣告封鎖的 YouTube overlay。
+- **Channel Page Bypass**: 頻道頁停止過濾現在會優先於文字規則與區塊規則，避免頻道頁內容被誤隱藏。
+- **Members Early Access**: 擴充會員優先/會員搶先看偵測字串，並保留一般白名單豁免能力。
+
+### ⚙️ Changed
+- **Subscription Protection**: 訂閱保護現在只豁免低觀看數與低直播觀看數規則，不再放行關鍵字、頻道黑名單、時長或會員優先內容。
+- **Subscription List Control**: 新增訂閱保護開關、500 筆上限，並可在名單管理中查看或清空自動掃描清單。
+- **Roadmap**: ROADMAP 改為維護導向，聚焦持續優化現有功能。
+
 ## [2.1.5-docs] - 2026-04-18
 ### 📖 Documentation
 - **PROJECT_SUMMARY.md**: 全面更新至 v2.1.5，補充 `SubscriptionManager`、`dom-visibility`、`filter-types` 等新增模組說明；新增完整模組職責分工表、設定系統對照表、過濾優先級系統與測試涵蓋一覽。

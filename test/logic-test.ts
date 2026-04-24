@@ -1,5 +1,6 @@
 
 import { VideoFilter } from '../src/features/video-filter';
+import { hideElement, resetHiddenState } from '../src/features/dom-visibility';
 import { JSDOM } from 'jsdom';
 
 // Mock GM functions for test environment
@@ -128,6 +129,40 @@ if (typeof (global as any).location === 'undefined') {
 
 
 // ==================== 測試案例 ====================
+
+TestRunner.suite('dom-visibility - 隱藏後完整還原 inline style', () => {
+    document.body.innerHTML = `
+        <ytd-rich-item-renderer id="item" style="width: 120px; color: red;">
+            <a href="/watch?v=abc">Test</a>
+        </ytd-rich-item-renderer>
+    `;
+
+    const item = document.getElementById('item') as HTMLElement;
+    const originalStyle = item.getAttribute('style');
+
+    hideElement(item, { reason: 'keyword_blacklist' });
+    TestRunner.assert('隱藏時應設定 display none', item.style.getPropertyValue('display') === 'none');
+    TestRunner.assert('隱藏時應設定 visibility hidden', item.style.getPropertyValue('visibility') === 'hidden');
+
+    resetHiddenState();
+    TestRunner.assert('reset 後應還原原本 style attribute', item.getAttribute('style') === originalStyle);
+    TestRunner.assert('reset 後應清除 data-yp-hidden', !item.dataset.ypHidden);
+});
+
+TestRunner.suite('dom-visibility - 無 inline style 的元素 reset 後不留下 style attribute', () => {
+    document.body.innerHTML = `
+        <ytd-rich-item-renderer id="item">
+            <a href="/watch?v=abc">Test</a>
+        </ytd-rich-item-renderer>
+    `;
+
+    const item = document.getElementById('item') as HTMLElement;
+
+    hideElement(item, { reason: 'keyword_blacklist' });
+    resetHiddenState();
+
+    TestRunner.assert('reset 後不應留下空 style attribute', !item.hasAttribute('style'));
+});
 
 TestRunner.suite('VideoFilter - 關鍵字過濾', () => {
     const config = new MockConfig();

@@ -33,7 +33,14 @@ export const hideElement = (element: HTMLElement, detail: FilterDetail, item: La
         return;
     }
 
-    container.style.cssText = 'display: none !important; visibility: hidden !important;';
+    if (!('ypHadInlineStyle' in container.dataset)) {
+        const originalStyle = container.getAttribute('style');
+        container.dataset.ypHadInlineStyle = originalStyle === null ? 'false' : 'true';
+        container.dataset.ypOriginalStyle = originalStyle || '';
+    }
+
+    container.style.setProperty('display', 'none', 'important');
+    container.style.setProperty('visibility', 'hidden', 'important');
     container.dataset.ypHidden = reason;
     container.dataset.ypChecked = 'true';
 
@@ -58,11 +65,27 @@ URL: ${item.url}`);
     Logger.info(logMsg);
 };
 
+const restoreElementStyle = (el: HTMLElement): void => {
+    if ('ypHadInlineStyle' in el.dataset) {
+        if (el.dataset.ypHadInlineStyle === 'true') {
+            el.setAttribute('style', el.dataset.ypOriginalStyle || '');
+        } else {
+            el.removeAttribute('style');
+        }
+        delete el.dataset.ypHadInlineStyle;
+        delete el.dataset.ypOriginalStyle;
+        return;
+    }
+
+    // Backward-compatible cleanup for elements hidden by older versions.
+    el.style.removeProperty('display');
+    el.style.removeProperty('visibility');
+};
+
 export const clearFilterState = (): void => {
     document.querySelectorAll<HTMLElement>('[data-yp-checked], [data-yp-hidden]').forEach(el => {
         if (el.dataset.ypHidden) {
-            el.style.display = '';
-            el.style.visibility = '';
+            restoreElementStyle(el);
             delete el.dataset.ypHidden;
         }
         delete el.dataset.ypChecked;
@@ -71,7 +94,7 @@ export const clearFilterState = (): void => {
 
 export const resetHiddenState = (): void => {
     document.querySelectorAll<HTMLElement>('[data-yp-hidden]').forEach(el => {
-        el.style.display = '';
+        restoreElementStyle(el);
         delete el.dataset.ypHidden;
         delete el.dataset.ypChecked;
     });

@@ -74,6 +74,8 @@ class MockConfig {
             RULE_ENABLES: {
                 shorts_item: true,
                 members_only: true,
+                members_early_access: true,
+                posts_block: true,
                 recommended_playlists: true
             },
             RULE_PRIORITIES: {
@@ -273,6 +275,47 @@ TestRunner.suite('FilterEngine - findFilterDetail 基本流程', () => {
     const result = engine.findFilterDetail(el, false);
     // 非影片元素應返回 null
     TestRunner.assert('非影片元素 findFilterDetail 應返回 null', result === null);
+});
+
+TestRunner.suite('FilterEngine - 頻道頁豁免優先於文字與區塊規則', () => {
+    const config = new MockConfig() as any;
+    const engine = new FilterEngine(config);
+
+    const dom = new JSDOM('<ytd-rich-section-renderer><h2 id="title">Posts</h2></ytd-rich-section-renderer>');
+    const el = dom.window.document.querySelector('ytd-rich-section-renderer') as any;
+
+    const result = engine.findFilterDetail(el, true);
+    TestRunner.assert('allowPageContent=true 時應完全跳過內容過濾', result === null);
+});
+
+TestRunner.suite('FilterEngine - 會員優先觀看可被一般白名單豁免', () => {
+    const config = new MockConfig() as any;
+    const engine = new FilterEngine(config);
+
+    const dom = new JSDOM('<ytd-rich-item-renderer><div>會員優先觀看</div><a href="/watch?v=abc">Video</a></ytd-rich-item-renderer>');
+    const el = dom.window.document.querySelector('ytd-rich-item-renderer') as any;
+
+    const detail = engine.findFilterDetail(el, false);
+    TestRunner.assert('會員優先觀看應被識別', detail !== null && detail.reason === 'members_early_access');
+
+    const whitelistDecision = engine.applyWhitelistDecision(
+        createMockVideoData({ channel: 'GoodChannel', title: '會員優先觀看' }) as any,
+        { reason: 'members_early_access' }
+    );
+    TestRunner.assert('會員優先觀看應可被一般白名單豁免', whitelistDecision === 'channel_whitelist');
+});
+
+TestRunner.suite('FilterEngine - 訂閱保護只保護低觀看數', () => {
+    const config = new MockConfig() as any;
+    const engine = new FilterEngine(config);
+    engine.subManager = { isSubscribed: () => true } as any;
+
+    const subscribedVideo = createMockVideoData({ channel: 'SubscribedChannel', title: 'Blocked Keyword' });
+    const lowViewDecision = engine.applyWhitelistDecision(subscribedVideo as any, { reason: 'low_view' });
+    const keywordDecision = engine.applyWhitelistDecision(subscribedVideo as any, { reason: 'keyword_blacklist' });
+
+    TestRunner.assert('訂閱頻道的低觀看數應被保護', lowViewDecision === 'channel_whitelist');
+    TestRunner.assert('訂閱保護不應放行關鍵字黑名單', keywordDecision === null);
 });
 
 TestRunner.suite('FilterEngine - getFilterPlaylist', () => {

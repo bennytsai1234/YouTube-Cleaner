@@ -1,6 +1,7 @@
 import { Logger } from '../core/logger';
 import { Utils } from '../core/utils';
 import { YtConfig } from '../core/types'; // Import strict typings
+import type { ConfigManager } from '../core/config';
 
 declare global {
     interface HTMLElement {
@@ -15,13 +16,15 @@ const TIMING = {
 
 // --- AdBlock Guard (優化版：使用 MutationObserver 取代輪詢) ---
 export class AdBlockGuard {
+    private config?: Pick<ConfigManager, 'get'>;
     private keywords: string[];
     private whitelistSelectors: string[];
     private lastTrigger: number;
     private observer: MutationObserver | null;
     private checkAndCleanThrottled: ((...args: any[]) => void) | null;
 
-    constructor() {
+    constructor(config?: Pick<ConfigManager, 'get'>) {
+        this.config = config;
         // 精簡關鍵字 (只保留最常見的)
         this.keywords = [
             'Ad blockers', '廣告攔截器',
@@ -42,8 +45,14 @@ export class AdBlockGuard {
         this.checkAndCleanThrottled = null;
     }
 
+    private isEnabled(): boolean {
+        return this.config?.get('RULE_ENABLES')?.ad_block_popup !== false;
+    }
+
     // **ANTI-ADBLOCK PATCH**: 透過 YouTube 自身的配置對象來阻止偵測
     public patchConfig(): void {
+        if (!this.isEnabled()) return;
+
         try {
             const config = (window.yt?.config_ || window.ytcfg?.data_) as YtConfig | undefined;
             if (config?.openPopupConfig?.supportedPopups?.adBlockMessageViewModel !== undefined) {
@@ -59,8 +68,15 @@ export class AdBlockGuard {
     }
 
     public start(): void {
+        if (!this.isEnabled()) {
+            this.destroy();
+            return;
+        }
+
         // 初始 Patch
         this.patchConfig();
+
+        if (this.observer) return;
 
         // 使用 Throttled check，避免頻繁 Mutation 造成效能衝擊
         this.checkAndCleanThrottled = Utils.throttle(() => this.checkAndClean(), 250);
@@ -76,6 +92,8 @@ export class AdBlockGuard {
 
         // 嘗試連接 popup container，帶有重試機制
         const tryConnect = (attempts = 0) => {
+            if (!this.isEnabled() || !this.observer) return;
+
             const popupContainer = document.querySelector('ytd-popup-container') as HTMLElement | null;
             if (popupContainer && !popupContainer._adGuardObserved) {
                 popupContainer._adGuardObserved = true;
@@ -93,6 +111,15 @@ export class AdBlockGuard {
         this.checkAndClean();
     }
 
+    public sync(): void {
+        if (!this.isEnabled()) {
+            this.destroy();
+            return;
+        }
+
+        this.start();
+    }
+
     private isWhitelisted(dialog: Element): boolean {
         return this.whitelistSelectors.some(sel => dialog.querySelector(sel));
     }
@@ -105,6 +132,8 @@ export class AdBlockGuard {
     }
 
     public checkAndClean(): void {
+        if (!this.isEnabled()) return;
+
         const popupSelectors = [
             'tp-yt-paper-dialog',
             'ytd-enforcement-message-view-model',
@@ -125,9 +154,17 @@ export class AdBlockGuard {
         }
 
         if (detected) {
-            document.querySelectorAll('tp-yt-iron-overlay-backdrop.opened').forEach(b => b.remove());
+            this.removeAdBlockBackdrops();
             this.resumeVideo();
         }
+    }
+
+    private removeAdBlockBackdrops(): void {
+        const openDialogs = Array.from(document.querySelectorAll('tp-yt-paper-dialog'));
+        const hasNonAdBlockDialog = openDialogs.some(dialog => !this.isAdBlockPopup(dialog) || this.isWhitelisted(dialog));
+        if (hasNonAdBlockDialog) return;
+
+        document.querySelectorAll('tp-yt-iron-overlay-backdrop.opened').forEach(backdrop => backdrop.remove());
     }
 
     public resumeVideo(): void {
@@ -142,5 +179,7 @@ export class AdBlockGuard {
 
     public destroy(): void {
         this.observer?.disconnect();
+        this.observer = null;
+        this.checkAndCleanThrottled = null;
     }
 }

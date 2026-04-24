@@ -3,9 +3,7 @@
 /* 1. Anti-Adblock popup and scroll unlocking */
 tp-yt-paper-dialog:has(ytd-enforcement-message-view-model),
 ytd-enforcement-message-view-model,
-#immersive-translate-browser-popup,
 tp-yt-iron-overlay-backdrop:has(~ tp-yt-paper-dialog ytd-enforcement-message-view-model),
-tp-yt-iron-overlay-backdrop.opened,
 yt-playability-error-supported-renderers:has(ytd-enforcement-message-view-model) {
     display: none !important;
 }
@@ -27,6 +25,6 @@ ytd-app[aria-hidden="true"]:has(ytd-enforcement-message-view-model) {
     display: block !important;
 }
 
-ytd-app {
+ytd-app:has(ytd-enforcement-message-view-model) {
     --ytd-app-scroll-offset: 0 !important;
 }

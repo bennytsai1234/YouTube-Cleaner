@@ -9,7 +9,7 @@
 **「讓 YouTube 回歸本質：只看你想看的影片。」**
 
 [![GitHub Stars](https://img.shields.io/github/stars/bennytsai1234/youtube-homepage-cleaner?style=for-the-badge&logo=github&color=gold)](https://github.com/bennytsai1234/youtube-homepage-cleaner/stargazers)
-[![Version](https://img.shields.io/badge/version-v2.1.5-orange?style=for-the-badge)](https://github.com/bennytsai1234/youtube-homepage-cleaner/releases)
+[![Version](https://img.shields.io/badge/version-v2.1.6-orange?style=for-the-badge)](https://github.com/bennytsai1234/youtube-homepage-cleaner/releases)
 [![License](https://img.shields.io/github/license/bennytsai1234/youtube-homepage-cleaner?style=for-the-badge&color=green)](LICENSE)
 
 [✨ **核心優勢**](#-為什麼選擇這個腳本) · [🛠️ **功能亮點**](#-功能亮點) · [⚡️ **安裝教學**](#%EF%B8%8F-安裝教學) · [🧠 **過濾邏輯**](#-智慧過濾邏輯)

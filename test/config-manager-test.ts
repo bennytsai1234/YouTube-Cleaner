@@ -70,6 +70,8 @@ TestRunner.suite('ConfigManager - 預設值初始化', () => {
     const config = new ConfigManager();
 
     TestRunner.assertEqual('預設 OPEN_IN_NEW_TAB 應為 true', config.get('OPEN_IN_NEW_TAB'), true);
+    TestRunner.assertEqual('預設 FONT_FIX 應為 false', config.get('FONT_FIX'), false);
+    TestRunner.assertEqual('預設 ENABLE_SUBSCRIPTION_PROTECTION 應為 true', config.get('ENABLE_SUBSCRIPTION_PROTECTION'), true);
     TestRunner.assertEqual('預設 ENABLE_LOW_VIEW_FILTER 應為 true', config.get('ENABLE_LOW_VIEW_FILTER'), true);
     TestRunner.assertEqual('預設 LOW_VIEW_THRESHOLD 應為 1000', config.get('LOW_VIEW_THRESHOLD'), 1000);
     TestRunner.assertEqual('預設 GRACE_PERIOD_HOURS 應為 4', config.get('GRACE_PERIOD_HOURS'), 4);

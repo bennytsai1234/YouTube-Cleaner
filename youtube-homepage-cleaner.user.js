@@ -2,7 +2,7 @@
 // @name        YouTube Cleaner - Remove Garbage & Suggestions
 // @description Clean YouTube interface by hiding garbage Shorts, suggestions, and clutter elements. Say goodbye to clickbait.
 // @namespace   http://tampermonkey.net/
-// @version     2.1.5
+// @version     2.1.6
 // @author      Benny & AI Collaborators
 // @match       https://www.youtube.com/*
 // @exclude     https://www.youtube.com/embed/*
@@ -397,6 +397,8 @@
             adv_channel_whitelist: '🛡️ 頻道白名單 (常規影片)',
             adv_members_whitelist: '🛡️ 會員白名單 (專屬影片)',
             adv_keyword_whitelist: '🛡️ 關鍵字白名單',
+            adv_subscribed_channels: '自動訂閱保護名單',
+            adv_subscription_protection: '訂閱頻道保護',
             adv_section_filter: '欄位過濾',
             adv_section_list: '🚫 欄位標題黑名單',
             adv_duration_filter: '長度過濾',
@@ -461,6 +463,8 @@
             adv_channel_whitelist: '🛡️ 频道白名单 (常规视频)',
             adv_members_whitelist: '🛡️ 会员白名单 (专属视频)',
             adv_keyword_whitelist: '🛡️ 关键字白名单',
+            adv_subscribed_channels: '自动订阅保护名单',
+            adv_subscription_protection: '订阅频道保护',
             adv_section_filter: '栏位过滤',
             adv_section_list: '🚫 栏位标题黑名单',
             adv_duration_filter: '时长过滤',
@@ -525,6 +529,8 @@
             adv_channel_whitelist: '🛡️ Channel Whitelist (Regular)',
             adv_members_whitelist: '🛡️ Members Whitelist (Exclusive)',
             adv_keyword_whitelist: '🛡️ Keyword Whitelist',
+            adv_subscribed_channels: 'Auto Subscription Protect List',
+            adv_subscription_protection: 'Subscription Protection',
             adv_section_filter: 'Section Filter',
             adv_section_list: '🚫 Section Blacklist',
             adv_duration_filter: 'Duration Filter',
@@ -589,6 +595,8 @@
             adv_channel_whitelist: '🛡️ チャンネルホワイトリスト (通常)',
             adv_members_whitelist: '🛡️ メンバーホワイトリスト (限定)',
             adv_keyword_whitelist: '🛡️ キーワードホワイトリスト',
+            adv_subscribed_channels: '自動登録チャンネル保護リスト',
+            adv_subscription_protection: '登録チャンネル保護',
             adv_section_filter: 'セクションフィルター',
             adv_section_list: '🚫 セクションブラックリスト',
             adv_duration_filter: '動画の長さフィルター',
@@ -676,7 +684,11 @@
         { id: 'clarify_box', defaultEnabled: true },
         { id: 'explore_topics', defaultEnabled: true, textRules: [/探索更多主題|Explore more topics/i] },
         { id: 'recommended_playlists', defaultEnabled: true, defaultPriority: 'strong', whitelistScope: 'none' },
-        { id: 'members_early_access', defaultEnabled: true, textRules: [/會員優先|Members Early Access|Early access for members/i] }
+        {
+            id: 'members_early_access',
+            defaultEnabled: true,
+            textRules: [/會員優先|會員優先觀看|會員搶先看|Members Early Access|Early access for members|Members first|Available to members/i]
+        }
     ];
     const buildDefaultRuleEnables = () => RULE_DEFINITIONS.reduce((acc, rule) => {
         acc[rule.id] = rule.defaultEnabled;
@@ -714,6 +726,7 @@
                 DEBUG_MODE: true,
                 ENABLE_REGION_CONVERT: true,
                 DISABLE_FILTER_ON_CHANNEL: true,
+                ENABLE_SUBSCRIPTION_PROTECTION: true,
                 ENABLE_KEYWORD_FILTER: true,
                 KEYWORD_BLACKLIST: [],
                 ENABLE_CHANNEL_FILTER: true,
@@ -903,7 +916,7 @@
         ],
         allContainers: ALL_CONTAINERS_STR};
 
-    var baseStyles = "/* --- YouTube Cleaner Static Global CSS --- */\n\n/* 1. Anti-Adblock popup and scroll unlocking */\ntp-yt-paper-dialog:has(ytd-enforcement-message-view-model),\nytd-enforcement-message-view-model,\n#immersive-translate-browser-popup,\ntp-yt-iron-overlay-backdrop:has(~ tp-yt-paper-dialog ytd-enforcement-message-view-model),\ntp-yt-iron-overlay-backdrop.opened,\nyt-playability-error-supported-renderers:has(ytd-enforcement-message-view-model) {\n    display: none !important;\n}\n\nytd-app:has(ytd-enforcement-message-view-model), \nbody:has(ytd-enforcement-message-view-model), \nhtml:has(ytd-enforcement-message-view-model) {\n    overflow: auto !important; \n    overflow-y: auto !important; \n    position: static !important;\n    pointer-events: auto !important; \n    height: auto !important; \n    top: 0 !important;\n    margin-right: 0 !important; \n    overscroll-behavior: auto !important;\n}\n\nytd-app[aria-hidden=\"true\"]:has(ytd-enforcement-message-view-model) {\n    display: block !important;\n}\n\nytd-app {\n    --ytd-app-scroll-offset: 0 !important;\n}\n";
+    var baseStyles = "/* --- YouTube Cleaner Static Global CSS --- */\n\n/* 1. Anti-Adblock popup and scroll unlocking */\ntp-yt-paper-dialog:has(ytd-enforcement-message-view-model),\nytd-enforcement-message-view-model,\ntp-yt-iron-overlay-backdrop:has(~ tp-yt-paper-dialog ytd-enforcement-message-view-model),\nyt-playability-error-supported-renderers:has(ytd-enforcement-message-view-model) {\n    display: none !important;\n}\n\nytd-app:has(ytd-enforcement-message-view-model), \nbody:has(ytd-enforcement-message-view-model), \nhtml:has(ytd-enforcement-message-view-model) {\n    overflow: auto !important; \n    overflow-y: auto !important; \n    position: static !important;\n    pointer-events: auto !important; \n    height: auto !important; \n    top: 0 !important;\n    margin-right: 0 !important; \n    overscroll-behavior: auto !important;\n}\n\nytd-app[aria-hidden=\"true\"]:has(ytd-enforcement-message-view-model) {\n    display: block !important;\n}\n\nytd-app:has(ytd-enforcement-message-view-model) {\n    --ytd-app-scroll-offset: 0 !important;\n}\n";
 
     class StyleManager {
         config;
@@ -970,12 +983,14 @@
         RESUME_COOLDOWN: 3000
     };
     class AdBlockGuard {
+        config;
         keywords;
         whitelistSelectors;
         lastTrigger;
         observer;
         checkAndCleanThrottled;
-        constructor() {
+        constructor(config) {
+            this.config = config;
             this.keywords = [
                 'Ad blockers', '廣告攔截器',
                 'Video player will be blocked', '影片播放器將被封鎖',
@@ -993,7 +1008,12 @@
             this.observer = null;
             this.checkAndCleanThrottled = null;
         }
+        isEnabled() {
+            return this.config?.get('RULE_ENABLES')?.ad_block_popup !== false;
+        }
         patchConfig() {
+            if (!this.isEnabled())
+                return;
             try {
                 const config = (window.yt?.config_ || window.ytcfg?.data_);
                 if (config?.openPopupConfig?.supportedPopups?.adBlockMessageViewModel !== undefined) {
@@ -1008,7 +1028,13 @@
             }
         }
         start() {
+            if (!this.isEnabled()) {
+                this.destroy();
+                return;
+            }
             this.patchConfig();
+            if (this.observer)
+                return;
             this.checkAndCleanThrottled = Utils.throttle(() => this.checkAndClean(), 250);
             this.observer = new MutationObserver(() => this.checkAndCleanThrottled?.());
             this.observer.observe(document.body, {
@@ -1016,6 +1042,8 @@
                 subtree: false
             });
             const tryConnect = (attempts = 0) => {
+                if (!this.isEnabled() || !this.observer)
+                    return;
                 const popupContainer = document.querySelector('ytd-popup-container');
                 if (popupContainer && !popupContainer._adGuardObserved) {
                     popupContainer._adGuardObserved = true;
@@ -1028,6 +1056,13 @@
             };
             tryConnect();
             this.checkAndClean();
+        }
+        sync() {
+            if (!this.isEnabled()) {
+                this.destroy();
+                return;
+            }
+            this.start();
         }
         isWhitelisted(dialog) {
             return this.whitelistSelectors.some(sel => dialog.querySelector(sel));
@@ -1042,6 +1077,8 @@
             return false;
         }
         checkAndClean() {
+            if (!this.isEnabled())
+                return;
             const popupSelectors = [
                 'tp-yt-paper-dialog',
                 'ytd-enforcement-message-view-model',
@@ -1060,9 +1097,16 @@
                 }
             }
             if (detected) {
-                document.querySelectorAll('tp-yt-iron-overlay-backdrop.opened').forEach(b => b.remove());
+                this.removeAdBlockBackdrops();
                 this.resumeVideo();
             }
+        }
+        removeAdBlockBackdrops() {
+            const openDialogs = Array.from(document.querySelectorAll('tp-yt-paper-dialog'));
+            const hasNonAdBlockDialog = openDialogs.some(dialog => !this.isAdBlockPopup(dialog) || this.isWhitelisted(dialog));
+            if (hasNonAdBlockDialog)
+                return;
+            document.querySelectorAll('tp-yt-iron-overlay-backdrop.opened').forEach(backdrop => backdrop.remove());
         }
         resumeVideo() {
             if (Date.now() - this.lastTrigger > TIMING.RESUME_COOLDOWN) {
@@ -1075,6 +1119,8 @@
         }
         destroy() {
             this.observer?.disconnect();
+            this.observer = null;
+            this.checkAndCleanThrottled = null;
         }
     }
 
@@ -1113,9 +1159,15 @@
         lastScanTime = 0;
         observer = null;
         SCAN_INTERVAL = 1000 * 60 * 15;
+        MAX_SUBSCRIPTIONS = 500;
         constructor(config) {
             this.config = config;
-            this.subscribedSet = new Set(this.config.get('SUBSCRIBED_CHANNELS'));
+            const savedChannels = this.config.get('SUBSCRIBED_CHANNELS');
+            const storedChannels = Array.isArray(savedChannels) ? savedChannels.slice(0, this.MAX_SUBSCRIPTIONS) : [];
+            this.subscribedSet = new Set(storedChannels);
+            if (Array.isArray(savedChannels) && storedChannels.length !== savedChannels.length) {
+                this.config.set('SUBSCRIBED_CHANNELS', storedChannels);
+            }
         }
         init() {
             this.tryStaticScan();
@@ -1142,6 +1194,8 @@
             this.observer.observe(document.body, { childList: true, subtree: true });
         }
         async scan(force = false) {
+            if (this.config.get('ENABLE_SUBSCRIPTION_PROTECTION') === false)
+                return;
             const now = Date.now();
             if (!force && now - this.lastScanTime < this.SCAN_INTERVAL)
                 return;
@@ -1172,13 +1226,21 @@
             }
         }
         isSubscribed(channelName) {
+            if (this.config.get('ENABLE_SUBSCRIPTION_PROTECTION') === false)
+                return false;
             if (!channelName)
                 return false;
             return this.subscribedSet.has(channelName);
         }
         _updateList(newList) {
             const oldSize = this.subscribedSet.size;
-            newList.forEach(name => this.subscribedSet.add(name));
+            for (const name of newList) {
+                if (this.subscribedSet.size >= this.MAX_SUBSCRIPTIONS && !this.subscribedSet.has(name)) {
+                    Logger.warn(`SubscriptionManager: reached ${this.MAX_SUBSCRIPTIONS} channel limit, skip "${name}"`);
+                    continue;
+                }
+                this.subscribedSet.add(name);
+            }
             if (this.subscribedSet.size !== oldSize) {
                 this.config.set('SUBSCRIBED_CHANNELS', Array.from(this.subscribedSet));
             }
@@ -1383,6 +1445,8 @@
             this.subManager = new SubscriptionManager(config);
         }
         findFilterDetail(element, allowPageContent) {
+            if (allowPageContent)
+                return null;
             const textMatch = this.customRules.check(element, element.textContent || '');
             if (textMatch)
                 return { reason: textMatch.key, trigger: textMatch.trigger };
@@ -1390,7 +1454,7 @@
             if (sectionMatch)
                 return sectionMatch;
             const isVideoElement = /VIDEO|LOCKUP|RICH-ITEM|PLAYLIST-PANEL-VIDEO/.test(element.tagName);
-            if (!isVideoElement || allowPageContent)
+            if (!isVideoElement)
                 return null;
             const item = new LazyVideoData(element);
             return this.getFilterKeyword(item) ||
@@ -1530,7 +1594,8 @@
         applyWhitelistDecision(item, detail) {
             const priorities = this.config.get('RULE_PRIORITIES');
             const scope = getWhitelistScope(detail.reason);
-            if (scope !== 'none' && !isStrongRule(detail.reason, priorities)) {
+            const isLowViewRule = detail.reason === 'low_view' || detail.reason === 'low_viewer_live';
+            if (isLowViewRule && scope !== 'none' && !isStrongRule(detail.reason, priorities)) {
                 if (this.subManager.isSubscribed(item.channel)) {
                     Logger.info(`✅ Keep [Protected by Subscription]: ${item.channel} | ${item.title}
 (Originally Triggered: ${detail.reason})`);
@@ -1612,7 +1677,13 @@
             element.dataset.ypChecked = 'true';
             return;
         }
-        container.style.cssText = 'display: none !important; visibility: hidden !important;';
+        if (!('ypHadInlineStyle' in container.dataset)) {
+            const originalStyle = container.getAttribute('style');
+            container.dataset.ypHadInlineStyle = originalStyle === null ? 'false' : 'true';
+            container.dataset.ypOriginalStyle = originalStyle || '';
+        }
+        container.style.setProperty('display', 'none', 'important');
+        container.style.setProperty('visibility', 'hidden', 'important');
         container.dataset.ypHidden = reason;
         container.dataset.ypChecked = 'true';
         if (container !== element) {
@@ -1632,11 +1703,25 @@ URL: ${item.url}`);
         }
         Logger.info(logMsg);
     };
+    const restoreElementStyle = (el) => {
+        if ('ypHadInlineStyle' in el.dataset) {
+            if (el.dataset.ypHadInlineStyle === 'true') {
+                el.setAttribute('style', el.dataset.ypOriginalStyle || '');
+            }
+            else {
+                el.removeAttribute('style');
+            }
+            delete el.dataset.ypHadInlineStyle;
+            delete el.dataset.ypOriginalStyle;
+            return;
+        }
+        el.style.removeProperty('display');
+        el.style.removeProperty('visibility');
+    };
     const clearFilterState = () => {
         document.querySelectorAll('[data-yp-checked], [data-yp-hidden]').forEach(el => {
             if (el.dataset.ypHidden) {
-                el.style.display = '';
-                el.style.visibility = '';
+                restoreElementStyle(el);
                 delete el.dataset.ypHidden;
             }
             delete el.dataset.ypChecked;
@@ -1644,7 +1729,7 @@ URL: ${item.url}`);
     };
     const resetHiddenState = () => {
         document.querySelectorAll('[data-yp-hidden]').forEach(el => {
-            el.style.display = '';
+            restoreElementStyle(el);
             delete el.dataset.ypHidden;
             delete el.dataset.ypChecked;
         });
@@ -2090,9 +2175,11 @@ URL: ${item.url}`);
                 { label: `[白] ${this.t('adv_channel_whitelist')}`, action: () => this.manage('CHANNEL_WHITELIST') },
                 { label: `[白] ${this.t('adv_members_whitelist')}`, action: () => this.manage('MEMBERS_WHITELIST') },
                 { label: `[白] ${this.t('adv_keyword_whitelist')}`, action: () => this.manage('KEYWORD_WHITELIST') },
+                { label: `[白] ${this.t('adv_subscribed_channels')}`, action: () => this.manage('SUBSCRIBED_CHANNELS') },
                 { label: `${enabledIcon('ENABLE_KEYWORD_FILTER')} ${this.t('adv_keyword_filter')}`, action: () => this.toggle('ENABLE_KEYWORD_FILTER', 'list') },
                 { label: `${enabledIcon('ENABLE_CHANNEL_FILTER')} ${this.t('adv_channel_filter')}`, action: () => this.toggle('ENABLE_CHANNEL_FILTER', 'list') },
-                { label: `${enabledIcon('ENABLE_SECTION_FILTER')} ${this.t('adv_section_filter')}`, action: () => this.toggle('ENABLE_SECTION_FILTER', 'list') }
+                { label: `${enabledIcon('ENABLE_SECTION_FILTER')} ${this.t('adv_section_filter')}`, action: () => this.toggle('ENABLE_SECTION_FILTER', 'list') },
+                { label: `${enabledIcon('ENABLE_SUBSCRIPTION_PROTECTION')} ${this.t('adv_subscription_protection')}`, action: () => this.toggle('ENABLE_SUBSCRIPTION_PROTECTION', 'list') }
             ];
             this.renderer.render(this.t('menu_lists'), items, () => this.showMainMenu());
         }
@@ -2246,7 +2333,7 @@ URL: ${item.url}`);
         constructor() {
             this.config = new ConfigManager();
             this.styleManager = new StyleManager(this.config);
-            this.adGuard = new AdBlockGuard();
+            this.adGuard = new AdBlockGuard(this.config);
             this.filter = new VideoFilter(this.config);
             this.enhancer = new InteractionEnhancer(this.config);
             this.ui = new UIManager(this.config, () => this.refresh());
@@ -2254,7 +2341,7 @@ URL: ${item.url}`);
         init() {
             Logger.enabled = this.config.get('DEBUG_MODE');
             this.styleManager.apply();
-            this.adGuard.start();
+            this.adGuard.sync();
             this.filter.start();
             this.enhancer.init();
             GM_registerMenuCommand('⚙️ 淨化大師設定', () => this.ui.showMainMenu());
@@ -2277,9 +2364,11 @@ URL: ${item.url}`);
         }
         refresh() {
             Logger.enabled = this.config.get('DEBUG_MODE');
+            this.adGuard.sync();
             this.filter.reset();
             this.styleManager.apply();
             this.filter.processPage();
+            this.filter.scanSubscriptions();
         }
     }
     if (!window.ytPurifierInitialized) {

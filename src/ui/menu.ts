@@ -64,9 +64,11 @@ export class UIManager {
             { label: `[白] ${this.t('adv_channel_whitelist')}`, action: () => this.manage('CHANNEL_WHITELIST') },
             { label: `[白] ${this.t('adv_members_whitelist')}`, action: () => this.manage('MEMBERS_WHITELIST') },
             { label: `[白] ${this.t('adv_keyword_whitelist')}`, action: () => this.manage('KEYWORD_WHITELIST') },
+            { label: `[白] ${this.t('adv_subscribed_channels')}`, action: () => this.manage('SUBSCRIBED_CHANNELS') },
             { label: `${enabledIcon('ENABLE_KEYWORD_FILTER')} ${this.t('adv_keyword_filter')}`, action: () => this.toggle('ENABLE_KEYWORD_FILTER', 'list') },
             { label: `${enabledIcon('ENABLE_CHANNEL_FILTER')} ${this.t('adv_channel_filter')}`, action: () => this.toggle('ENABLE_CHANNEL_FILTER', 'list') },
-            { label: `${enabledIcon('ENABLE_SECTION_FILTER')} ${this.t('adv_section_filter')}`, action: () => this.toggle('ENABLE_SECTION_FILTER', 'list') }
+            { label: `${enabledIcon('ENABLE_SECTION_FILTER')} ${this.t('adv_section_filter')}`, action: () => this.toggle('ENABLE_SECTION_FILTER', 'list') },
+            { label: `${enabledIcon('ENABLE_SUBSCRIPTION_PROTECTION')} ${this.t('adv_subscription_protection')}`, action: () => this.toggle('ENABLE_SUBSCRIPTION_PROTECTION', 'list') }
         ];
         this.renderer.render(this.t('menu_lists'), items, () => this.showMainMenu());
     }

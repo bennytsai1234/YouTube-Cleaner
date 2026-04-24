@@ -31,7 +31,11 @@ export const RULE_DEFINITIONS: RuleDefinition[] = [
     { id: 'clarify_box', defaultEnabled: true },
     { id: 'explore_topics', defaultEnabled: true, textRules: [/探索更多主題|Explore more topics/i] },
     { id: 'recommended_playlists', defaultEnabled: true, defaultPriority: 'strong', whitelistScope: 'none' },
-    { id: 'members_early_access', defaultEnabled: true, textRules: [/會員優先|Members Early Access|Early access for members/i] }
+    {
+        id: 'members_early_access',
+        defaultEnabled: true,
+        textRules: [/會員優先|會員優先觀看|會員搶先看|Members Early Access|Early access for members|Members first|Available to members/i]
+    }
 ];
 
 export const buildDefaultRuleEnables = (): Record<string, boolean> =>

@@ -42,6 +42,7 @@ export interface ConfigState {
     DEBUG_MODE: boolean;
     ENABLE_REGION_CONVERT: boolean;
     DISABLE_FILTER_ON_CHANNEL: boolean;
+    ENABLE_SUBSCRIPTION_PROTECTION: boolean;
     ENABLE_KEYWORD_FILTER: boolean;
     KEYWORD_BLACKLIST: string[];
     ENABLE_CHANNEL_FILTER: boolean;
@@ -86,6 +87,7 @@ export class ConfigManager {
             // 進階過濾設定
             ENABLE_REGION_CONVERT: true,
             DISABLE_FILTER_ON_CHANNEL: true,
+            ENABLE_SUBSCRIPTION_PROTECTION: true,
             ENABLE_KEYWORD_FILTER: true,
             KEYWORD_BLACKLIST: [],
             ENABLE_CHANNEL_FILTER: true,

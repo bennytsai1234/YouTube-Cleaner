@@ -19,6 +19,8 @@ export class FilterEngine {
     }
 
     public findFilterDetail(element: HTMLElement, allowPageContent: boolean): FilterDetail | null {
+        if (allowPageContent) return null;
+
         const textMatch = this.customRules.check(element, element.textContent || '');
         if (textMatch) return { reason: textMatch.key, trigger: textMatch.trigger };
 
@@ -26,7 +28,7 @@ export class FilterEngine {
         if (sectionMatch) return sectionMatch;
 
         const isVideoElement = /VIDEO|LOCKUP|RICH-ITEM|PLAYLIST-PANEL-VIDEO/.test(element.tagName);
-        if (!isVideoElement || allowPageContent) return null;
+        if (!isVideoElement) return null;
 
         const item = new LazyVideoData(element);
 
@@ -178,9 +180,10 @@ export class FilterEngine {
     public applyWhitelistDecision(item: LazyVideoData, detail: FilterDetail): WhitelistReason | null {
         const priorities = this.config.get('RULE_PRIORITIES');
         const scope = getWhitelistScope(detail.reason);
+        const isLowViewRule = detail.reason === 'low_view' || detail.reason === 'low_viewer_live';
 
-        // 訂閱頻道保護：自動赦免非強規則的過濾
-        if (scope !== 'none' && !isStrongRule(detail.reason, priorities)) {
+        // 訂閱頻道保護只保護低觀看數類規則，避免放行關鍵字、頻道黑名單或會員優先內容。
+        if (isLowViewRule && scope !== 'none' && !isStrongRule(detail.reason, priorities)) {
             if (this.subManager.isSubscribed(item.channel)) {
                 Logger.info(`✅ Keep [Protected by Subscription]: ${item.channel} | ${item.title}
 (Originally Triggered: ${detail.reason})`);
