@@ -8,6 +8,10 @@ declare const GM_setValue: (key: string, value: any) => void;
 // --- 1. Core: Configuration Management ---
 let instance: ConfigManager | null = null;
 
+export const resetConfigManagerForTests = (): void => {
+    instance = null;
+};
+
 export interface RuleEnables {
     ad_block_popup: boolean;
     ad_sponsor: boolean;
@@ -69,6 +73,39 @@ export interface ConfigState {
     compiledSectionBlacklist?: RegExp[];
 }
 
+type CompiledListKey =
+    'compiledKeywords' |
+    'compiledChannels' |
+    'compiledChannelWhitelist' |
+    'compiledMembersWhitelist' |
+    'compiledKeywordWhitelist' |
+    'compiledSectionBlacklist';
+
+type ListConfigKey =
+    'KEYWORD_BLACKLIST' |
+    'CHANNEL_BLACKLIST' |
+    'CHANNEL_WHITELIST' |
+    'MEMBERS_WHITELIST' |
+    'KEYWORD_WHITELIST' |
+    'SECTION_TITLE_BLACKLIST';
+
+type StoredConfigKey = Exclude<keyof ConfigState, CompiledListKey>;
+
+const LIST_COMPILE_TARGETS: Record<ListConfigKey, CompiledListKey> = {
+    KEYWORD_BLACKLIST: 'compiledKeywords',
+    CHANNEL_BLACKLIST: 'compiledChannels',
+    CHANNEL_WHITELIST: 'compiledChannelWhitelist',
+    MEMBERS_WHITELIST: 'compiledMembersWhitelist',
+    KEYWORD_WHITELIST: 'compiledKeywordWhitelist',
+    SECTION_TITLE_BLACKLIST: 'compiledSectionBlacklist'
+};
+
+const isListConfigKey = (key: keyof ConfigState): key is ListConfigKey =>
+    Object.prototype.hasOwnProperty.call(LIST_COMPILE_TARGETS, key);
+
+const toStorageKey = (key: string): string =>
+    key.replace(/[A-Z]/g, l => `_${l.toLowerCase()}`);
+
 export class ConfigManager {
     public defaults!: ConfigState;
     public state!: ConfigState;
@@ -109,10 +146,11 @@ export class ConfigManager {
         this.state = this._load();
     }
 
-    private _compileList(list: string[]): RegExp[] {
+    private _compileList(list: unknown): RegExp[] {
         if (!Array.isArray(list)) return [];
         return list.map(k => {
             try {
+                if (typeof k !== 'string') return null;
                 if (k.startsWith('=')) {
                     return Utils.generateCnRegex(k.substring(1), true) || new RegExp(`^${Utils.escapeRegex(k.substring(1))}$`, 'i');
                 }
@@ -123,37 +161,54 @@ export class ConfigManager {
         }).filter((x): x is RegExp => x !== null);
     }
 
-    private _load(): ConfigState {
-        const get = (k: string, d: any) => GM_getValue(k, d);
-        const snake = (str: string) => str.replace(/[A-Z]/g, l => `_${l.toLowerCase()}`);
+    private cloneDefaultValue<K extends keyof ConfigState>(value: ConfigState[K]): ConfigState[K] {
+        if (Array.isArray(value)) return [...value] as ConfigState[K];
+        if (value && typeof value === 'object') return { ...value } as ConfigState[K];
+        return value;
+    }
 
-        const loaded = {} as ConfigState;
-        for (const key in this.defaults) {
-            const configKey = key as keyof ConfigState;
-            if (configKey === 'RULE_ENABLES') {
-                const saved = get('ruleEnables', {});
-                loaded[configKey] = { ...this.defaults.RULE_ENABLES, ...saved };
-            } else if (configKey === 'RULE_PRIORITIES') {
-                const saved = get('rulePriorities', {});
-                loaded[configKey] = { ...this.defaults.RULE_PRIORITIES, ...saved };
-            } else {
-                // @ts-ignore
-                loaded[configKey] = get(snake(key), this.defaults[configKey]);
-                // @ts-ignore
-                if (Array.isArray(this.defaults[configKey]) && !Array.isArray(loaded[configKey])) {
-                    // @ts-ignore
-                    loaded[configKey] = [...this.defaults[configKey]];
-                }
-            }
+    private normalizeLoadedValue<K extends StoredConfigKey>(key: K, value: unknown): ConfigState[K] {
+        const defaultValue = this.defaults[key];
+        if (Array.isArray(defaultValue)) {
+            return (Array.isArray(value) ? [...value] : this.cloneDefaultValue(defaultValue)) as ConfigState[K];
         }
+        return value as ConfigState[K];
+    }
 
-        // Pre-compile Regexes
+    private assignLoadedValue<K extends StoredConfigKey>(loaded: ConfigState, key: K, value: unknown): void {
+        loaded[key] = this.normalizeLoadedValue(key, value);
+    }
+
+    private refreshCompiledList(key: keyof ConfigState): void {
+        if (!isListConfigKey(key)) return;
+        this.state[LIST_COMPILE_TARGETS[key]] = this._compileList(this.state[key]);
+    }
+
+    private compileRuntimeLists(loaded: ConfigState): void {
         loaded.compiledKeywords = this._compileList(loaded.KEYWORD_BLACKLIST);
         loaded.compiledChannels = this._compileList(loaded.CHANNEL_BLACKLIST);
         loaded.compiledChannelWhitelist = this._compileList(loaded.CHANNEL_WHITELIST);
         loaded.compiledMembersWhitelist = this._compileList(loaded.MEMBERS_WHITELIST);
         loaded.compiledKeywordWhitelist = this._compileList(loaded.KEYWORD_WHITELIST);
         loaded.compiledSectionBlacklist = this._compileList(loaded.SECTION_TITLE_BLACKLIST);
+    }
+
+    private _load(): ConfigState {
+        const loaded = {} as ConfigState;
+        for (const key of Object.keys(this.defaults) as StoredConfigKey[]) {
+            const configKey = key;
+            if (configKey === 'RULE_ENABLES') {
+                const saved = GM_getValue('ruleEnables', {});
+                loaded[configKey] = { ...this.defaults.RULE_ENABLES, ...saved };
+            } else if (configKey === 'RULE_PRIORITIES') {
+                const saved = GM_getValue('rulePriorities', {});
+                loaded[configKey] = { ...this.defaults.RULE_PRIORITIES, ...saved };
+            } else {
+                this.assignLoadedValue(loaded, configKey, GM_getValue(toStorageKey(key), this.defaults[configKey]));
+            }
+        }
+
+        this.compileRuntimeLists(loaded);
 
         return loaded;
     }
@@ -164,26 +219,11 @@ export class ConfigManager {
 
     public set<K extends keyof ConfigState>(key: K, value: ConfigState[K]): void {
         this.state[key] = value;
-        const snake = (str: string) => str.replace(/[A-Z]/g, l => `_${l.toLowerCase()}`);
         if (key === 'RULE_ENABLES') GM_setValue('ruleEnables', value);
         else if (key === 'RULE_PRIORITIES') GM_setValue('rulePriorities', value);
-        else GM_setValue(snake(key), value);
+        else GM_setValue(toStorageKey(key), value);
 
-        // Update compiled regexes if list changes
-        const compileMap: Partial<Record<keyof ConfigState, keyof ConfigState>> = {
-            'KEYWORD_BLACKLIST': 'compiledKeywords',
-            'CHANNEL_BLACKLIST': 'compiledChannels',
-            'CHANNEL_WHITELIST': 'compiledChannelWhitelist',
-            'MEMBERS_WHITELIST': 'compiledMembersWhitelist',
-            'KEYWORD_WHITELIST': 'compiledKeywordWhitelist',
-            'SECTION_TITLE_BLACKLIST': 'compiledSectionBlacklist'
-        };
-
-        const target = compileMap[key];
-        if (target) {
-            // @ts-ignore
-            this.state[target] = this._compileList(value as string[]);
-        }
+        this.refreshCompiledList(key);
     }
 
     public toggleRule(ruleId: keyof RuleEnables): void {

@@ -8,6 +8,7 @@ import { CustomRuleManager } from '../src/features/custom-rules';
 import { LazyVideoData } from '../src/features/video-filter';
 import { I18N } from '../src/ui/i18n';
 import { JSDOM } from 'jsdom';
+import { TestRunner as Runner } from './helpers/test-runner';
 
 // Mock GM functions for test environment
 (global as any).GM_getValue = (key: string, defaultValue: any) => defaultValue;
@@ -27,47 +28,7 @@ if (typeof (global as any).navigator === 'undefined') {
 }
 
 // ==================== 測試工具 ====================
-const TestRunner = {
-    passed: 0,
-    failed: 0,
-    currentSuite: '',
-
-    suite(name: string, fn: () => void) {
-        this.currentSuite = name;
-        console.log(`\n📦 ${name}`);
-        console.log('─'.repeat(40));
-        fn();
-    },
-
-    assert(description: string, condition: any) {
-        if (condition) {
-            console.log(`  ✅ ${description}`);
-            this.passed++;
-        } else {
-            console.error(`  ❌ ${description}`);
-            this.failed++;
-        }
-    },
-
-    assertEqual(description: string, actual: any, expected: any) {
-        const pass = actual === expected;
-        if (pass) {
-            console.log(`  ✅ ${description}`);
-            this.passed++;
-        } else {
-            console.error(`  ❌ ${description}`);
-            console.error(`     期望: ${expected}, 實際: ${actual}`);
-            this.failed++;
-        }
-    },
-
-    summary() {
-        console.log('\n' + '═'.repeat(40));
-        console.log(`📊 測試結果: ${this.passed} 通過, ${this.failed} 失敗`);
-        console.log('═'.repeat(40));
-        return this.failed === 0;
-    }
-};
+const TestRunner = new Runner('測試結果');
 
 // ==================== Mock 物件 ====================
 class MockConfig {

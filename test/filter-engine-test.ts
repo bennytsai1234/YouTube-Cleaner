@@ -1,6 +1,7 @@
 import { JSDOM } from 'jsdom';
 import { FilterEngine } from '../src/features/filter-engine';
 import { LazyVideoData } from '../src/features/video-data';
+import { TestRunner as Runner } from './helpers/test-runner';
 
 // Mock GM functions
 (global as any).GM_getValue = (key: string, defaultValue: any) => defaultValue;
@@ -19,45 +20,7 @@ Object.defineProperty(global, 'navigator', {
 (global as any).Element = dom.window.Element;
 (global as any).Node = dom.window.Node;
 
-const TestRunner = {
-    passed: 0,
-    failed: 0,
-
-    suite(name: string, fn: () => void) {
-        console.log(`\n📦 ${name}`);
-        console.log('─'.repeat(40));
-        fn();
-    },
-
-    assert(description: string, condition: any) {
-        if (condition) {
-            console.log(`  ✅ ${description}`);
-            this.passed++;
-        } else {
-            console.error(`  ❌ ${description}`);
-            this.failed++;
-        }
-    },
-
-    assertEqual(description: string, actual: any, expected: any) {
-        const pass = actual === expected;
-        if (pass) {
-            console.log(`  ✅ ${description}`);
-            this.passed++;
-        } else {
-            console.error(`  ❌ ${description}`);
-            console.error(`     期望: ${expected}, 實際: ${actual}`);
-            this.failed++;
-        }
-    },
-
-    summary() {
-        console.log('\n' + '═'.repeat(40));
-        console.log(`📊 FilterEngine 測試結果: ${this.passed} 通過, ${this.failed} 失敗`);
-        console.log('═'.repeat(40));
-        return this.failed === 0;
-    }
-};
+const TestRunner = new Runner('FilterEngine 測試結果');
 
 // Mock ConfigManager
 class MockConfig {

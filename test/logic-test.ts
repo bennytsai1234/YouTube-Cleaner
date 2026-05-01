@@ -2,6 +2,7 @@
 import { VideoFilter } from '../src/features/video-filter';
 import { hideElement, resetHiddenState } from '../src/features/dom-visibility';
 import { JSDOM } from 'jsdom';
+import { TestRunner as Runner } from './helpers/test-runner';
 
 // Mock GM functions for test environment
 (global as any).GM_getValue = (key: string, defaultValue: any) => defaultValue;
@@ -9,35 +10,7 @@ import { JSDOM } from 'jsdom';
 
 
 // ==================== 測試基礎建設 ====================
-const TestRunner = {
-    passed: 0,
-    failed: 0,
-    currentSuite: '',
-
-    suite(name: string, fn: () => void) {
-        this.currentSuite = name;
-        console.log(`\n📦 ${name}`);
-        console.log('─'.repeat(40));
-        fn();
-    },
-
-    assert(description: string, condition: any) {
-        if (condition) {
-            console.log(`  ✅ ${description}`);
-            this.passed++;
-        } else {
-            console.error(`  ❌ ${description}`);
-            this.failed++;
-        }
-    },
-
-    summary() {
-        console.log('\n' + '═'.repeat(40));
-        console.log(`📊 邏輯測試結果: ${this.passed} 通過, ${this.failed} 失敗`);
-        console.log('═'.repeat(40));
-        return this.failed === 0;
-    }
-};
+const TestRunner = new Runner('邏輯測試結果');
 
 // ==================== Mock 物件 ====================
 
@@ -322,6 +295,68 @@ TestRunner.suite('VideoFilter - 雙重白名單', () => {
     video = new MockVideoData({ channel: 'Other', title: 'Minecraft' });
     whitelistReason = (filter as any)._checkWhitelist(video);
     TestRunner.assert('非白名單不應被識別', whitelistReason === null);
+});
+
+TestRunner.suite('VideoFilter - 大量 mutations 應切換為整頁掃描', () => {
+    const config = new MockConfig();
+    const filter = new VideoFilter(config as any);
+    let processPageCount = 0;
+
+    filter.processPage = () => {
+        processPageCount++;
+    };
+
+    const mutations = Array.from({ length: 101 }, () => ({ addedNodes: [] })) as unknown as MutationRecord[];
+    filter.processMutations(mutations);
+
+    TestRunner.assert('超過 mutation 門檻時應呼叫 processPage', processPageCount === 1);
+});
+
+TestRunner.suite('VideoFilter - 子節點更新時應重新排程父容器', () => {
+    document.body.innerHTML = `
+        <ytd-rich-item-renderer id="item" data-yp-checked="true">
+            <div id="inner"></div>
+        </ytd-rich-item-renderer>
+    `;
+
+    const config = new MockConfig();
+    const filter = new VideoFilter(config as any);
+    const parent = document.getElementById('item') as HTMLElement;
+    const child = document.createElement('span');
+    parent.appendChild(child);
+
+    let queuedParent: HTMLElement | undefined;
+    (filter as any).processBatch = (elements: HTMLElement[]) => {
+        queuedParent = elements[0];
+    };
+
+    filter.processMutations([{ addedNodes: [child] } as unknown as MutationRecord]);
+
+    TestRunner.assert('父容器 ypChecked 應被清除', !parent.dataset.ypChecked);
+    TestRunner.assert('父容器應被加入待處理批次', queuedParent === parent);
+});
+
+TestRunner.suite('VideoFilter - stop 應清理主 observer 與訂閱 observer', () => {
+    const config = new MockConfig();
+    const filter = new VideoFilter(config as any);
+    let mainObserverDisconnected = false;
+    let subscriptionDestroyed = false;
+
+    (filter as any).observer = {
+        disconnect: () => {
+            mainObserverDisconnected = true;
+        }
+    };
+    (filter as any).engine.subManager = {
+        destroy: () => {
+            subscriptionDestroyed = true;
+        }
+    };
+
+    filter.stop();
+
+    TestRunner.assert('主 MutationObserver 應被 disconnect', mainObserverDisconnected);
+    TestRunner.assert('SubscriptionManager 應被 destroy', subscriptionDestroyed);
 });
 
 // ==================== 執行 ====================

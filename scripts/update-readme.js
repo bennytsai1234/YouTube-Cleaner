@@ -27,3 +27,10 @@ if (badgeRegex.test(readme)) {
 // It seems fine as it points to main branch.
 
 writeFileSync(readmePath, readme);
+
+// Keep userscript source metadata in sync with package.json.
+const metaPath = join(process.cwd(), 'src', 'meta.json');
+const meta = JSON.parse(readFileSync(metaPath, 'utf8'));
+meta.version = version;
+writeFileSync(metaPath, `${JSON.stringify(meta, null, 2)}\n`);
+console.log(`✅ Updated src/meta.json to v${version}`);

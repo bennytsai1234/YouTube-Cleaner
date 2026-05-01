@@ -14,6 +14,13 @@
 - 改善文件，讓設定、除錯與發布流程更清楚。
 - 維持腳本輕量，避免加入不必要的外部依賴或複雜 UI。
 
+## 目前維護基線
+
+- `npm run verify` 作為主要驗證入口，涵蓋 typecheck、lint、單元測試、build、版本一致性檢查與 E2E。
+- `npm run check:release` 驗證 `package.json`、`package-lock.json`、`src/meta.json`、README 與輸出 userscript 的版本/URL 一致。
+- selector 風險分成兩層：單元測試檢查 selector 語法與組合來源，Playwright selector health check 檢查真實 YouTube DOM。
+- 設定匯出/匯入需避免 runtime cache 汙染，並拒絕明顯錯誤的設定型別。
+
 ## 優先順序
 
 1. 修正既有功能失效或錯誤過濾。
@@ -30,4 +37,4 @@
 - 不依賴不穩定或高風險的 YouTube 內部 API。
 - 預設關閉或能被使用者清楚控制。
 
-*Last Updated: 2026-04-24*
+*Last Updated: 2026-05-01*

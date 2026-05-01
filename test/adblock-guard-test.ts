@@ -1,5 +1,6 @@
 import { JSDOM } from 'jsdom';
 import { AdBlockGuard } from '../src/features/adblock-guard';
+import { TestRunner as Runner } from './helpers/test-runner';
 
 // Mock GM functions
 (global as any).GM_getValue = (key: string, defaultValue: any) => defaultValue;
@@ -15,45 +16,7 @@ const suppressConsoleError = () => {
     return () => { console.error = orig; };
 };
 
-const TestRunner = {
-    passed: 0,
-    failed: 0,
-
-    suite(name: string, fn: () => void) {
-        console.log(`\n📦 ${name}`);
-        console.log('─'.repeat(40));
-        fn();
-    },
-
-    assert(description: string, condition: any) {
-        if (condition) {
-            console.log(`  ✅ ${description}`);
-            this.passed++;
-        } else {
-            console.error(`  ❌ ${description}`);
-            this.failed++;
-        }
-    },
-
-    assertEqual(description: string, actual: any, expected: any) {
-        const pass = actual === expected;
-        if (pass) {
-            console.log(`  ✅ ${description}`);
-            this.passed++;
-        } else {
-            console.error(`  ❌ ${description}`);
-            console.error(`     期望: ${expected}, 實際: ${actual}`);
-            this.failed++;
-        }
-    },
-
-    summary() {
-        console.log('\n' + '═'.repeat(40));
-        console.log(`📊 AdBlockGuard 測試結果: ${this.passed} 通過, ${this.failed} 失敗`);
-        console.log('═'.repeat(40));
-        return this.failed === 0;
-    }
-};
+const TestRunner = new Runner('AdBlockGuard 測試結果');
 
 function createEnv(html: string) {
     const dom = new JSDOM(`<!doctype html><html><body>${html}</body></html>`, {

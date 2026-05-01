@@ -7,6 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.1.7] - 2026-05-01
+### Changed
+- Added `typecheck` and release consistency checks to the local verification and CI flow.
+- Hardened settings import validation so malformed backup JSON cannot write invalid list or rule map shapes into runtime state.
+- Ensured `VideoFilter.stop()` also tears down the subscription observer lifecycle.
+
+### Tests
+- Added shared test helpers for the hand-written tsx unit suites.
+- Added SettingsIO import/export coverage and selector syntax/source consistency coverage.
+- Added MutationObserver scheduling and cleanup regression coverage for `VideoFilter`.
+
 ## [2.1.6] - 2026-04-24
 ### 🐛 Fixed
 - **Safe DOM Hiding**: 修復隱藏元素時覆蓋 YouTube 原始 inline style 的問題，切換設定或重新掃描時會完整還原原本樣式。

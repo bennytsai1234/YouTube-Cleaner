@@ -152,11 +152,13 @@ const map = {
 
 | 指令 | 說明 |
 |------|------|
+| `npm run typecheck` | 執行 TypeScript 型別檢查（`tsc --noEmit`） |
+| `npm run lint` | ESLint 代碼品質檢查 |
 | `npm test` | 執行所有單元測試（tsx） |
 | `npm run test:e2e` | 執行 E2E 測試（不需登入的公開頁面）|
 | `npm run test:e2e:selectors` | 驗證 CSS 選擇器健康狀態 |
-| `npm run verify` | 完整驗證：lint + 單元 + build + E2E |
-| `npm run lint` | ESLint 代碼品質檢查 |
+| `npm run check:release` | 驗證 package、metadata、README 與 userscript 版本/URL 一致 |
+| `npm run verify` | 完整驗證：typecheck + lint + 單元 + build + release check + E2E |
 
 ### 4.2 E2E 測試策略
 
@@ -170,17 +172,21 @@ const map = {
 # 1. 更新版本號（同時更新 README 版號並執行 git add README.md）
 npm version patch   # 或 minor / major
 
-# 2. 完整驗證
+# 2. 完整驗證（含型別、lint、單元、build、版本一致性、E2E）
 npm run verify
 
-# 3. 構建
-npm run build
-
-# 4. 提交並推送
+# 3. 提交並推送
 git add -A
 git commit -m "release: vX.Y.Z"
 git push
 ```
+
+發布前人工確認清單：
+
+- `package.json`、`package-lock.json`、`src/meta.json`、README badge 與 `youtube-homepage-cleaner.user.js` 的版本一致。
+- `src/meta.json` 的 `downloadURL` / `updateURL` 與 README 安裝連結指向同一個 `main/youtube-homepage-cleaner.user.js`。
+- `npm run test:e2e:selectors` 仍能在真實 YouTube DOM 找到影片容器、標題、頻道與連結候選。
+- 沒有把 `compiled*` runtime cache 匯出到設定備份。
 
 ---
 
@@ -214,4 +220,4 @@ git push
 
 ---
 
-*Last Updated: 2026-04-18*
+*Last Updated: 2026-05-01*

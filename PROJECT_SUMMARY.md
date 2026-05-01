@@ -1,4 +1,4 @@
-# YouTube Cleaner — Project Summary (v2.1.5)
+# YouTube Cleaner — Project Summary (v2.1.7)
 
 ## 📋 專案概述
 
@@ -182,10 +182,12 @@ App.init()
 
 | 測試類型 | 指令 | 涵蓋範圍 |
 |----------|------|----------|
-| 單元測試 | `npm test` | filter-test, logic-test, interaction-test, adblock-guard-test, config-manager-test, filter-engine-test |
+| 型別檢查 | `npm run typecheck` | TypeScript `strict` 型別檢查，不輸出編譯產物 |
+| 單元測試 | `npm test` | filter-test, logic-test, interaction-test, adblock-guard-test, config-manager-test, filter-engine-test, settings-io-test, selectors-test |
 | E2E 測試 | `npm run test:e2e` | 搜尋頁、公開頻道頁、播放頁（不需登入）|
 | 選擇器驗證 | `npm run test:e2e:selectors` | 驗證 CSS 選擇器在真實 YouTube DOM 中可命中 |
-| 完整驗證 | `npm run verify` | lint + 單元 + build + E2E |
+| 發布一致性 | `npm run check:release` | 驗證版本、userscript metadata、README 安裝連結與輸出檔案一致 |
+| 完整驗證 | `npm run verify` | typecheck + lint + 單元 + build + release check + E2E |
 
 ---
 
@@ -198,6 +200,7 @@ App.init()
 | rollup-plugin-userscript-metablock | 自動插入 UserScript 標頭 |
 | rollup-plugin-string | 將 CSS 文件以字串內嵌打包 |
 | tsx | 單元測試執行器（無需編譯步驟）|
+| `test/helpers/*` | 共用測試 runner、GM storage mock 與 JSDOM browser env |
 | Playwright | E2E 瀏覽器自動化測試 |
 | ESLint + eslint-plugin-userscripts | 代碼風格與 UserScript 規範檢查 |
 | OpenCC-JS (CDN) | 繁簡中文互通過濾引擎 |
@@ -206,12 +209,13 @@ App.init()
 
 ## 📦 版本與發布
 
-- **當前版本**：`v2.1.5`
+- **當前版本**：`v2.1.7`
 - **發布平台**：Greasy Fork、GitHub Releases
 - **版本管理**：`npm version <patch/minor/major>`（自動觸發 `scripts/update-readme.js` 更新 README 版號）
 - **輸出檔案**：`youtube-homepage-cleaner.user.js`（根目錄，直接發布）
+- **發布前驗證**：`npm run verify`，並由 `scripts/check-release-consistency.js` 檢查版本與 URL 一致性。
 
 ---
 
-*Last Updated: 2026-04-18*  
+*Last Updated: 2026-05-01*
 *Status: Stable / Active Development*

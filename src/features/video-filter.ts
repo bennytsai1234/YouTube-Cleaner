@@ -45,6 +45,7 @@ export class VideoFilter {
     public stop(): void {
         this.observer?.disconnect();
         this.observer = null;
+        this.engine.subManager.destroy();
     }
 
     get isPageAllowingContent(): boolean {

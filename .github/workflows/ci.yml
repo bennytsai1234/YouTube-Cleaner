@@ -24,12 +24,18 @@ jobs:
         
     - name: Install dependencies
       run: npm ci
+
+    - name: Run TypeScript type check
+      run: npm run typecheck
       
     - name: Run ESLint
       run: npm run lint
       
     - name: Build Userscript (Required for E2E)
       run: npm run build
+
+    - name: Check release metadata consistency
+      run: npm run check:release
       
     - name: Run unit tests
       run: npm run test:unit

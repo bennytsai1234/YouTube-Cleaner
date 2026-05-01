@@ -1,5 +1,6 @@
 import { JSDOM } from 'jsdom';
 import { InteractionEnhancer } from '../src/features/interaction';
+import { TestRunner as Runner } from './helpers/test-runner';
 
 // Mock GM functions for test environment
 (global as any).GM_getValue = (key: string, defaultValue: any) => defaultValue;
@@ -12,33 +13,7 @@ console.error = (...args: any[]) => {
     originalConsoleError(...args);
 };
 
-const TestRunner = {
-    passed: 0,
-    failed: 0,
-
-    suite(name: string, fn: () => void) {
-        console.log(`\n📦 ${name}`);
-        console.log('─'.repeat(40));
-        fn();
-    },
-
-    assert(description: string, condition: any) {
-        if (condition) {
-            console.log(`  ✅ ${description}`);
-            this.passed++;
-        } else {
-            console.error(`  ❌ ${description}`);
-            this.failed++;
-        }
-    },
-
-    summary() {
-        console.log('\n' + '═'.repeat(40));
-        console.log(`📊 Interaction 測試結果: ${this.passed} 通過, ${this.failed} 失敗`);
-        console.log('═'.repeat(40));
-        return this.failed === 0;
-    }
-};
+const TestRunner = new Runner('Interaction 測試結果');
 
 class MockConfig {
     private state: Record<string, any>;

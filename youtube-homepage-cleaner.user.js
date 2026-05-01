@@ -2,7 +2,7 @@
 // @name        YouTube Cleaner - Remove Garbage & Suggestions
 // @description Clean YouTube interface by hiding garbage Shorts, suggestions, and clutter elements. Say goodbye to clickbait.
 // @namespace   http://tampermonkey.net/
-// @version     2.1.6
+// @version     2.1.7
 // @author      Benny & AI Collaborators
 // @match       https://www.youtube.com/*
 // @exclude     https://www.youtube.com/embed/*
@@ -710,6 +710,16 @@
     const isStrongRule = (reason, priorities) => priorities[reason] === 'strong';
 
     let instance = null;
+    const LIST_COMPILE_TARGETS = {
+        KEYWORD_BLACKLIST: 'compiledKeywords',
+        CHANNEL_BLACKLIST: 'compiledChannels',
+        CHANNEL_WHITELIST: 'compiledChannelWhitelist',
+        MEMBERS_WHITELIST: 'compiledMembersWhitelist',
+        KEYWORD_WHITELIST: 'compiledKeywordWhitelist',
+        SECTION_TITLE_BLACKLIST: 'compiledSectionBlacklist'
+    };
+    const isListConfigKey = (key) => Object.prototype.hasOwnProperty.call(LIST_COMPILE_TARGETS, key);
+    const toStorageKey = (key) => key.replace(/[A-Z]/g, l => `_${l.toLowerCase()}`);
     class ConfigManager {
         defaults;
         state;
@@ -751,6 +761,8 @@
                 return [];
             return list.map(k => {
                 try {
+                    if (typeof k !== 'string')
+                        return null;
                     if (k.startsWith('=')) {
                         return Utils.generateCnRegex(k.substring(1), true) || new RegExp(`^${Utils.escapeRegex(k.substring(1))}$`, 'i');
                     }
@@ -761,33 +773,53 @@
                 }
             }).filter((x) => x !== null);
         }
-        _load() {
-            const get = (k, d) => GM_getValue(k, d);
-            const snake = (str) => str.replace(/[A-Z]/g, l => `_${l.toLowerCase()}`);
-            const loaded = {};
-            for (const key in this.defaults) {
-                const configKey = key;
-                if (configKey === 'RULE_ENABLES') {
-                    const saved = get('ruleEnables', {});
-                    loaded[configKey] = { ...this.defaults.RULE_ENABLES, ...saved };
-                }
-                else if (configKey === 'RULE_PRIORITIES') {
-                    const saved = get('rulePriorities', {});
-                    loaded[configKey] = { ...this.defaults.RULE_PRIORITIES, ...saved };
-                }
-                else {
-                    loaded[configKey] = get(snake(key), this.defaults[configKey]);
-                    if (Array.isArray(this.defaults[configKey]) && !Array.isArray(loaded[configKey])) {
-                        loaded[configKey] = [...this.defaults[configKey]];
-                    }
-                }
+        cloneDefaultValue(value) {
+            if (Array.isArray(value))
+                return [...value];
+            if (value && typeof value === 'object')
+                return { ...value };
+            return value;
+        }
+        normalizeLoadedValue(key, value) {
+            const defaultValue = this.defaults[key];
+            if (Array.isArray(defaultValue)) {
+                return (Array.isArray(value) ? [...value] : this.cloneDefaultValue(defaultValue));
             }
+            return value;
+        }
+        assignLoadedValue(loaded, key, value) {
+            loaded[key] = this.normalizeLoadedValue(key, value);
+        }
+        refreshCompiledList(key) {
+            if (!isListConfigKey(key))
+                return;
+            this.state[LIST_COMPILE_TARGETS[key]] = this._compileList(this.state[key]);
+        }
+        compileRuntimeLists(loaded) {
             loaded.compiledKeywords = this._compileList(loaded.KEYWORD_BLACKLIST);
             loaded.compiledChannels = this._compileList(loaded.CHANNEL_BLACKLIST);
             loaded.compiledChannelWhitelist = this._compileList(loaded.CHANNEL_WHITELIST);
             loaded.compiledMembersWhitelist = this._compileList(loaded.MEMBERS_WHITELIST);
             loaded.compiledKeywordWhitelist = this._compileList(loaded.KEYWORD_WHITELIST);
             loaded.compiledSectionBlacklist = this._compileList(loaded.SECTION_TITLE_BLACKLIST);
+        }
+        _load() {
+            const loaded = {};
+            for (const key of Object.keys(this.defaults)) {
+                const configKey = key;
+                if (configKey === 'RULE_ENABLES') {
+                    const saved = GM_getValue('ruleEnables', {});
+                    loaded[configKey] = { ...this.defaults.RULE_ENABLES, ...saved };
+                }
+                else if (configKey === 'RULE_PRIORITIES') {
+                    const saved = GM_getValue('rulePriorities', {});
+                    loaded[configKey] = { ...this.defaults.RULE_PRIORITIES, ...saved };
+                }
+                else {
+                    this.assignLoadedValue(loaded, configKey, GM_getValue(toStorageKey(key), this.defaults[configKey]));
+                }
+            }
+            this.compileRuntimeLists(loaded);
             return loaded;
         }
         get(key) {
@@ -795,25 +827,13 @@
         }
         set(key, value) {
             this.state[key] = value;
-            const snake = (str) => str.replace(/[A-Z]/g, l => `_${l.toLowerCase()}`);
             if (key === 'RULE_ENABLES')
                 GM_setValue('ruleEnables', value);
             else if (key === 'RULE_PRIORITIES')
                 GM_setValue('rulePriorities', value);
             else
-                GM_setValue(snake(key), value);
-            const compileMap = {
-                'KEYWORD_BLACKLIST': 'compiledKeywords',
-                'CHANNEL_BLACKLIST': 'compiledChannels',
-                'CHANNEL_WHITELIST': 'compiledChannelWhitelist',
-                'MEMBERS_WHITELIST': 'compiledMembersWhitelist',
-                'KEYWORD_WHITELIST': 'compiledKeywordWhitelist',
-                'SECTION_TITLE_BLACKLIST': 'compiledSectionBlacklist'
-            };
-            const target = compileMap[key];
-            if (target) {
-                this.state[target] = this._compileList(value);
-            }
+                GM_setValue(toStorageKey(key), value);
+            this.refreshCompiledList(key);
         }
         toggleRule(ruleId) {
             this.state.RULE_ENABLES[ruleId] = !this.state.RULE_ENABLES[ruleId];
@@ -1173,6 +1193,10 @@
             this.tryStaticScan();
             this.setupObserver();
             this.scan();
+        }
+        destroy() {
+            this.observer?.disconnect();
+            this.observer = null;
         }
         tryStaticScan() {
             try {
@@ -1759,6 +1783,7 @@ URL: ${item.url}`);
         stop() {
             this.observer?.disconnect();
             this.observer = null;
+            this.engine.subManager.destroy();
         }
         get isPageAllowingContent() {
             const path = window.location.pathname;
@@ -2103,20 +2128,82 @@ URL: ${item.url}`);
                 prompt(I18N.t('export_copy'), json);
             }
         }
+        isConfigKey(key) {
+            return key in this.config.defaults;
+        }
+        isRecord(value) {
+            return typeof value === 'object' && value !== null && !Array.isArray(value);
+        }
+        normalizeRuleEnables(value) {
+            if (!this.isRecord(value))
+                throw new Error('Invalid RULE_ENABLES');
+            const defaults = this.config.defaults.RULE_ENABLES;
+            const normalized = { ...defaults };
+            for (const [rule, enabled] of Object.entries(value)) {
+                if (rule in defaults && typeof enabled === 'boolean') {
+                    normalized[rule] = enabled;
+                }
+            }
+            return normalized;
+        }
+        normalizeRulePriorities(value) {
+            if (!this.isRecord(value))
+                throw new Error('Invalid RULE_PRIORITIES');
+            const defaults = this.config.defaults.RULE_PRIORITIES;
+            const normalized = { ...defaults };
+            for (const [rule, priority] of Object.entries(value)) {
+                if (rule in defaults && (priority === 'strong' || priority === 'weak')) {
+                    normalized[rule] = priority;
+                }
+            }
+            return normalized;
+        }
+        normalizeImportedValue(key, value) {
+            const defaultValue = this.config.defaults[key];
+            if (Array.isArray(defaultValue)) {
+                if (!Array.isArray(value) || value.some(item => typeof item !== 'string')) {
+                    throw new Error(`Invalid ${String(key)}`);
+                }
+                return value;
+            }
+            if (key === 'RULE_ENABLES') {
+                return this.normalizeRuleEnables(value);
+            }
+            if (key === 'RULE_PRIORITIES') {
+                return this.normalizeRulePriorities(value);
+            }
+            if (typeof defaultValue === 'boolean') {
+                if (typeof value !== 'boolean')
+                    throw new Error(`Invalid ${String(key)}`);
+                return value;
+            }
+            if (typeof defaultValue === 'number') {
+                if (typeof value !== 'number' || !Number.isFinite(value))
+                    throw new Error(`Invalid ${String(key)}`);
+                return value;
+            }
+            return value;
+        }
+        importConfigValue(key, value) {
+            this.config.set(key, this.normalizeImportedValue(key, value));
+        }
+        isSupportedLang(value) {
+            return typeof value === 'string' && value in I18N.availableLanguages;
+        }
         importSettings() {
             const json = prompt(I18N.t('import_prompt'));
             if (!json)
                 return false;
             try {
                 const data = JSON.parse(json);
-                if (!data.settings)
+                if (!this.isRecord(data) || !this.isRecord(data.settings))
                     throw new Error('Invalid format');
                 for (const key in data.settings) {
-                    if (key in this.config.defaults) {
-                        this.config.set(key, data.settings[key]);
+                    if (this.isConfigKey(key)) {
+                        this.importConfigValue(key, data.settings[key]);
                     }
                 }
-                if (data.language)
+                if (this.isSupportedLang(data.language))
                     I18N.lang = data.language;
                 alert(I18N.t('import_success'));
                 this.onRefresh();
