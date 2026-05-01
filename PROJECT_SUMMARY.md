@@ -1,4 +1,4 @@
-# YouTube Cleaner — Project Summary (v2.1.7)
+# YouTube Cleaner — Project Summary (v2.1.8)
 
 ## 📋 專案概述
 
@@ -209,7 +209,7 @@ App.init()
 
 ## 📦 版本與發布
 
-- **當前版本**：`v2.1.7`
+- **當前版本**：`v2.1.8`
 - **發布平台**：Greasy Fork、GitHub Releases
 - **版本管理**：`npm version <patch/minor/major>`（自動觸發 `scripts/update-readme.js` 更新 README 版號）
 - **輸出檔案**：`youtube-homepage-cleaner.user.js`（根目錄，直接發布）

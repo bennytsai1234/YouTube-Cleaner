@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.1.8] - 2026-05-01
+### Changed
+- Updated GitHub Actions to current Node 24-compatible action releases.
+- Updated development tooling dependencies to their latest releases, including ESLint 10, TypeScript 6, Playwright 1.59, jsdom 29, and Rollup 4.60.
+- Migrated ESLint configuration from `.eslintrc.json` to flat config for ESLint 10 compatibility.
+
+### Maintenance
+- Removed a redundant `targetLink` initializer flagged by the latest ESLint rules without changing runtime behavior.
+- Rebuilt `youtube-homepage-cleaner.user.js` with the updated toolchain.
+
 ## [2.1.7] - 2026-05-01
 ### Changed
 - Added `typecheck` and release consistency checks to the local verification and CI flow.
