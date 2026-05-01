@@ -20,10 +20,10 @@ jobs:
       contents: read
     
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v6.0.2
     
     - name: Setup Node.js
-      uses: actions/setup-node@v4
+      uses: actions/setup-node@v6.4.0
       with:
         node-version: '24'
         cache: 'npm'
@@ -42,7 +42,7 @@ jobs:
 
     - name: Upload selector debug artifacts
       if: always()
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v7.0.1
       with:
         name: selector-health-debug-${{ github.run_id }}
         path: |
@@ -53,7 +53,7 @@ jobs:
       
     - name: Create or update issue on failure
       if: failure()
-      uses: actions/github-script@v7
+      uses: actions/github-script@v9.0.0
       with:
         script: |
           const owner = context.repo.owner;

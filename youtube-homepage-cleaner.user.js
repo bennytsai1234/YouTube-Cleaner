@@ -1965,7 +1965,7 @@ URL: ${item.url}`);
                     return;
                 if (target.closest(SELECTORS.INTERACTION_EXCLUDE))
                     return;
-                let targetLink = null;
+                let targetLink;
                 const previewPlayer = target.closest(SELECTORS.PREVIEW_PLAYER);
                 if (previewPlayer) {
                     targetLink = this.findPrimaryLink(previewPlayer) || this.findPrimaryLink(previewPlayer.closest(SELECTORS.CLICKABLE.join(',')));

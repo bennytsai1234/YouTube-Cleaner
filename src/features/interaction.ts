@@ -51,7 +51,7 @@ export class InteractionEnhancer {
             // 使用集中管理的排除清單
             if (target.closest(SELECTORS.INTERACTION_EXCLUDE)) return;
 
-            let targetLink: HTMLAnchorElement | null = null;
+            let targetLink: HTMLAnchorElement | null;
             const previewPlayer = target.closest<HTMLElement>(SELECTORS.PREVIEW_PLAYER);
 
             if (previewPlayer) {
