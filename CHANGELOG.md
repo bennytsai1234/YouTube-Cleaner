@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.1.9] - 2026-05-10
+### Maintenance
+- Updated development tooling dependencies to their latest patch/minor releases.
+- Verified system stability through full unit and E2E test suites.
+- Confirmed YouTube selector compatibility with current DOM structure.
+
 ## [2.1.8] - 2026-05-01
 ### Changed
 - Updated GitHub Actions to current Node 24-compatible action releases.
