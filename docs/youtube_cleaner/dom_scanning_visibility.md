@@ -1,53 +1,55 @@
-# DOM Scanning Visibility
+# DOM Scanning And Visibility
 
-## 目前狀態
+## 目前責任
 
-- `src/features/video-filter.ts` 管理主要 `MutationObserver`、候選元素收集、批次處理、整頁掃描、SPA navigation 後 cache 清理與 selector health check。
-- `src/features/dom-visibility.ts` 負責找到 filter container、標記已檢查、隱藏元素、保存/還原 inline style 與清理狀態。
-- `src/core/stats.ts` 記錄 session 級過濾統計。
+- 負責 MutationObserver 掃描、批次排程、頁面放行邏輯、hidden-state marker、style restoration 與 selector health logging。
+- 效能、stale hidden state、重複處理或頁面 navigation 行為，從這裡開始。
 
 ## 範圍
 
-- 主要檔案：`src/features/video-filter.ts`、`src/features/dom-visibility.ts`、`src/core/stats.ts`.
-- 邊界檔案：`src/features/filter-engine.ts`、`src/data/selectors.ts`、`src/main.ts`。
-- 相關測試：`test/filter-test.ts`、`test/filter-engine-test.ts`、`test/selectors-test.ts`、E2E 過濾測試。
+- `src/features/video-filter.ts`
+- `src/features/dom-visibility.ts`
+- 與 `FilterEngine`、`LazyVideoData` 的 runtime 互動
+- 過濾行為相關 E2E 測試
 
-## 上游依賴
+## 依賴與影響
 
-- `SELECTORS.allContainers` 提供掃描候選範圍。
-- `FilterEngine` 提供裁決與白名單結果。
-- Browser `MutationObserver`、`requestIdleCallback` 與 DOM dataset。
-- `main.ts` 在初始化、refresh 與 `yt-navigate-finish` 時呼叫掃描與清快取。
-
-## 下游影響
-
-- 所有 JS-based 過濾都經過 `VideoFilter.processElement()`。
-- DOM 隱藏狀態會影響 UI 可見性、後續重掃、click handler 是否略過隱藏元素。
-- `FilterStats` 會在系統選單中顯示 session 統計。
+- 依賴 `ConfigManager`、`SELECTORS`、`FilterEngine`、`FilterStats`、`Logger` 與 DOM dataset marker。
+- 此模組決定何時處理元素，以及如何隱藏或還原元素，因此影響所有視覺過濾行為。
+- UI 統計依賴 `hideElement()` 內的 `FilterStats.record()`。
 
 ## 關鍵流程
 
-- `start()` 建立 observer，監聽 `document.body` 的 subtree childList，並初始化 subscription manager。
-- `processMutations()` 對大量 mutations 直接整頁掃描；小量 mutations 收集新增節點、子節點與 parent container。
-- `processPage()` 查詢所有 containers，做一次 selector health check，並只處理未標記 `ypChecked` 的元素。
-- `processBatch()` 用 `requestIdleCallback` 每批最多 50 個，timeout 500ms。
-- `hideElement()` 保存原始 inline style，套用 `display:none` 與 `visibility:hidden`，重置時還原。
+- `VideoFilter.start()` 建立 document-level `MutationObserver` 並啟動 subscription monitoring。
+- 小型 mutation batch 收集 candidate container；大型 batch 觸發 full-page processing。
+- `processPage()` 掃描所有已知 container，在 debug mode 下驗證 selector，並用 `requestIdleCallback` 處理未處理元素。
+- `processElement()` 委派給 `FilterEngine`，套用 whitelist decision，然後 hidden 或 mark checked。
+- `clearFilterState()` 在 navigation 後還原 style 並清 marker；`resetHiddenState()` 在設定 refresh 時重置 hidden state 與 stats。
 
-## 常見變更入口
+## 變更入口
 
-- 長時間使用變慢：先看 `BATCH_SIZE`、`IDLE_TIMEOUT`、`MUTATION_THRESHOLD` 與候選收集邏輯。
-- 切換設定後元素沒有復原：看 `resetHiddenState()`、`clearFilterState()` 與 style 保存欄位。
-- SPA 換頁後舊狀態污染：看 `main.ts` 的 `yt-navigate-finish` 與 `VideoFilter.clearCache()`。
-- Selector health check 警告：先更新 `src/data/selectors.ts`，再跑 selector tests。
+- 掃描 lifecycle、batching、allow-list pages、selector health：`src/features/video-filter.ts`。
+- hiding、style restoration、dataset marker：`src/features/dom-visibility.ts`。
+- marker semantics 變更後檢查 filtering 與 interaction 測試。
+
+## 變更路線
+
+- Performance：調整 mutation threshold、batch size、idle timeout 或 candidate collection -> 跑 unit tests 與相關 E2E。
+- Hidden-state：更新 marker/style 行為 -> 驗證 reset、navigation、設定 refresh。
+- Page allow-list：更新 `isPageAllowingContent` -> 驗證 channel、playlist、library、subscription、watch page 行為。
 
 ## 已知風險
 
-- YouTube 會重用 DOM 節點；dataset 標記若沒有清理，可能導致漏檢。
-- 隱藏 parent container 時必須保存 inline style，否則重設設定會破壞 YouTube 原本樣式。
-- 大量 mutation 觸發整頁掃描是正確性與效能的折衷，改門檻需測首頁滾動。
+- style restoration 錯誤可能破壞既有 inline style。
+- mutation handling 做太多同步工作會讓 YouTube 頁面卡住。
+- 標記錯 container 可能隱藏過多內容，或讓後續掃描跳過已變更內容。
+
+## 參考備註
+
+- 無。
 
 ## 不要做
 
-- 不要在 selector 失效時用更大範圍的全頁文字掃描取代 container 模型。
-- 不要直接覆蓋 element style 而不保存可還原狀態。
-- 不要讓 `VideoFilter.stop()` 只停主 observer；也要維持下游 subscription observer lifecycle。
+- 不要把批次 observer flow 改成每個 mutation 都 full synchronous scan。
+- 不要移除隱藏前保存原始 inline style 的邏輯。
+- 不要擴大 page allow-list 而沒有 false negative 測試。

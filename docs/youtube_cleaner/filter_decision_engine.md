@@ -1,52 +1,55 @@
 # Filter Decision Engine
 
-## 目前狀態
+## 目前責任
 
-- `src/features/filter-engine.ts` 是過濾裁決中心，依序處理 text rules、section blacklist、影片型元素判斷、關鍵字、頻道、強規則、低觀看數、時長與 playlist。
-- `src/features/custom-rules.ts` 將 `RULE_DEFINITIONS.textRules` 套用到元素文字。
-- `src/features/filter-types.ts` 定義 `FilterDetail` 與 `WhitelistReason`。
+- 負責 rule evaluation order、filter reason、whitelist decision、strong/weak rule 行為，以及影片資料到 DOM 隱藏決策的橋接。
+- 內容被誤隱藏、誤放行，或 rule priority/whitelist 行為錯誤時，從這裡開始。
 
 ## 範圍
 
-- 主要檔案：`src/features/filter-engine.ts`、`src/features/custom-rules.ts`、`src/features/filter-types.ts`。
-- 邊界檔案：`src/data/rules.ts`、`src/features/video-data.ts`、`src/features/subscription-manager.ts`、`src/core/config.ts`。
-- 相關測試：`test/filter-engine-test.ts`、`test/filter-test.ts`、`test/logic-test.ts`、`test/e2e/keyword.spec.ts`、`test/e2e/whitelist.spec.ts`、`test/e2e/low-views.spec.ts`。
+- `src/features/filter-engine.ts`
+- `src/features/custom-rules.ts`
+- `src/features/filter-types.ts`
+- `src/data/rules.ts`
+- `test/filter-engine-test.ts`、`test/filter-test.ts`、`test/logic-test.ts`
 
-## 上游依賴
+## 依賴與影響
 
-- `ConfigManager` 提供規則開關、優先級、黑白名單、門檻、duration 範圍與 region convert 設定。
-- `LazyVideoData` 提供已解析的影片資料。
-- `getWhitelistScope()` 與 `isStrongRule()` 來自 `src/data/rules.ts`。
-- `SubscriptionManager` 提供訂閱頻道保護。
-
-## 下游影響
-
-- `VideoFilter.processElement()` 依賴 `findFilterDetail()` 與 `applyWhitelistDecision()` 決定標記或隱藏。
-- `dom-visibility.hideElement()` 使用 `FilterDetail.reason` 記錄統計與 debug log。
-- UI rule toggles 和 priority 設定會直接改變裁決結果。
+- 依賴 `ConfigManager`、`SELECTORS`、`CustomRuleManager`、`SubscriptionManager`、`LazyVideoData` 與 rule metadata helpers。
+- 下游由 `VideoFilter.processElement()` 根據 `FilterDetail` 與 `WhitelistReason` 隱藏或保留 DOM container。
+- Subscription protection 只保護特定 weak low-view 規則。
 
 ## 關鍵流程
 
-- `findFilterDetail(element, allowPageContent)` 在允許內容頁面直接不過濾，避免 playlist/library/subscription/channel 頁誤傷。
-- Text rule 與 section blacklist 先於影片型資料抽取執行。
-- 對影片容器建立 `LazyVideoData` 後，依序判斷 keyword、channel、strong rule、view、duration、playlist。
-- `applyWhitelistDecision()` 只讓符合 scope 且非 strong rule 的結果被白名單豁免；訂閱保護目前只豁免 low view 類規則。
+- `findFilterDetail()` 在允許內容的頁面提早返回，然後檢查 text rule、section filter，再依固定順序評估 video rule。
+- 目前 rule order：keyword、channel、strong rule、low views、duration、playlist。
+- `applyWhitelistDecision()` 處理 subscription protection、members whitelist、strong rule bypass prevention 與 channel/keyword whitelist。
+- `checkWhitelist()` 使用 compiled regex，並保留 raw-list fallback。
 
-## 常見變更入口
+## 變更入口
 
-- 過濾順序需要調整：看 `findFilterDetail()` return chain。
-- 白名單行為不符合預期：看 `applyWhitelistDecision()`、`getWhitelistScope()`、`RULE_PRIORITIES`。
-- 新增裁決 reason：同步 `FilterDetail` 使用端、統計顯示、rule names、測試與 e2e。
-- 低觀看數或時長規則變更：看 `getFilterView()`、`getFilterDuration()` 與 `ConfigManager` 門檻設定。
+- Rule order、whitelist semantics、filter reason：`src/features/filter-engine.ts`。
+- Text-rule matching：`src/features/custom-rules.ts`。
+- Reason/whitelist type：`src/features/filter-types.ts`。
+
+## 變更路線
+
+- 新行為規則：rule metadata -> config enablement -> filter-engine evaluator -> 必要時新增 LazyVideoData field -> UI labels -> unit tests。
+- Whitelist 行為變更必須檢查 strong/weak priority、members-only exception、subscription protection 與 list import/export。
+- Rule order 變更應更新 precedence 測試。
 
 ## 已知風險
 
-- 裁決順序會影響使用者看到的 reason，也會影響白名單是否有機會介入。
-- `allowPageContent` 是防誤傷核心；繞過它會讓播放清單、訂閱、頻道頁出現大面積隱藏。
-- 強規則與 `members` scope 的例外邏輯容易互相混淆，改動時必須補測試。
+- Rule order 是使用者可觀察行為；同一影片可能命中多條規則，但第一個 reason 會決定 log 與 stats。
+- Strong rule 會刻意繞過一般白名單；改動會影響產品過濾模型。
+- Members-only 有 members whitelist 特殊通道，不應意外併入一般 channel whitelist。
+
+## 參考備註
+
+- 無。
 
 ## 不要做
 
-- 不要在這裡新增直接 DOM 隱藏；裁決只回傳 `FilterDetail`。
-- 不要讓訂閱保護豁免 keyword、channel blacklist 或 members 內容，除非 product 規則明確改變。
-- 不要新增 reason 但不更新 rule catalog、UI 名稱與測試。
+- 不要在此模組直接加入 DOM extraction；應放在 `LazyVideoData`。
+- 不要未經明確產品決策就讓 subscription protection 放行所有 weak rule。
+- 不要改 strong-rule semantics 卻不更新文件、測試與 UI 預期。

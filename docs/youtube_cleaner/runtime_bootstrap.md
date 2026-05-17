@@ -1,52 +1,54 @@
 # Runtime Bootstrap
 
-## 目前狀態
+## 目前責任
 
-- `src/main.ts` 是 userscript 的 composition root，負責建立核心服務、套用 CSS、啟動 observer、註冊 Tampermonkey 選單與處理 YouTube SPA navigation。
-- `src/meta.json` 定義 userscript metadata、`@match`、`@exclude`、`@require opencc-js`、GM grants、`downloadURL` 與 `updateURL`。
-- `rollup.config.mjs` 以 `src/main.ts` 為入口，輸出根目錄 `youtube-homepage-cleaner.user.js` 的 IIFE userscript，並由 `rollup-plugin-userscript-metablock` 注入 metadata。
+- 負責 userscript 的 app 組裝、啟動順序與頂層 runtime wiring。
+- 初始化、SPA navigation refresh、防重複啟動或模組啟動順序相關工作，從這裡開始。
 
 ## 範圍
 
-- 主要檔案：`src/main.ts`、`src/meta.json`、`rollup.config.mjs`、`youtube-homepage-cleaner.user.js`。
-- 相關命令：`npm run build`、`npm run dev`、`npm run check:release`。
-- 入口事件：`DOMContentLoaded`、`yt-navigate-finish`、`GM_registerMenuCommand`。
+- `src/main.ts`
+- `src/meta.json`
+- `rollup.config.mjs` 中的 input 與 userscript metadata wiring
+- 啟動時使用的 Tampermonkey globals：`GM_registerMenuCommand`、`GM_info` 與 OpenCC 載入狀態檢查
 
-## 上游依賴
+## 依賴與影響
 
-- `ConfigManager` 提供 runtime 設定與 `DEBUG_MODE`。
-- `StyleManager`、`AdBlockGuard`、`VideoFilter`、`InteractionEnhancer`、`UIManager` 是啟動時組裝的下游服務。
-- Tampermonkey 提供 `GM_info`、`GM_registerMenuCommand` 與 userscript 執行環境。
-- YouTube SPA 觸發 `yt-navigate-finish`，讓腳本重新 patch、清快取與掃描。
-
-## 下游影響
-
-- 初始化順序會影響 CSS-first 隱藏是否及時、adblock patch 是否早於 YouTube popup、filter cache 是否在 SPA navigation 後失效。
-- `src/meta.json` 或 `rollup.config.mjs` 變更會影響安裝腳本、release consistency、README 安裝連結與根目錄輸出檔。
-- 防重複初始化旗標 `window.ytPurifierInitialized` 失效會造成多重 observer 或 click handler。
+- 依賴 `ConfigManager`、`StyleManager`、`AdBlockGuard`、`VideoFilter`、`InteractionEnhancer`、`UIManager` 與 `Logger`。
+- 啟動順序會影響 CSS 注入、彈窗清理、DOM 過濾、click interception 與 menu refresh。
+- `yt-navigate-finish` 會影響所有帶有頁面狀態或 cache 的模組。
 
 ## 關鍵流程
 
-- `new App()` 建立所有 runtime 模組並注入同一個 `ConfigManager`。
-- `App.init()` 依序設定 log、套用 style、同步 adblock guard、啟動 video filter、啟動 interaction enhancer、註冊設定選單。
-- `yt-navigate-finish` 後重新 `patchConfig()`、`clearCache()`、`processPage()`、`checkAndClean()` 並背景掃描訂閱。
-- script 在 `document-start` 執行，但若 DOM 尚未 ready，會延後到 `DOMContentLoaded` 初始化。
+- `App` 以單一 `ConfigManager` 建立各 runtime service。
+- `init()` 啟用 logging、套用 CSS、同步 adblock guard、啟動 filtering、啟動 click interception、註冊設定 menu、綁定 `yt-navigate-finish`、處理目前頁面並掃描訂閱。
+- `refresh()` 在設定變更後重新同步 guard、reset hidden state、重套 CSS、重掃頁面並重掃訂閱。
+- `window.ytPurifierInitialized` 防止重複初始化。
 
-## 常見變更入口
+## 變更入口
 
-- 調整啟動順序：先看 `src/main.ts` 的 `App.init()`。
-- 新增長生命週期模組：先在 `App` constructor 注入 `ConfigManager`，再決定是否需要 `refresh()`。
-- 更動 userscript 權限或外部 CDN：先改 `src/meta.json`，再跑 `npm run build` 與 `npm run check:release`。
-- 發布輸出不一致：先看 `rollup.config.mjs`、`scripts/check-release-consistency.js`、根目錄 `youtube-homepage-cleaner.user.js`。
+- 啟動、refresh、navigation 行為：先看 `src/main.ts`。
+- userscript metadata 或 generated header：看 `src/meta.json` 與 `rollup.config.mjs`。
+- 需要 browser-like 驗證時，檢查 `test/e2e/*`。
+
+## 變更路線
+
+- 啟動順序變更通常要同步檢查受影響 feature module 與測試。
+- 新增 runtime service 時，要在 `App` constructor wiring，決定 refresh 行為，並為可觀察行為補測試。
+- metadata 變更需同步 package version 與 release consistency check。
 
 ## 已知風險
 
-- `yt-navigate-finish` 是 YouTube 內部 SPA 事件，若 YouTube 行為改變，重新掃描可能不觸發。
-- `OpenCC` 由 metadata `@require` 載入；CDN 失效時功能會降級，但啟動流程仍需容忍 `OpenCC` 未定義。
-- 直接修改 `youtube-homepage-cleaner.user.js` 會被下一次 build 覆蓋，且可能破壞 release consistency。
+- YouTube 是 SPA；漏掉 `yt-navigate-finish` refresh 會造成 stale cache 或 hidden marker 殘留。
+- 啟動順序不當可能造成 CSS 閃爍、彈窗清理失效或在 `document.body` 未就緒前掃描。
+- 根目錄 userscript bundle 是 downstream output；source 變更後若未 build 可能漂移。
+
+## 參考備註
+
+- 無。
 
 ## 不要做
 
-- 不要把業務規則塞進 `src/main.ts`；保持它作為組合根。
-- 不要直接維護根目錄 generated userscript；修改 `src/` 或 metadata 後重新 build。
-- 不要新增需要持久化狀態的模組但跳過 `ConfigManager`，否則匯出匯入與測試 mock 會分裂。
+- 不要繞過 `ConfigManager` 建立獨立設定狀態。
+- 一般 source 變更不要直接修改 `youtube-homepage-cleaner.user.js`。
+- 不要在啟動流程加入長時間 polling，而不先評估既有 observer/throttle 模式。

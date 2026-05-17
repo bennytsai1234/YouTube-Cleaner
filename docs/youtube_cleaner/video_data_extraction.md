@@ -1,52 +1,55 @@
 # Video Data Extraction
 
-## 目前狀態
+## 目前責任
 
-- `src/features/video-data.ts` 的 `LazyVideoData` 從影片或 playlist DOM 容器懶惰抽取 title、channel、url、views、live viewers、time ago、duration、Shorts、members 與 playlist 狀態。
-- `src/core/utils.ts` 提供觀看數、時間、duration、直播人數解析、繁簡 RegExp 生成與頻道名稱清洗。
-- 此模組把不穩定的 YouTube DOM metadata 轉成 `FilterEngine` 可判斷的 typed properties。
+- 負責從 YouTube DOM card 懶惰抽取 title、channel、URL、views、live viewers、age、duration、Shorts、members-only 與 playlist 狀態。
+- metadata 缺失、門檻判斷錯誤或 YouTube card markup 變更時，從這裡開始。
 
 ## 範圍
 
-- 主要檔案：`src/features/video-data.ts`、`src/core/utils.ts`。
-- 上游資料：`src/data/selectors.ts`、`src/data/i18n-filter-patterns.ts`、`src/core/constants.ts`。
-- 相關測試：`test/filter-test.ts`、`test/logic-test.ts`、`test/filter-engine-test.ts`、`test/selectors-test.ts`、多個 e2e。
+- `src/features/video-data.ts`
+- `src/core/utils.ts` 的 parsing helpers
+- `src/data/selectors.ts`
+- `src/data/i18n-filter-patterns.ts`
+- `test/logic-test.ts`、`test/filter-engine-test.ts` 與 selector tests
 
-## 上游依賴
+## 依賴與影響
 
-- `SELECTORS.METADATA`、`SELECTORS.BADGES` 與 `SELECTORS.LINK_CANDIDATES`。
-- `I18N.filterPatterns[I18N.lang]` 對 views、live、ago、members-only、playlist 的語系偵測。
-- OpenCC-JS 可用時，`Utils.generateCnRegex()` 會建立繁簡互通 pattern。
-- YouTube aria-label、textContent、href、badge 與 metadata 結構。
-
-## 下游影響
-
-- `FilterEngine` 使用 `LazyVideoData` 做低觀看數、時長、關鍵字、頻道、Shorts、members 與 playlist 判斷。
-- `InteractionEnhancer` 另行使用 link candidates；selector 變更需同步思考資料抽取與 click 行為。
-- `dom-visibility.hideElement()` 會把 item 的 title、channel、url 放到 debug log。
+- 依賴 `SELECTORS`、`I18N.filterPatterns` 與 `Utils` parsing helpers。
+- 提供 `FilterEngine` 判斷 keyword、channel、low-view、duration、members-only、Shorts 與 playlist rule 所需資料。
+- channel cleaning 會影響 whitelist、blacklist 與 subscription protection。
 
 ## 關鍵流程
 
-- getter 第一次讀取時才查 DOM 並 cache 結果，避免每個元素都讀完所有欄位。
-- `_parseMetadata()` 先嘗試 title link aria-label，再掃描 metadata text，分別解析 views、live viewers 與 time ago。
-- `channel` 會走 `Utils.cleanChannelName()` 去除 YouTube UI 注入字詞、隱形字元與部分 suffix。
-- `isPlaylist` 同時檢查 playlist link、Mix badge 與語系 playlist pattern。
+- `LazyVideoData` 每個欄位只在首次存取時抽取並 cache。
+- title 與 URL 使用 selector fallback list 與 aria-label fallback。
+- metadata parsing 先讀 metadata text 與 title-link aria label，再解析 views、live viewers 與 time age。
+- playlist / user-playlist 偵測結合 link pattern、badge、title pattern 與 ownership text。
 
-## 常見變更入口
+## 變更入口
 
-- 觀看數或時間判斷失準：先看 `Utils.parseNumeric()`、`Utils.parseTimeAgo()` 與 `i18n-filter-patterns.ts`。
-- 抽不到標題或頻道：先看 `SELECTORS.METADATA.TITLE`、`TITLE_LINKS`、`CHANNEL`。
-- Shorts / members / playlist 誤判：看 `SELECTORS.BADGES` 與 `LazyVideoData` 對應 getter。
-- 頻道白名單不命中：看 `Utils.cleanChannelName()` 是否清洗過度或不足。
+- DOM field extraction：`src/features/video-data.ts`。
+- numeric、duration、time-age、live-viewer、channel-cleaning、OpenCC regex parsing：`src/core/utils.ts`。
+- selector drift：`src/data/selectors.ts`。
+
+## 變更路線
+
+- Metadata parser 變更應加入或更新 realistic DOM snippet 的 unit tests。
+- Selector fallback 變更應跑 selector unit tests，可能時跑 Playwright selector health check。
+- Channel cleaning 變更必須檢查 blacklist、whitelist、members whitelist 與 subscription matching。
 
 ## 已知風險
 
-- metadata parsing 對 YouTube DOM 與本地化文案敏感。
-- `innerText` 用於 members-only 判斷可能觸發 layout 成本，擴大使用前要評估效能。
-- Lazy cache 以 DOM element 為生命週期；YouTube 重用 DOM 時需依賴 `VideoFilter.clearCache()` 和 data attributes 重新檢查。
+- YouTube aria-label 可能包含多種資料，parser 必須避免把 upload age 誤認為 view count。
+- Locale-specific metadata text 變更會破壞 low-view 與 time-age filter。
+- Lazy cache 代表同一個 `LazyVideoData` instance 首次讀取後，不會反映後續 DOM text 變化。
+
+## 參考備註
+
+- 無。
 
 ## 不要做
 
-- 不要在 `FilterEngine` 中直接重複 DOM parsing；應擴充 `LazyVideoData`。
-- 不要繞過 `Utils.cleanChannelName()` 做 channel matching。
-- 不要用單一語系字串當作跨語系 metadata 判斷。
+- 沒有量測理由時，不要對每張卡片 eager 讀取所有 metadata。
+- 不要新增 locale-specific parsing 卻不更新 i18n patterns 或 tests。
+- 不要繞過 `Utils.cleanChannelName()` 做頻道比對。
