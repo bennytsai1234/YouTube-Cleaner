@@ -10,6 +10,46 @@ import path from 'path';
 export async function injectUserScript(page: Page, customConfig: any = {}) {
     // 注入 GM API Mock
     await page.addInitScript((initData) => {
+        const TRAD_TO_SIMP_MAP: Record<string, string> = {
+            '萬': '万',
+            '與': '与',
+            '為': '为',
+            '專': '专',
+            '業': '业',
+            '個': '个',
+            '豐': '丰',
+            '樂': '乐',
+            '書': '书',
+            '買': '买',
+            '車': '车',
+            '這': '这',
+            '遊': '游',
+            '戲': '戏',
+            '體': '体',
+            '點': '点',
+            '頻': '频',
+            '題': '题'
+        };
+
+        const SIMP_TO_TRAD_MAP = Object.fromEntries(
+            Object.entries(TRAD_TO_SIMP_MAP).map(([trad, simp]) => [simp, trad])
+        );
+
+        const convertByMap = (text: string, map: Record<string, string>) =>
+            Array.from(text).map(char => map[char] || char).join('');
+
+        (window as any).OpenCC = {
+            Converter: ({ from, to }: { from: string; to: string }) => {
+                if (from === 'tw' && to === 'cn') {
+                    return (text: string) => convertByMap(text, TRAD_TO_SIMP_MAP);
+                }
+                if (from === 'cn' && to === 'tw') {
+                    return (text: string) => convertByMap(text, SIMP_TO_TRAD_MAP);
+                }
+                return (text: string) => text;
+            }
+        };
+
         // 模擬 GM_setValue 和 GM_getValue 使用的儲存空間
         const getSnakeCaseKey = (str: string) => str.replace(/[A-Z]/g, l => `_${l.toLowerCase()}`);
         

@@ -63,14 +63,18 @@ test.describe('YouTube DOM Selectors Health Check', () => {
 
         console.log('DOM Selector Counts:', results);
 
-        // Assertions (Warning: YouTube tests might flake if they A/B test a totally empty page)
-        expect(results.containers, `Video containers (${SELECTORS.videoContainersStr}) not found. DOM might have changed.`).toBeGreaterThan(10);
-        expect(results.title, `Titles (${SELECTORS.METADATA.TITLE}) not found. DOM might have changed.`).toBeGreaterThan(10);
-        expect(results.channel, `Channels (${SELECTORS.METADATA.CHANNEL}) not found. DOM might have changed.`).toBeGreaterThan(10);
-        expect(results.clickable, `Clickable wrappers (${SELECTORS.CLICKABLE.join(', ')}) not found.`).toBeGreaterThan(10);
-        
-        // Link candidates might vary depending on how many videos render, but should exist
-        expect(results.linkCandidates, `Link candidates (${SELECTORS.LINK_CANDIDATES.join(', ')}) not found.`).toBeGreaterThan(10);
+        // Assertions:
+        // YouTube search result counts vary a lot by locale, A/B bucket, consent flow, and live layout experiments.
+        // Health check should verify selectors still bind to a meaningful set of nodes, not require a fixed result volume.
+        expect(results.containers, `Video containers (${SELECTORS.videoContainersStr}) not found. DOM might have changed.`).toBeGreaterThan(5);
+        expect(results.title, `Titles (${SELECTORS.METADATA.TITLE}) not found. DOM might have changed.`).toBeGreaterThan(5);
+        expect(results.channel, `Channels (${SELECTORS.METADATA.CHANNEL}) not found. DOM might have changed.`).toBeGreaterThan(5);
+        expect(results.clickable, `Clickable wrappers (${SELECTORS.CLICKABLE.join(', ')}) not found.`).toBeGreaterThan(5);
+
+        // Link candidates and titles should stay in the same rough order of magnitude as rendered containers.
+        expect(results.linkCandidates, `Link candidates (${SELECTORS.LINK_CANDIDATES.join(', ')}) not found.`).toBeGreaterThan(5);
+        expect(results.title, 'Rendered titles should not be dramatically fewer than detected containers.').toBeGreaterThanOrEqual(Math.floor(results.containers / 2));
+        expect(results.clickable, 'Clickable wrappers should track rendered containers closely enough to detect selector drift.').toBeGreaterThanOrEqual(Math.floor(results.containers / 2));
     });
 
     test('Section container and shelf title selectors on channel page', async ({ page }) => {
