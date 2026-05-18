@@ -55,9 +55,12 @@ export class InteractionEnhancer {
             if (target.closest(SELECTORS.INTERACTION_EXCLUDE)) return;
 
             let targetLink: HTMLAnchorElement | null;
+            const clickedAnchor = target.closest<HTMLAnchorElement>('a[href]');
             const previewPlayer = target.closest<HTMLElement>(SELECTORS.PREVIEW_PLAYER);
 
-            if (previewPlayer) {
+            if (clickedAnchor?.href) {
+                targetLink = clickedAnchor;
+            } else if (previewPlayer) {
                 targetLink = this.findPrimaryLink(previewPlayer) || this.findPrimaryLink(previewPlayer.closest<HTMLElement>(SELECTORS.CLICKABLE.join(',')));
             } else {
                 const container = target.closest<HTMLElement>(SELECTORS.CLICKABLE.join(', '));

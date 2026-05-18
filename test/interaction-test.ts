@@ -218,6 +218,34 @@ TestRunner.suite('InteractionEnhancer - watch page secondary 不應強制新分�
     TestRunner.assert('播放頁 secondary 區域不應被腳本強制新分頁', opened.length === 0);
 });
 
+TestRunner.suite('InteractionEnhancer - 播放清單完整頁連結應優先尊重實際點擊目標', () => {
+    const { window, document, opened } = createEnv(`
+        <ytd-rich-item-renderer id="item">
+            <yt-lockup-view-model>
+                <a class="ytLockupViewModelContentImage" href="https://www.youtube.com/watch?v=HuJOVEaOrmw&list=PLMggmYFMXwu73B99todnPGq19QOfjgKrz">
+                    <span>thumb</span>
+                </a>
+                <div class="ytLockupMetadataViewModelMetadata">
+                    <a id="full-playlist-link"
+                       href="https://www.youtube.com/playlist?list=PLMggmYFMXwu73B99todnPGq19QOfjgKrz">
+                        <span id="full-playlist-text">查看完整播放清單</span>
+                    </a>
+                </div>
+            </yt-lockup-view-model>
+        </ytd-rich-item-renderer>
+    `);
+
+    const enhancer = new InteractionEnhancer(new MockConfig() as any);
+    enhancer.init();
+
+    const text = document.getElementById('full-playlist-text')!;
+    const notCanceled = click(window as any, text);
+
+    TestRunner.assert('完整播放清單連結應開新分頁', opened.length === 1);
+    TestRunner.assert('應優先開啟 playlist 連結而非 watch 連結', opened[0]?.url === 'https://www.youtube.com/playlist?list=PLMggmYFMXwu73B99todnPGq19QOfjgKrz');
+    TestRunner.assert('playlist 點擊事件應被攔截', notCanceled === false);
+});
+
 if (!TestRunner.summary()) {
     process.exit(1);
 }
