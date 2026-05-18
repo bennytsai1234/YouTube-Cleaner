@@ -198,6 +198,26 @@ TestRunner.suite('InteractionEnhancer - ytp videowall 回歸測試', () => {
     TestRunner.assert('videowall 也應使用 _blank', opened[0]?.target === '_blank');
 });
 
+TestRunner.suite('InteractionEnhancer - watch page secondary 不應強制新分頁', () => {
+    const { window, document, opened } = createEnv(`
+        <div id="secondary">
+            <ytd-compact-video-renderer id="item">
+                <a id="thumbnail" href="https://www.youtube.com/watch?v=secondary1">
+                    <span id="secondary-inner">Secondary</span>
+                </a>
+            </ytd-compact-video-renderer>
+        </div>
+    `);
+
+    const enhancer = new InteractionEnhancer(new MockConfig() as any);
+    enhancer.init();
+
+    const inner = document.getElementById('secondary-inner')!;
+    click(window as any, inner);
+
+    TestRunner.assert('播放頁 secondary 區域不應被腳本強制新分頁', opened.length === 0);
+});
+
 if (!TestRunner.summary()) {
     process.exit(1);
 }
