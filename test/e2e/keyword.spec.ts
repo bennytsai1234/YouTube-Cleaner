@@ -12,34 +12,34 @@ test.describe('Keyword Filter E2E', () => {
         
         await page.goto('https://www.youtube.com/results?search_query=遊戲', { waitUntil: 'domcontentloaded' });
         
-        // 等待影片與腳本處理完畢，增加到 6 秒確保所有 API 都成功返回資料
-        await page.waitForTimeout(6000);
-        
-        // 收集頁面上 *未被腳本徹底隱藏* 的影片標題
-        // 腳本運作時可能會將 parent renderer 設定為 hidden / display:none / opacity:0
-        // 為確保測試精確，我們直接抓所有視為「有效」的 #video-title
-        const visibleTitles = [];
-        const titles = page.locator('ytd-video-renderer #video-title');
-        
-        for (let i = 0; i < await titles.count(); i++) {
-            const el = titles.nth(i);
-            const isVisible = await el.evaluate(node => {
-                const renderer = node.closest('ytd-video-renderer');
-                if (!renderer) return true;
-                const style = window.getComputedStyle(renderer);
-                return style.display !== 'none' && !renderer.hasAttribute('hidden') && !renderer.hasAttribute('data-yp-hidden');
+        await page.waitForSelector('ytd-video-renderer #video-title', { timeout: 15000 });
+
+        // YouTube 結果與 userscript mutation 處理在 CI 上偶爾會慢於固定等待時間。
+        // 輪詢直到含關鍵字的可見 renderer 都被腳本標記/隱藏，並在失敗時保留實際標題。
+        await expect.poll(async () => {
+            return page.locator('ytd-video-renderer #video-title').evaluateAll(nodes => {
+                return nodes
+                    .map(node => {
+                        const title = (node.textContent || '').trim().toLowerCase();
+                        const renderer = node.closest('ytd-video-renderer') as HTMLElement | null;
+                        if (!renderer) return { title, visible: true };
+
+                        const style = window.getComputedStyle(renderer);
+                        const visible =
+                            style.display !== 'none' &&
+                            style.visibility !== 'hidden' &&
+                            !renderer.hasAttribute('hidden') &&
+                            !renderer.hasAttribute('data-yp-hidden');
+
+                        return { title, visible };
+                    })
+                    .filter(item => item.visible && (item.title.includes('遊戲') || item.title.includes('游戏')))
+                    .map(item => item.title);
             });
-            if (isVisible) {
-                visibleTitles.push((await el.innerText()).toLowerCase());
-            }
-        }
-        
-        // 驗證仍可見的影片中，有沒有標題包含 "遊戲" 或 "游戏"
-        const hasVisibleKeyword = visibleTitles.some(title => 
-            title.includes('遊戲') || title.includes('游戏')
-        );
-        
-        expect(hasVisibleKeyword).toBeFalsy();
+        }, {
+            message: '仍有含關鍵字「遊戲 / 游戏」的搜尋結果可見',
+            timeout: 20000
+        }).toEqual([]);
     });
 
 });
