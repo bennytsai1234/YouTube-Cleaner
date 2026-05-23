@@ -709,15 +709,15 @@
         }
     ];
     const buildDefaultRuleEnables = () => RULE_DEFINITIONS.reduce((acc, rule) => {
-        acc[rule.id] = rule.defaultEnabled;
+        Reflect.set(acc, rule.id, rule.defaultEnabled);
         return acc;
-    }, {});
+    }, Object.create(null));
     const buildDefaultRulePriorities = () => {
         const priorities = RULE_DEFINITIONS.reduce((acc, rule) => {
             if (rule.defaultPriority)
-                acc[rule.id] = rule.defaultPriority;
+                Reflect.set(acc, rule.id, rule.defaultPriority);
             return acc;
-        }, {});
+        }, Object.create(null));
         priorities.members_only_js = 'strong';
         priorities.shorts_item_js = 'strong';
         return priorities;
@@ -725,7 +725,7 @@
     const getTextRuleDefinitions = () => RULE_DEFINITIONS.filter(rule => rule.textRules && rule.textRules.length > 0);
     const getRuleDefinition = (reason) => RULE_DEFINITIONS.find(rule => rule.id === reason || `${rule.id}_js` === reason);
     const getWhitelistScope = (reason) => getRuleDefinition(reason)?.whitelistScope || 'channel_or_keyword';
-    const isStrongRule = (reason, priorities) => priorities[reason] === 'strong';
+    const isStrongRule = (reason, priorities) => Reflect.get(priorities, reason) === 'strong';
 
     let instance = null;
     const LIST_COMPILE_TARGETS = {

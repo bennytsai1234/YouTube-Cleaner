@@ -40,15 +40,15 @@ export const RULE_DEFINITIONS: RuleDefinition[] = [
 
 export const buildDefaultRuleEnables = (): Record<string, boolean> =>
     RULE_DEFINITIONS.reduce<Record<string, boolean>>((acc, rule) => {
-        acc[rule.id] = rule.defaultEnabled;
+        Reflect.set(acc, rule.id, rule.defaultEnabled);
         return acc;
-    }, {});
+    }, Object.create(null));
 
 export const buildDefaultRulePriorities = (): Record<string, RulePriority> => {
     const priorities = RULE_DEFINITIONS.reduce<Record<string, RulePriority>>((acc, rule) => {
-        if (rule.defaultPriority) acc[rule.id] = rule.defaultPriority;
+        if (rule.defaultPriority) Reflect.set(acc, rule.id, rule.defaultPriority);
         return acc;
-    }, {});
+    }, Object.create(null));
 
     priorities.members_only_js = 'strong';
     priorities.shorts_item_js = 'strong';
@@ -66,4 +66,4 @@ export const getWhitelistScope = (reason: string): WhitelistScope =>
     getRuleDefinition(reason)?.whitelistScope || 'channel_or_keyword';
 
 export const isStrongRule = (reason: string, priorities: Record<string, RulePriority>): boolean =>
-    priorities[reason] === 'strong';
+    Reflect.get(priorities, reason) === 'strong';
