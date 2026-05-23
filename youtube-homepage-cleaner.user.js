@@ -1177,7 +1177,7 @@
         check(element, textContent) {
             const enables = this.config.get('RULE_ENABLES');
             for (const def of this.definitions) {
-                if (enables[def.key]) {
+                if (Reflect.get(enables, def.key)) {
                     for (const rule of def.rules) {
                         if (rule instanceof RegExp) {
                             if (rule.test(textContent))

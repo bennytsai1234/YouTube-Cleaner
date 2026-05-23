@@ -32,7 +32,7 @@ export class CustomRuleManager {
     public check(element: Element, textContent: string): RuleCheckResult | null {
         const enables = this.config.get('RULE_ENABLES');
         for (const def of this.definitions) {
-            if (enables[def.key]) { // Only check if enabled in config
+            if (Reflect.get(enables, def.key)) { // Only check if enabled in config
                 for (const rule of def.rules) {
                     if (rule instanceof RegExp) {
                         if (rule.test(textContent)) return { key: def.key, trigger: rule.toString() };
