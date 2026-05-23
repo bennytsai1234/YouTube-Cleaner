@@ -16,7 +16,7 @@
     "test:all": "npm run typecheck && npm run lint && npm run test:unit && npm run build && npm run check:release && npm run test:e2e",
     "verify": "npm run test:all",
     "release:check": "npm run verify",
-    "version": "node scripts/update-readme.js && git add README.md"
+    "version": "node scripts/update-readme.js && npm run build && git add README.md src/meta.json youtube-homepage-cleaner.user.js"
   },
   "repository": {
     "type": "git",

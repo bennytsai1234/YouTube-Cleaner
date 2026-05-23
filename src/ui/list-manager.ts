@@ -62,7 +62,7 @@ export class ListManager {
     public restoreDefaults(key: keyof ConfigState): void {
         if (!confirm(`${I18N.t('adv_restore')}?`)) return;
 
-        const allDefaults = this.config.defaults[key];
+        const allDefaults = Reflect.get(this.config.defaults, key);
         if (Array.isArray(allDefaults) && key === 'SECTION_TITLE_BLACKLIST') {
             const currentLang = I18N.lang;
             const filtered = allDefaults.filter(item => {

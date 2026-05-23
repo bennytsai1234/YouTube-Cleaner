@@ -20,8 +20,11 @@ export class MenuRenderer {
         }
 
         if (choice !== null) {
-            const selected = visibleItems[parseInt(choice, 10) - 1];
-            selected?.action?.();
+            const index = parseInt(choice, 10) - 1;
+            if (index >= 0 && index < visibleItems.length) {
+                const selected = visibleItems.find((_, idx) => idx === index);
+                selected?.action?.();
+            }
         }
     }
 }

@@ -19,7 +19,7 @@ const suppressConsoleError = () => {
 const TestRunner = new Runner('AdBlockGuard 測試結果');
 
 function createEnv(html: string) {
-    const dom = new JSDOM(`<!doctype html><html><body>${html}</body></html>`, {
+    const dom = new JSDOM('<!doctype html><html><body>' + html + '</body></html>', {
         url: 'https://www.youtube.com/'
     });
     (global as any).window = dom.window;

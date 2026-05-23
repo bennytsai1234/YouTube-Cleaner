@@ -20,7 +20,9 @@ export const I18N = {
     ruleNames: RULE_NAMES,
 
     getRuleName(ruleKey: string): string {
-        return this.ruleNames[this.lang]?.[ruleKey] || this.ruleNames.en[ruleKey] || ruleKey;
+        const langStrings = Reflect.get(this.ruleNames, this.lang);
+        const enStrings = this.ruleNames.en;
+        return Reflect.get(langStrings || {}, ruleKey) || Reflect.get(enStrings, ruleKey) || ruleKey;
     },
 
     detectLanguage(): SupportedLang {
@@ -46,8 +48,10 @@ export const I18N = {
     },
 
     t(key: string, ...args: any[]): string {
-        const str = this.strings[this.lang]?.[key] || this.strings.en[key] || key;
-        return str.replace(/\{(\d+)\}/g, (_, i) => args[i] ?? '');
+        const langStrings = Reflect.get(this.strings, this.lang);
+        const enStrings = this.strings.en;
+        const str = Reflect.get(langStrings || {}, key) || Reflect.get(enStrings, key) || key;
+        return str.replace(/\{(\d+)\}/g, (_, i) => Reflect.get(args, i) ?? '');
     },
 
     get availableLanguages(): Record<SupportedLang, string> {

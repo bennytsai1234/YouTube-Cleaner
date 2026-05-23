@@ -65,7 +65,7 @@ class MockConfig {
     }
 
     get(key: string): any {
-        return this.state[key];
+        return Reflect.get(this.state, key);
     }
 }
 

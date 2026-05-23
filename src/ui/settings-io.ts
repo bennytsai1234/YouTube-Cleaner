@@ -21,7 +21,7 @@ export class SettingsIO {
         const cleanSettings: Partial<ConfigState> & Record<string, unknown> = {};
         for (const key in this.config.state) {
             if (!key.startsWith('compiled')) {
-                cleanSettings[key] = this.config.state[key as keyof ConfigState];
+                Reflect.set(cleanSettings, key, Reflect.get(this.config.state, key));
             }
         }
 
@@ -55,7 +55,7 @@ export class SettingsIO {
         const normalized = { ...defaults };
         for (const [rule, enabled] of Object.entries(value)) {
             if (rule in defaults && typeof enabled === 'boolean') {
-                normalized[rule as keyof typeof defaults] = enabled;
+                Reflect.set(normalized, rule, enabled);
             }
         }
         return normalized;
@@ -67,14 +67,14 @@ export class SettingsIO {
         const normalized = { ...defaults };
         for (const [rule, priority] of Object.entries(value)) {
             if (rule in defaults && (priority === 'strong' || priority === 'weak')) {
-                normalized[rule] = priority;
+                Reflect.set(normalized, rule, priority);
             }
         }
         return normalized;
     }
 
     private normalizeImportedValue<K extends keyof ConfigState>(key: K, value: unknown): ConfigState[K] {
-        const defaultValue = this.config.defaults[key];
+        const defaultValue = Reflect.get(this.config.defaults, key);
 
         if (Array.isArray(defaultValue)) {
             if (!Array.isArray(value) || value.some(item => typeof item !== 'string')) {
@@ -122,7 +122,7 @@ export class SettingsIO {
 
             for (const key in data.settings) {
                 if (this.isConfigKey(key)) {
-                    this.importConfigValue(key, data.settings[key]);
+                    this.importConfigValue(key, Reflect.get(data.settings, key));
                 }
             }
 

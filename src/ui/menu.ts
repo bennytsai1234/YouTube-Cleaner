@@ -88,7 +88,7 @@ export class UIManager {
     public showSystemMenu(): void {
         const enabledIcon = (k: keyof ConfigState) => this.config.get(k) ? '✅' : '❌';
         const statsInfo = FilterStats.session.total > 0 ? ` (${FilterStats.session.total})` : '';
-        const langName = I18N.availableLanguages[I18N.lang];
+        const langName = Reflect.get(I18N.availableLanguages, I18N.lang);
 
         const items: MenuItem[] = [
             { label: `${this.t('menu_stats')}${statsInfo}`, action: () => this.showStats() },
@@ -108,7 +108,7 @@ export class UIManager {
         const pageKeys = keys.slice(page * pageSize, Math.min((page + 1) * pageSize, keys.length));
 
         const items: MenuItem[] = pageKeys.map(key => ({
-            label: `[${rules[key] ? '✅' : '❌'}] ${I18N.getRuleName(key)}`,
+            label: `[${Reflect.get(rules, key) ? '✅' : '❌'}] ${I18N.getRuleName(key)}`,
             action: () => {
                 this.config.toggleRule(key);
                 this.onRefresh();
@@ -150,10 +150,10 @@ export class UIManager {
         const keys = Object.keys(langs) as SupportedLang[];
         const current = I18N.lang;
         const items: MenuItem[] = keys.map(key => ({
-            label: `${key === current ? '✅' : '⬜'} ${langs[key]}`,
+            label: `${key === current ? '✅' : '⬜'} ${Reflect.get(langs, key)}`,
             action: () => {
                 I18N.lang = key;
-                alert(`✅ ${langs[key]}`);
+                alert(`✅ ${Reflect.get(langs, key)}`);
                 this.showSystemMenu();
             }
         }));
@@ -171,7 +171,7 @@ export class UIManager {
     public resetSettings(): void {
         if (confirm(this.t('reset_confirm'))) {
             Object.keys(this.config.defaults).forEach(key => {
-                this.config.set(key as keyof ConfigState, this.config.defaults[key as keyof ConfigState]);
+                this.config.set(key as keyof ConfigState, Reflect.get(this.config.defaults, key));
             });
             this.onRefresh();
             alert(`✅ ${this.t('import_success')}`);
@@ -224,6 +224,6 @@ export class UIManager {
             system: () => this.showSystemMenu(),
             main: () => this.showMainMenu()
         };
-        map[context]();
+        Reflect.get(map, context)();
     }
 }

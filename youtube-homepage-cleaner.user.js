@@ -625,7 +625,9 @@
         defaultSectionBlacklist: DEFAULT_SECTION_BLACKLIST,
         ruleNames: RULE_NAMES,
         getRuleName(ruleKey) {
-            return this.ruleNames[this.lang]?.[ruleKey] || this.ruleNames.en[ruleKey] || ruleKey;
+            const langStrings = Reflect.get(this.ruleNames, this.lang);
+            const enStrings = this.ruleNames.en;
+            return Reflect.get(langStrings || {}, ruleKey) || Reflect.get(enStrings, ruleKey) || ruleKey;
         },
         detectLanguage() {
             const ytConfigLang = window.yt?.config_?.HL || window.ytcfg?.get?.('HL');
@@ -649,8 +651,10 @@
             GM_setValue('ui_language', value);
         },
         t(key, ...args) {
-            const str = this.strings[this.lang]?.[key] || this.strings.en[key] || key;
-            return str.replace(/\{(\d+)\}/g, (_, i) => args[i] ?? '');
+            const langStrings = Reflect.get(this.strings, this.lang);
+            const enStrings = this.strings.en;
+            const str = Reflect.get(langStrings || {}, key) || Reflect.get(enStrings, key) || key;
+            return str.replace(/\{(\d+)\}/g, (_, i) => Reflect.get(args, i) ?? '');
         },
         get availableLanguages() {
             return {
@@ -2060,7 +2064,7 @@ URL: ${item.url}`);
         restoreDefaults(key) {
             if (!confirm(`${I18N.t('adv_restore')}?`))
                 return;
-            const allDefaults = this.config.defaults[key];
+            const allDefaults = Reflect.get(this.config.defaults, key);
             if (Array.isArray(allDefaults) && key === 'SECTION_TITLE_BLACKLIST') {
                 const currentLang = I18N.lang;
                 const filtered = allDefaults.filter(item => {
@@ -2099,8 +2103,11 @@ URL: ${item.url}`);
                 return;
             }
             if (choice !== null) {
-                const selected = visibleItems[parseInt(choice, 10) - 1];
-                selected?.action?.();
+                const index = parseInt(choice, 10) - 1;
+                if (index >= 0 && index < visibleItems.length) {
+                    const selected = visibleItems.find((_, idx) => idx === index);
+                    selected?.action?.();
+                }
             }
         }
     }
@@ -2116,7 +2123,7 @@ URL: ${item.url}`);
             const cleanSettings = {};
             for (const key in this.config.state) {
                 if (!key.startsWith('compiled')) {
-                    cleanSettings[key] = this.config.state[key];
+                    Reflect.set(cleanSettings, key, Reflect.get(this.config.state, key));
                 }
             }
             const exportData = {
@@ -2147,7 +2154,7 @@ URL: ${item.url}`);
             const normalized = { ...defaults };
             for (const [rule, enabled] of Object.entries(value)) {
                 if (rule in defaults && typeof enabled === 'boolean') {
-                    normalized[rule] = enabled;
+                    Reflect.set(normalized, rule, enabled);
                 }
             }
             return normalized;
@@ -2159,13 +2166,13 @@ URL: ${item.url}`);
             const normalized = { ...defaults };
             for (const [rule, priority] of Object.entries(value)) {
                 if (rule in defaults && (priority === 'strong' || priority === 'weak')) {
-                    normalized[rule] = priority;
+                    Reflect.set(normalized, rule, priority);
                 }
             }
             return normalized;
         }
         normalizeImportedValue(key, value) {
-            const defaultValue = this.config.defaults[key];
+            const defaultValue = Reflect.get(this.config.defaults, key);
             if (Array.isArray(defaultValue)) {
                 if (!Array.isArray(value) || value.some(item => typeof item !== 'string')) {
                     throw new Error(`Invalid ${String(key)}`);
@@ -2206,7 +2213,7 @@ URL: ${item.url}`);
                     throw new Error('Invalid format');
                 for (const key in data.settings) {
                     if (this.isConfigKey(key)) {
-                        this.importConfigValue(key, data.settings[key]);
+                        this.importConfigValue(key, Reflect.get(data.settings, key));
                     }
                 }
                 if (this.isSupportedLang(data.language))
@@ -2290,7 +2297,7 @@ URL: ${item.url}`);
         showSystemMenu() {
             const enabledIcon = (k) => this.config.get(k) ? '✅' : '❌';
             const statsInfo = FilterStats.session.total > 0 ? ` (${FilterStats.session.total})` : '';
-            const langName = I18N.availableLanguages[I18N.lang];
+            const langName = Reflect.get(I18N.availableLanguages, I18N.lang);
             const items = [
                 { label: `${this.t('menu_stats')}${statsInfo}`, action: () => this.showStats() },
                 { label: this.t('menu_export'), action: () => this.showExportImportMenu() },
@@ -2307,7 +2314,7 @@ URL: ${item.url}`);
             const totalPages = Math.ceil(keys.length / pageSize);
             const pageKeys = keys.slice(page * pageSize, Math.min((page + 1) * pageSize, keys.length));
             const items = pageKeys.map(key => ({
-                label: `[${rules[key] ? '✅' : '❌'}] ${I18N.getRuleName(key)}`,
+                label: `[${Reflect.get(rules, key) ? '✅' : '❌'}] ${I18N.getRuleName(key)}`,
                 action: () => {
                     this.config.toggleRule(key);
                     this.onRefresh();
@@ -2343,10 +2350,10 @@ URL: ${item.url}`);
             const keys = Object.keys(langs);
             const current = I18N.lang;
             const items = keys.map(key => ({
-                label: `${key === current ? '✅' : '⬜'} ${langs[key]}`,
+                label: `${key === current ? '✅' : '⬜'} ${Reflect.get(langs, key)}`,
                 action: () => {
                     I18N.lang = key;
-                    alert(`✅ ${langs[key]}`);
+                    alert(`✅ ${Reflect.get(langs, key)}`);
                     this.showSystemMenu();
                 }
             }));
@@ -2362,7 +2369,7 @@ URL: ${item.url}`);
         resetSettings() {
             if (confirm(this.t('reset_confirm'))) {
                 Object.keys(this.config.defaults).forEach(key => {
-                    this.config.set(key, this.config.defaults[key]);
+                    this.config.set(key, Reflect.get(this.config.defaults, key));
                 });
                 this.onRefresh();
                 alert(`✅ ${this.t('import_success')}`);
@@ -2412,7 +2419,7 @@ URL: ${item.url}`);
                 system: () => this.showSystemMenu(),
                 main: () => this.showMainMenu()
             };
-            map[context]();
+            Reflect.get(map, context)();
         }
     }
 
