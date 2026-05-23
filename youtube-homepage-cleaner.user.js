@@ -173,13 +173,13 @@
                     const escSimp = escape(simp);
                     const escTrad = escape(trad);
                     if (escSimp === escTrad)
-                        return new RegExp(wrap(escSimp), 'i');
-                    return new RegExp(wrap(`(?:${escSimp}|${escTrad})`), 'i');
+                        return Reflect.construct(RegExp, [wrap(escSimp), 'i']);
+                    return Reflect.construct(RegExp, [wrap(`(?:${escSimp}|${escTrad})`), 'i']);
                 }
                 catch {  }
             }
             try {
-                return new RegExp(wrap(escape(text)), 'i');
+                return Reflect.construct(RegExp, [wrap(escape(text)), 'i']);
             }
             catch {
                 return null;
@@ -189,17 +189,28 @@
             if (!name)
                 return '';
             let clean = name.replace(/[\u200B-\u200D\uFEFF]/g, '').replace(/\u00A0/g, ' ');
-            if (!Utils._channelCleanerRX) {
-                const esc = (s) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-                const prePattern = `^(${CLEANING_RULES.PREFIXES.map(esc).join('|')})`;
-                const sufPattern = `(${CLEANING_RULES.SUFFIXES.map(esc).join('|')})$`;
-                Utils._channelCleanerRX = {
-                    prefix: new RegExp(prePattern, 'i'),
-                    suffix: new RegExp(sufPattern, 'i')
-                };
+            let changed = true;
+            while (changed) {
+                changed = false;
+                for (const prefix of CLEANING_RULES.PREFIXES) {
+                    if (clean.toLowerCase().startsWith(prefix.toLowerCase())) {
+                        clean = clean.substring(prefix.length);
+                        changed = true;
+                        break;
+                    }
+                }
             }
-            clean = clean.replace(Utils._channelCleanerRX.prefix, '');
-            clean = clean.replace(Utils._channelCleanerRX.suffix, '');
+            changed = true;
+            while (changed) {
+                changed = false;
+                for (const suffix of CLEANING_RULES.SUFFIXES) {
+                    if (clean.toLowerCase().endsWith(suffix.toLowerCase())) {
+                        clean = clean.substring(0, clean.length - suffix.length);
+                        changed = true;
+                        break;
+                    }
+                }
+            }
             clean = clean.replace(/[「」『』"''（）()]/g, '');
             return clean.replace(/·.*$/, '').trim();
         }
@@ -771,9 +782,9 @@
                     if (typeof k !== 'string')
                         return null;
                     if (k.startsWith('=')) {
-                        return Utils.generateCnRegex(k.substring(1), true) || new RegExp(`^${Utils.escapeRegex(k.substring(1))}$`, 'i');
+                        return Utils.generateCnRegex(k.substring(1), true) || Reflect.construct(RegExp, [`^${Utils.escapeRegex(k.substring(1))}$`, 'i']);
                     }
-                    return Utils.generateCnRegex(k) || new RegExp(Utils.escapeRegex(k), 'i');
+                    return Utils.generateCnRegex(k) || Reflect.construct(RegExp, [Utils.escapeRegex(k), 'i']);
                 }
                 catch {
                     return null;

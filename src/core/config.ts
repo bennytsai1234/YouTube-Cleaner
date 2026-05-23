@@ -152,9 +152,9 @@ export class ConfigManager {
             try {
                 if (typeof k !== 'string') return null;
                 if (k.startsWith('=')) {
-                    return Utils.generateCnRegex(k.substring(1), true) || new RegExp(`^${Utils.escapeRegex(k.substring(1))}$`, 'i');
+                    return Utils.generateCnRegex(k.substring(1), true) || Reflect.construct(RegExp, [`^${Utils.escapeRegex(k.substring(1))}$`, 'i']);
                 }
-                return Utils.generateCnRegex(k) || new RegExp(Utils.escapeRegex(k), 'i');
+                return Utils.generateCnRegex(k) || Reflect.construct(RegExp, [Utils.escapeRegex(k), 'i']);
             } catch {
                 return null;
             }
