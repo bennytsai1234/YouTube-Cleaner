@@ -53,7 +53,7 @@ export class StyleManager {
         };
 
         for (const [key, selectors] of Object.entries(map)) {
-            if (enables[key as keyof typeof enables]) {
+            if (Reflect.get(enables, key)) {
                 rules.push(`${selectors!.join(', ')} { display: none !important; }`);
             }
         }
@@ -65,7 +65,7 @@ export class StyleManager {
         ];
 
         hasRules.forEach(({ key, selector }) => {
-            if (enables[key]) {
+            if (Reflect.get(enables, key)) {
                 const containersList = SELECTORS.VIDEO_CONTAINERS || [];
                 containersList.forEach(c => rules.push(`${c}:has(${selector}) { display: none !important; }`));
             }

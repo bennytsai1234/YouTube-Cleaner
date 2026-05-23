@@ -9,9 +9,11 @@ export const FilterStats = {
     session: { total: 0, byRule: {} } as StatsData,
 
     record(reason: string): void {
-        this.counts[reason] = (this.counts[reason] || 0) + 1;
+        const count = Reflect.get(this.counts, reason) || 0;
+        Reflect.set(this.counts, reason, count + 1);
         this.session.total++;
-        this.session.byRule[reason] = (this.session.byRule[reason] || 0) + 1;
+        const sessionCount = Reflect.get(this.session.byRule, reason) || 0;
+        Reflect.set(this.session.byRule, reason, sessionCount + 1);
     },
 
     getSummary(): string {

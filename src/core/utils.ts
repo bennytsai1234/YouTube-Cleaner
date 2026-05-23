@@ -75,10 +75,12 @@ export const Utils = {
         let num = parseFloat(match[1]);
         const unit = match[2];
 
-        if (unit && MULTIPLIERS[unit]) {
-            num *= MULTIPLIERS[unit];
-        } else if (unit && MULTIPLIERS[unit.toLowerCase()]) {
-            num *= MULTIPLIERS[unit.toLowerCase()];
+        const mult = unit ? Reflect.get(MULTIPLIERS, unit) : undefined;
+        const multLower = unit ? Reflect.get(MULTIPLIERS, unit.toLowerCase()) : undefined;
+        if (mult !== undefined) {
+            num *= mult;
+        } else if (multLower !== undefined) {
+            num *= multLower;
         }
 
         return Math.floor(num);
@@ -101,7 +103,8 @@ export const Utils = {
         if (!match) return null;
         const val = parseFloat(match[1]);
         const unitStr = match[2].toLowerCase();
-        if (TIME_UNIT_KEYS[unitStr]) return val * TIME_UNIT_KEYS[unitStr];
+        const unitVal = Reflect.get(TIME_UNIT_KEYS, unitStr);
+        if (unitVal !== undefined) return val * unitVal;
         for (const [key, multiplier] of Object.entries(TIME_UNIT_KEYS)) {
             if (unitStr.includes(key)) return val * multiplier;
         }

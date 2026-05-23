@@ -168,7 +168,7 @@ export class ConfigManager {
     }
 
     private normalizeLoadedValue<K extends StoredConfigKey>(key: K, value: unknown): ConfigState[K] {
-        const defaultValue = this.defaults[key];
+        const defaultValue = Reflect.get(this.defaults, key);
         if (Array.isArray(defaultValue)) {
             return (Array.isArray(value) ? [...value] : this.cloneDefaultValue(defaultValue)) as ConfigState[K];
         }
@@ -176,12 +176,13 @@ export class ConfigManager {
     }
 
     private assignLoadedValue<K extends StoredConfigKey>(loaded: ConfigState, key: K, value: unknown): void {
-        loaded[key] = this.normalizeLoadedValue(key, value);
+        Reflect.set(loaded, key, this.normalizeLoadedValue(key, value));
     }
 
     private refreshCompiledList(key: keyof ConfigState): void {
         if (!isListConfigKey(key)) return;
-        this.state[LIST_COMPILE_TARGETS[key]] = this._compileList(this.state[key]);
+        const targetKey = Reflect.get(LIST_COMPILE_TARGETS, key);
+        Reflect.set(this.state, targetKey, this._compileList(Reflect.get(this.state, key)));
     }
 
     private compileRuntimeLists(loaded: ConfigState): void {
@@ -199,12 +200,12 @@ export class ConfigManager {
             const configKey = key;
             if (configKey === 'RULE_ENABLES') {
                 const saved = GM_getValue('ruleEnables', {});
-                loaded[configKey] = { ...this.defaults.RULE_ENABLES, ...saved };
+                Reflect.set(loaded, configKey, { ...this.defaults.RULE_ENABLES, ...saved });
             } else if (configKey === 'RULE_PRIORITIES') {
                 const saved = GM_getValue('rulePriorities', {});
-                loaded[configKey] = { ...this.defaults.RULE_PRIORITIES, ...saved };
+                Reflect.set(loaded, configKey, { ...this.defaults.RULE_PRIORITIES, ...saved });
             } else {
-                this.assignLoadedValue(loaded, configKey, GM_getValue(toStorageKey(key), this.defaults[configKey]));
+                this.assignLoadedValue(loaded, configKey, GM_getValue(toStorageKey(key), Reflect.get(this.defaults, configKey)));
             }
         }
 
@@ -214,11 +215,11 @@ export class ConfigManager {
     }
 
     public get<K extends keyof ConfigState>(key: K): ConfigState[K] { 
-        return this.state[key]; 
+        return Reflect.get(this.state, key); 
     }
 
     public set<K extends keyof ConfigState>(key: K, value: ConfigState[K]): void {
-        this.state[key] = value;
+        Reflect.set(this.state, key, value);
         if (key === 'RULE_ENABLES') GM_setValue('ruleEnables', value);
         else if (key === 'RULE_PRIORITIES') GM_setValue('rulePriorities', value);
         else GM_setValue(toStorageKey(key), value);
@@ -227,7 +228,8 @@ export class ConfigManager {
     }
 
     public toggleRule(ruleId: keyof RuleEnables): void {
-        this.state.RULE_ENABLES[ruleId] = !this.state.RULE_ENABLES[ruleId];
+        const val = !Reflect.get(this.state.RULE_ENABLES, ruleId);
+        Reflect.set(this.state.RULE_ENABLES, ruleId, val);
         this.set('RULE_ENABLES', this.state.RULE_ENABLES);
     }
 }

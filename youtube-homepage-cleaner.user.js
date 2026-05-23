@@ -94,11 +94,13 @@
                 return null;
             let num = parseFloat(match[1]);
             const unit = match[2];
-            if (unit && MULTIPLIERS[unit]) {
-                num *= MULTIPLIERS[unit];
+            const mult = unit ? Reflect.get(MULTIPLIERS, unit) : undefined;
+            const multLower = unit ? Reflect.get(MULTIPLIERS, unit.toLowerCase()) : undefined;
+            if (mult !== undefined) {
+                num *= mult;
             }
-            else if (unit && MULTIPLIERS[unit.toLowerCase()]) {
-                num *= MULTIPLIERS[unit.toLowerCase()];
+            else if (multLower !== undefined) {
+                num *= multLower;
             }
             return Math.floor(num);
         },
@@ -126,8 +128,9 @@
                 return null;
             const val = parseFloat(match[1]);
             const unitStr = match[2].toLowerCase();
-            if (TIME_UNIT_KEYS[unitStr])
-                return val * TIME_UNIT_KEYS[unitStr];
+            const unitVal = Reflect.get(TIME_UNIT_KEYS, unitStr);
+            if (unitVal !== undefined)
+                return val * unitVal;
             for (const [key, multiplier] of Object.entries(TIME_UNIT_KEYS)) {
                 if (unitStr.includes(key))
                     return val * multiplier;
@@ -785,19 +788,20 @@
             return value;
         }
         normalizeLoadedValue(key, value) {
-            const defaultValue = this.defaults[key];
+            const defaultValue = Reflect.get(this.defaults, key);
             if (Array.isArray(defaultValue)) {
                 return (Array.isArray(value) ? [...value] : this.cloneDefaultValue(defaultValue));
             }
             return value;
         }
         assignLoadedValue(loaded, key, value) {
-            loaded[key] = this.normalizeLoadedValue(key, value);
+            Reflect.set(loaded, key, this.normalizeLoadedValue(key, value));
         }
         refreshCompiledList(key) {
             if (!isListConfigKey(key))
                 return;
-            this.state[LIST_COMPILE_TARGETS[key]] = this._compileList(this.state[key]);
+            const targetKey = Reflect.get(LIST_COMPILE_TARGETS, key);
+            Reflect.set(this.state, targetKey, this._compileList(Reflect.get(this.state, key)));
         }
         compileRuntimeLists(loaded) {
             loaded.compiledKeywords = this._compileList(loaded.KEYWORD_BLACKLIST);
@@ -813,24 +817,24 @@
                 const configKey = key;
                 if (configKey === 'RULE_ENABLES') {
                     const saved = GM_getValue('ruleEnables', {});
-                    loaded[configKey] = { ...this.defaults.RULE_ENABLES, ...saved };
+                    Reflect.set(loaded, configKey, { ...this.defaults.RULE_ENABLES, ...saved });
                 }
                 else if (configKey === 'RULE_PRIORITIES') {
                     const saved = GM_getValue('rulePriorities', {});
-                    loaded[configKey] = { ...this.defaults.RULE_PRIORITIES, ...saved };
+                    Reflect.set(loaded, configKey, { ...this.defaults.RULE_PRIORITIES, ...saved });
                 }
                 else {
-                    this.assignLoadedValue(loaded, configKey, GM_getValue(toStorageKey(key), this.defaults[configKey]));
+                    this.assignLoadedValue(loaded, configKey, GM_getValue(toStorageKey(key), Reflect.get(this.defaults, configKey)));
                 }
             }
             this.compileRuntimeLists(loaded);
             return loaded;
         }
         get(key) {
-            return this.state[key];
+            return Reflect.get(this.state, key);
         }
         set(key, value) {
-            this.state[key] = value;
+            Reflect.set(this.state, key, value);
             if (key === 'RULE_ENABLES')
                 GM_setValue('ruleEnables', value);
             else if (key === 'RULE_PRIORITIES')
@@ -840,7 +844,8 @@
             this.refreshCompiledList(key);
         }
         toggleRule(ruleId) {
-            this.state.RULE_ENABLES[ruleId] = !this.state.RULE_ENABLES[ruleId];
+            const val = !Reflect.get(this.state.RULE_ENABLES, ruleId);
+            Reflect.set(this.state.RULE_ENABLES, ruleId, val);
             this.set('RULE_ENABLES', this.state.RULE_ENABLES);
         }
     }
@@ -979,7 +984,7 @@
                 ]
             };
             for (const [key, selectors] of Object.entries(map)) {
-                if (enables[key]) {
+                if (Reflect.get(enables, key)) {
                     rules.push(`${selectors.join(', ')} { display: none !important; }`);
                 }
             }
@@ -987,7 +992,7 @@
                 { key: 'ad_sponsor', selector: '[aria-label*="廣告"], [aria-label*="Sponsor"], [aria-label="贊助商廣告"], ad-badge-view-model, feed-ad-metadata-view-model' }
             ];
             hasRules.forEach(({ key, selector }) => {
-                if (enables[key]) {
+                if (Reflect.get(enables, key)) {
                     const containersList = SELECTORS.VIDEO_CONTAINERS || [];
                     containersList.forEach(c => rules.push(`${c}:has(${selector}) { display: none !important; }`));
                 }
@@ -1665,9 +1670,11 @@
         counts: {},
         session: { total: 0, byRule: {} },
         record(reason) {
-            this.counts[reason] = (this.counts[reason] || 0) + 1;
+            const count = Reflect.get(this.counts, reason) || 0;
+            Reflect.set(this.counts, reason, count + 1);
             this.session.total++;
-            this.session.byRule[reason] = (this.session.byRule[reason] || 0) + 1;
+            const sessionCount = Reflect.get(this.session.byRule, reason) || 0;
+            Reflect.set(this.session.byRule, reason, sessionCount + 1);
         },
         getSummary() {
             return `已過濾 ${this.session.total} 個項目\n` +
