@@ -1372,7 +1372,7 @@
             this._viewCount = null;
             this._liveViewers = null;
             this._timeAgo = null;
-            const patterns = I18N.filterPatterns[I18N.lang];
+            const patterns = Reflect.get(I18N.filterPatterns, I18N.lang);
             for (const t of texts) {
                 const text = t.textContent || '';
                 const aria = t.ariaLabel || '';
@@ -1445,7 +1445,7 @@
         }
         get isMembers() {
             if (this._isMembers === undefined) {
-                const pattern = I18N.filterPatterns[I18N.lang]?.members_only || /Members only/i;
+                const pattern = Reflect.get(I18N.filterPatterns, I18N.lang)?.members_only || /Members only/i;
                 this._isMembers = !!this.el.querySelector(SELECTORS.BADGES.MEMBERS) || pattern.test(this.el.innerText);
             }
             return this._isMembers;
@@ -1472,7 +1472,7 @@
                     return true;
                 }
                 const title = this.title;
-                const pattern = I18N.filterPatterns[I18N.lang]?.playlist || /Mix/i;
+                const pattern = Reflect.get(I18N.filterPatterns, I18N.lang)?.playlist || /Mix/i;
                 this._isPlaylist = !!(title && pattern.test(title));
             }
             return this._isPlaylist;
