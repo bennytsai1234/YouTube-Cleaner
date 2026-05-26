@@ -1,63 +1,130 @@
-# Gemini CLI 開發規範 (Development Protocol)
+# AI Agent 開發守則
 
-本檔案定義了 AI Agent 在此專案中的核心操作規範與安全工作流。
+本文件是 Gemini CLI、Claude Code、Codex 等 AI Agent 在本專案工作時的共通約定。本文件刻意精簡，深入內容請依需要參照：
 
----
-
-## 🔁 核心工作流 (The Workflow)
-
-你必須嚴格遵循以下步驟處理每一次變更，確保代碼安全與邏輯完整：
-
-### 第一階段：實作與安全備份 (Implementation & Safety)
-1. **需求理解**: 修改前必須明確區分修復 (Fix)、新功能 (Feat) 或重構 (Refactor)。
-2. **代碼修改規範 [CRITICAL]**:
-   - **嚴禁對任何 Git 追蹤檔案使用 `write_file`**: 不論是源碼還是文件 (含 `GEMINI.md`)，修改時**僅允許**使用 `replace` 工具。嚴禁因「變更面積大」或「重構」而下意識尋求捷徑使用覆寫，這會導致不可預測的代碼截斷與遺失。
-   - **模組化結構**: 保持 `src/` 下的結構，禁止直接修改構建產物 `youtube-homepage-cleaner.user.js`。
-3. **立即自動備份 [CRITICAL]**: 每次完成單個檔案的修改後，AI Agent **必須在同一個 Turn 內立即執行** 備份指令，嚴禁等到下一輪對話或使用者回應後才備份：
-   `git add <file> ; git commit -m "backup: update <file>"` (Windows 環境必須使用 `;` 分隔)。
-
-### 第二階段：文檔同步 (Documentation Sync)
-每次修改後，必須更新對應文檔：
-- **新功能**: 更新 `README.md` 功能列表、`CHANGELOG.md` 及版本號。
-- **修復**: 在 `CHANGELOG.md` 記錄修復內容與原因。
-- **發布**: 確保 `package.json` 與 `src/meta.json` 版本號同步。
-
-### 第三階段：驗證與交付 (Verification)
-1. **自動測試**: 執行 `npm test` 確保核心邏輯無壞損。
-2. **手動構建**: 執行 `npm run build` 生成最終腳本。
-3. **正式提交**: 使用 Conventional Commits 格式 (`feat:`, `fix:`, `refactor:`)。
+- 環境設置、測試、發布 → [docs/DEVELOPMENT.md](docs/DEVELOPMENT.md)
+- 架構、模組、設計決策 → [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)
+- Commit 慣例、PR 流程 → [CONTRIBUTING.md](CONTRIBUTING.md)
+- 模組層級細節 → [docs/youtube_cleaner_index.md](docs/youtube_cleaner_index.md)
 
 ---
 
-## 🔧 疑難排解 (Troubleshooting)
+## 核心原則
 
-| 問題場景 | 解決方案 |
-| :--- | :--- |
-| **代碼編輯 (replace) 失敗** | **嚴禁**改用 `write_file`。正確做法：<br>1. **精準錨點**：僅替換變動的 1-3 行，並包含前後一行作為唯一識別錨點。<br>2. **禁止盲試**：失敗後必須重新 `read_file` 檢查不可見字元 (如行尾空格)。<br>3. **分段執行**：將大變更拆分為多個小的 `replace` 呼叫。 |
-| **PowerShell 語法錯誤** | Windows 下不支援 `&&`。**必須**改用 `;` 作為指令分隔符。<br>2. **禁止使用 CMD 語法**：`dir /s /b` 為 CMD 語法，在 PowerShell 會報錯。應使用 `glob` 工具或 `Get-ChildItem -Recurse`。 |
-| **grep 指令未找到** | Windows 環境不支援 `grep`。應優先使用 `search_file_content` 工具，或使用 `findstr` / `Select-String`。 |
-| **Git CRLF 警告** | Windows 預設行為。**徹底修復法**：<br>1. 執行 `git config core.autocrlf false`<br>2. 執行 `git config core.safecrlf false` (關閉警告)<br>3. 執行 `git rm --cached -r .` 再 `git add .` |
-| **代碼遺失/截斷** | 立即執行 `git checkout <file>` 恢復至上一次自動備份的穩定版本。 |
+### 1. 源碼修改一律從 `src/` 開始
+
+`youtube-homepage-cleaner.user.js` 是 Rollup 打包輸出，**絕對不要直接編輯**。修改源碼後執行 `npm run build` 才會更新該檔。
+
+### 2. 不要為了「面積大」而用全檔覆寫
+
+優先使用編輯器的 `Edit` / `replace` 類工具做局部替換，避免不必要的整檔覆寫造成截斷或遺漏。整檔重寫只在以下情境合理：
+
+- 新建檔案
+- 結構性重排（多區塊洗牌、需要重新組織）
+- 局部編輯反覆失敗，且已先 `Read` 確認檔案目前狀態
+
+整檔覆寫前，先 `Read` 一次目標檔案以確保上下文正確。
+
+### 3. CSS 選擇器集中
+
+所有 YouTube DOM 的 CSS Selector 必須定義在 [src/data/selectors.ts](src/data/selectors.ts)。不要在業務模組散落寫死選擇器。YouTube DOM 漂移時，只改這一個檔案。
+
+### 4. 規則三同步
+
+新增/修改過濾規則時，以下三個檔案必須同步：
+
+- [src/data/rules.ts](src/data/rules.ts) — `RULE_DEFINITIONS`
+- [src/core/config.ts](src/core/config.ts) — `RuleEnables` interface
+- [src/data/rule-names.ts](src/data/rule-names.ts) — 各語系顯示名稱（選用，未設定會 fallback 到 rule id）
+
+### 5. CSS-First
+
+能用 CSS 隱藏的元素，先用 CSS（透過 [src/features/style-manager.ts](src/features/style-manager.ts)），再考慮 JS 解析。CSS 過濾比 JS 快 10–100 倍且零閃爍。
+
+### 6. 跨檔影響分析
+
+修改 [src/core/config.ts](src/core/config.ts)、[src/data/selectors.ts](src/data/selectors.ts) 或任何公共常數後，請搜尋全域引用並同步更新。
+
+### 7. 匯入與型別完整性
+
+使用新變數或類別前，確認檔案頂部已有對應 `import`。改完後跑 `npm run typecheck` 與 `npm run lint`。
 
 ---
 
-## 🛡️ 代碼品質與自我查核 (Self-Verification)
+## Release 一致性
 
-為避免重構導致腳本失效，Agent 必須執行以下操作：
-
-1. **跨檔案影響分析 [CRITICAL]**：
-   - 修改 `config.ts`、`selectors.ts` 或任何公共常數後，**必須**使用 `search_file_content` 搜尋全域引用，同步更新所有受影響的檔案。
-2. **匯入完整性檢查**：
-   - 使用新變數或類別前，**必須**確認檔案頂部已有對應的 `import`。
-3. **執行階段驗證**：
-   - 修改完成後，必須執行 `npm run build` 確認編譯無誤。
-   - 若環境允許，觀察 `Logger.info` 輸出，確保初始化流程 (`App.init`) 完整跑完。
-4. **Linting 檢查**：
-   - 頻繁執行 `npm run lint` 以捕捉未定義變數或語法錯誤。
+`package.json`、`package-lock.json`、`src/meta.json`、README badge、`youtube-homepage-cleaner.user.js` 的版本必須一致。`npm version <patch|minor|major>` 會自動執行 [scripts/update-readme.js](scripts/update-readme.js) 同步多數檔案；最後由 `npm run check:release` 驗證。
 
 ---
 
-## 🚀 發布規範 (Release)
+## 驗證
 
-- **Commit Message**: 統一使用英文。
-- **版本控制**: 遵循 SemVer 語法。發布主版本 (v2.0.0) 前必須完成全功能手動測試驗證。
+| 範圍 | 指令 |
+|------|------|
+| 小範圍變更 | 對應的單元測試 + `npm run typecheck` |
+| 改 selectors | `npm run test:e2e:selectors` |
+| 發布前、大範圍重構 | `npm run verify` |
+
+---
+
+## Commit 慣例
+
+採用 [Conventional Commits](https://www.conventionalcommits.org/)，訊息一律英文。
+
+```
+feat: ...
+fix: ...
+refactor: ...
+docs: ...
+test: ...
+chore: ...
+release: vX.Y.Z
+```
+
+### Commit 節奏
+
+按邏輯單元 commit：「一個 bug 修復」「一個重構」「一次依賴升級」各自一個 commit。**不要**每改一個檔案就 commit 一次（過去專案有過大量 `backup: update *.md` 雜訊，已不採用）。
+
+### 危險操作
+
+未經使用者明確同意，**不要**：
+
+- `git push --force`、`git reset --hard`、`git checkout .`、`git clean -f`、`git branch -D`
+- 跳過 hook（`--no-verify`）、跳過簽章（`--no-gpg-sign`）
+- 修改 `.git/config` 或 git 全域設定
+- 直接 push 到 `main`
+
+---
+
+## 平台注意事項
+
+| 平台 | 注意 |
+|------|------|
+| Linux / macOS | 預設使用 `&&` 串接命令 |
+| Windows PowerShell | 不支援 `&&`，需用 `;`。不要使用 CMD 語法（如 `dir /s /b`） |
+| Git CRLF | Windows 預設行為，PR 前確認沒誤改大量檔案行尾 |
+
+---
+
+## 疑難排解
+
+| 問題 | 解法 |
+|------|------|
+| 局部編輯反覆失敗 | 先 `Read` 確認檔案當下狀態（注意行尾、空白、不可見字元）；分段做小範圍替換；最後一個選項才整檔覆寫 |
+| Selector 失效 | 開啟 Debug Mode → 看 `Selector Health Check` 警告 → 改 [src/data/selectors.ts](src/data/selectors.ts) → 跑 `npm run test:e2e:selectors` |
+| 規則加了卻沒生效 | 檢查「規則三同步」是否漏一個 |
+| `check:release` 失敗 | 看錯誤訊息對應哪個檔案版本/URL 不一致，手動同步 |
+| 程式碼意外被刪 | `git checkout <file>` 還原到 HEAD |
+
+---
+
+## 對使用者的回報
+
+修改完成後，向使用者回報時：
+
+- 列出實際變動的檔案路徑
+- 說明變動原因（fix / feat / refactor 等）
+- 若跑了驗證，附上結果（pass / fail 與要點）
+- 若有未解決的 follow-up，明確標出
+
+避免冗長的「我做了什麼」敘述。使用者通常已經看到 diff，重點是 **為什麼** 與 **下一步**。

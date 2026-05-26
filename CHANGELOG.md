@@ -7,6 +7,31 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.1.14] - 2026-05-23
+### Refactored
+- Resolved remaining `detect-object-injection` warnings in `video-data.ts` and `custom-rules.ts`.
+- Replaced unsafe bracket access patterns with `Reflect` API across `features/` to harden against prototype pollution surfaces.
+
+## [2.1.13] - 2026-05-23
+### Refactored
+- Resolved ReDoS-flagged regex construction in core helpers by using `Reflect.construct` and string operations instead of dynamic `RegExp` patterns.
+
+## [2.1.12] - 2026-05-23
+### Fixed
+- Resolved remaining static-analysis warnings around bracketed object notation in `core/` and `features/` modules without changing runtime behavior.
+
+## [2.1.11] - 2026-05-23
+### Fixed
+- Resolved Securecoder static-analysis warnings and object-injection findings flagged in the rule and configuration paths.
+
+## [2.1.10] - 2026-05-18
+### Fixed
+- **Interaction Enhancer**: Respect native handling for playlist page links so playlist navigation no longer hijacks the click into a new tab.
+- **Watch Page**: Keep secondary interactions on the watch page (related/end-screen actions) using their native behavior.
+
+### Tests
+- Stabilized the YouTube E2E coverage and keyword polling specs against current YouTube DOM timing.
+
 ## [2.1.9] - 2026-05-10
 ### Maintenance
 - Updated development tooling dependencies to their latest patch/minor releases.
