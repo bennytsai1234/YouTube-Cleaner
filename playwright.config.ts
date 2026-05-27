@@ -1,3 +1,4 @@
+/// <reference types="node" />
 import { defineConfig, devices } from '@playwright/test';
 
 const storageState = process.env.PLAYWRIGHT_AUTH_STATE;
