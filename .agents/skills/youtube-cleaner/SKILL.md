@@ -1,5 +1,5 @@
 ---
-name: youtube-cleaner-atlas
+name: youtube-cleaner
 description: "Use this for every task in this project - reads the atlas before acting."
 ---
 
