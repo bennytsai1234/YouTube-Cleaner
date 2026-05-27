@@ -36,7 +36,7 @@ export async function injectUserScript(page: Page, customConfig: any = {}) {
         );
 
         const convertByMap = (text: string, map: Record<string, string>) =>
-            Array.from(text).map(char => map[char] || char).join('');
+            Array.from(text).map(char => (Reflect.get(map, char) as string) || char).join('');
 
         (window as any).OpenCC = {
             Converter: ({ from, to }: { from: string; to: string }) => {
@@ -55,8 +55,8 @@ export async function injectUserScript(page: Page, customConfig: any = {}) {
         
         // 預載入 customConfig
         for (const [key, value] of Object.entries(initData)) {
-            let storageKey = '';
             // 處理特殊 key 的對應
+            let storageKey: string;
             if (key === 'RULE_ENABLES') {
                 storageKey = 'GM_ruleEnables';
             } else if (key === 'RULE_PRIORITIES') {

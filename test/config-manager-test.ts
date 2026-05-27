@@ -10,7 +10,7 @@ const runner = new TestRunner('ConfigManager 測試結果');
 // Reset singleton for each test suite
 function resetConfigManager() {
     resetConfigManagerForTests();
-    Object.keys(storage).forEach(key => delete storage[key]);
+    Object.keys(storage).forEach(key => Reflect.deleteProperty(storage, key));
 }
 
 runner.suite('ConfigManager - 預設值初始化', () => {

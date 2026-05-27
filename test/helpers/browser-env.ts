@@ -9,9 +9,9 @@ export const installGMStorage = (storage: GMStorage = {}): GMStorage => {
     };
 
     globalRef.GM_getValue = <TValue>(key: string, defaultValue?: TValue): TValue =>
-        Object.prototype.hasOwnProperty.call(storage, key) ? storage[key] as TValue : defaultValue as TValue;
+        Object.prototype.hasOwnProperty.call(storage, key) ? Reflect.get(storage, key) as TValue : defaultValue as TValue;
     globalRef.GM_setValue = (key: string, value: unknown) => {
-        storage[key] = value;
+        Reflect.set(storage, key, value);
     };
 
     return storage;

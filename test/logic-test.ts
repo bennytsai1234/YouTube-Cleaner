@@ -48,11 +48,11 @@ class MockConfig {
     }
 
     get(key: string) {
-        return this.settings[key];
+        return Reflect.get(this.settings, key);
     }
 
     set(key: string, value: any) {
-        this.settings[key] = value;
+        Reflect.set(this.settings, key, value);
     }
 }
 

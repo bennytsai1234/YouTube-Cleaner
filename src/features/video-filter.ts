@@ -198,7 +198,7 @@ export class VideoFilter {
         requestIdleCallback((deadline) => {
             let i = startIndex;
             while (i < elements.length && (deadline.timeRemaining() > 0 || deadline.didTimeout)) {
-                this.processElement(elements[i]);
+                this.processElement(Reflect.get(elements, i) as HTMLElement);
                 i++;
                 if (i - startIndex >= BATCH_SIZE) break;
             }

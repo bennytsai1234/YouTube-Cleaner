@@ -26,7 +26,7 @@ test.describe('Low Views Filter E2E', () => {
         const hasLowViews = viewTexts.some(text => {
             // 確保不會出現明顯小於一億的字串 (不含 M, B, 億, 万 等大單位)
             // 即匹配純數字或只有 K 的狀況
-            if (/^\d+(\.\d+)?\s*(K|k|千)?\s*(views|觀看|次觀看|次观看|次阅读)/i.test(text)) {
+            if (/^[0-9][0-9.]*[Kk千]?\s*(?:views|觀看|次觀看|次观看|次阅读)/i.test(text)) {
                  // 有 K 代表幾千，純字串代表幾百
                  return true;
             }

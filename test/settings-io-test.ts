@@ -24,7 +24,7 @@ const alerts: string[] = [];
 
 const resetEnv = () => {
     resetConfigManagerForTests();
-    Object.keys(storage).forEach(key => delete storage[key]);
+    Object.keys(storage).forEach(key => Reflect.deleteProperty(storage, key));
     I18N._lang = null;
     clipboard = '';
     promptValue = null;
