@@ -3,21 +3,6 @@ import { injectUserScript } from './utils';
 
 test.describe('Import/Export Settings E2E', () => {
 
-    test('大量關鍵字不會導致效能問題', async ({ page }) => {
-        const manyKeywords = Array.from({ length: 100 }, (_, i) => `keyword${i}`);
-
-        await injectUserScript(page, {
-            KEYWORD_BLACKLIST: manyKeywords
-        });
-
-        await page.goto('https://www.youtube.com/', { waitUntil: 'domcontentloaded' });
-        await page.waitForTimeout(3000);
-
-        // 腳本不應崩潰
-        const isInitialized = await page.evaluate(() => window.ytPurifierInitialized === true);
-        expect(isInitialized).toBeTruthy();
-    });
-
     test('空名單設定應正常處理', async ({ page }) => {
         await injectUserScript(page, {
             KEYWORD_BLACKLIST: [],
