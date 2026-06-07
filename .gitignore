@@ -1,14 +1,17 @@
-.gemini/
-.codex
+# ===== 機密 =====
 gha-creds-*.json
+
+# ===== 依賴 =====
 node_modules/
 
-# AI agent local config
-.agent/
-.claude/settings.local.json
-
-# Playwright
+# ===== 測試產出 =====
 test-results/
 playwright-report/
 playwright/.cache/
 playwright/.auth/
+
+# ===== AI Agent 本機設定 =====
+.gemini/
+.codex
+.agent/
+.claude/settings.local.json
