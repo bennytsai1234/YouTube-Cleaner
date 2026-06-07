@@ -3,6 +3,10 @@
 gha-creds-*.json
 node_modules/
 
+# AI agent local config
+.agent/
+.claude/settings.local.json
+
 # Playwright
 test-results/
 playwright-report/
