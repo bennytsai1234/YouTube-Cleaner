@@ -1,15 +1,20 @@
+---
+name: youtube-cleaner-atlas
+description: "Codebase Atlas entrypoint for YouTube Cleaner — reads the atlas index and routes before acting."
+---
+
 # YouTube Cleaner Codebase Atlas
 
-這是本專案的 Codebase Atlas 通用入口與路由器。每次在此專案中工作時都依照下列步驟執行。
+這是本專案的 Codebase Atlas 入口與路由器。每次在此專案中工作時都依照下列步驟執行。
 
 ## 入口（先讀 index，再路由）
 
 1. 保留使用者的原始需求。
-1. 在進行任何其他操作前，先開啟 `youtube_cleaner_index.md`。
+1. 在進行任何其他操作前，先開啟 `../../../docs/youtube_cleaner_index.md`。
 1. 用一句白話確認這個專案的功能：**YouTube Cleaner 是一個 Tampermonkey 使用者腳本，在瀏覽器端攔截、隱藏與美化 YouTube 的干擾元素，提供純淨的觀看體驗。**
 1. 依意圖路由：
-   - 使用者想要「知道」某事——解釋、定位、可行性、所有權、行為檢查、審查、重現、分析、CI 失敗、風險評估 → 遵循 `youtube_cleaner_investigate_workflow.md`。
-   - 使用者想要「改變」某事——任何程式碼編輯 → 遵循 `youtube_cleaner_change_workflow.md`。
+   - 使用者想要「知道」某事——解釋、定位、可行性、所有權、行為檢查、審查、重現、分析、CI 失敗、風險評估 → 遵循 `../../../docs/youtube_cleaner_investigate_workflow.md`。
+   - 使用者想要「改變」某事——任何程式碼編輯 → 遵循 `../../../docs/youtube_cleaner_change_workflow.md`。
    - 混合或不明確 → 從調查開始，再決定是否需要變更。
 1. 組合時，將結論向前傳遞；除非下一步需要尚未收集的脈絡，否則不要重複讀取 index 或模組文件。
 1. 任何會修改檔案的操作，都必須先提供 Before / After 並等待使用者明確確認後才編輯。
