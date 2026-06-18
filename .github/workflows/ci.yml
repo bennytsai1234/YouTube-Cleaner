@@ -40,6 +40,9 @@ jobs:
     - name: Run unit tests
       run: npm run test:unit
       
+    - name: Remove unreliable third-party apt sources
+      run: sudo rm -f /etc/apt/sources.list.d/deadsnakes-*.* /etc/apt/sources.list.d/ondrej-*.*
+
     - name: Install Playwright Browsers
       run: npx playwright install --with-deps chromium
       

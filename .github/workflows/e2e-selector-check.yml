@@ -13,6 +13,7 @@ jobs:
   test:
     name: "Check Selectors"
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     env:
       FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: "true"
     permissions:
@@ -34,6 +35,9 @@ jobs:
     - name: Build userscript
       run: npm run build
       
+    - name: Remove unreliable third-party apt sources
+      run: sudo rm -f /etc/apt/sources.list.d/deadsnakes-*.* /etc/apt/sources.list.d/ondrej-*.*
+
     - name: Install Playwright Browsers
       run: npx playwright install --with-deps chromium
       
