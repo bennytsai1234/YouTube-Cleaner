@@ -11,9 +11,7 @@
     "check:release": "node scripts/check-release-consistency.js",
     "test": "npm run test:unit",
     "test:unit": "tsx test/filter-test.ts && tsx test/logic-test.ts && tsx test/interaction-test.ts && tsx test/adblock-guard-test.ts && tsx test/config-manager-test.ts && tsx test/filter-engine-test.ts && tsx test/settings-io-test.ts && tsx test/selectors-test.ts",
-    "test:e2e": "playwright test test/e2e --grep-invert @auth",
-    "test:e2e:selectors": "playwright test test/e2e/youtube-selectors.spec.ts",
-    "test:all": "npm run typecheck && npm run lint && npm run test:unit && npm run build && npm run check:release && npm run test:e2e",
+    "test:all": "npm run typecheck && npm run lint && npm run test:unit && npm run build && npm run check:release",
     "verify": "npm run test:all",
     "release:check": "npm run verify",
     "version": "node scripts/update-readme.js && npm run build && git add README.md src/meta.json youtube-homepage-cleaner.user.js"
@@ -26,7 +24,6 @@
   "license": "MIT",
   "devDependencies": {
     "@eslint/js": "^10.0.1",
-    "@playwright/test": "^1.59.1",
     "@rollup/plugin-node-resolve": "^16.0.3",
     "@rollup/plugin-typescript": "^12.3.0",
     "@types/jsdom": "^28.0.1",
@@ -39,7 +36,6 @@
     "eslint-plugin-userscripts": "^0.5.0",
     "globals": "^17.5.0",
     "jsdom": "^29.1.1",
-    "playwright": "^1.59.1",
     "rollup": "^4.60.2",
     "rollup-plugin-cleanup": "^3.2.1",
     "rollup-plugin-string": "^3.0.0",

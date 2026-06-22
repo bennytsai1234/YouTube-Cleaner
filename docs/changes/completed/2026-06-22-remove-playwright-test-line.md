@@ -16,6 +16,12 @@ CI 目前卡在 Playwright 瀏覽器安裝流程，先前的 apt source 修正�
 - `package-lock.json`
 - `playwright.config.ts`
 - `test/e2e/`
+- `docs/DEVELOPMENT.md`
+- `docs/ARCHITECTURE.md`
+- `docs/ROADMAP.md`
+- `README.md`
+- `docs/youtube_cleaner_index.md`
+- `docs/youtube_cleaner/entry_and_build.md`
 - `docs/changes/planning/2026-06-18-fix-ci-playwright-apt-hang.md`
 
 ## 驗證步驟
@@ -25,6 +31,10 @@ CI 目前卡在 Playwright 瀏覽器安裝流程，先前的 apt source 修正�
 - `npm run build`
 - `npm run check:release`
 - 確認剩餘 npm scripts 與 workflow 不再引用 Playwright
+
+## 實際驗證
+- `npm run verify` 通過（typecheck + lint + unit + build + release check）。
+- 實際 workflow、npm scripts、lockfile、測試與一般文件已無 Playwright/E2E 指令引用。
 
 ## 回滾路徑
 還原此次變更 commit，即可恢復原本的 Playwright 依賴、E2E 測試與 workflow 步驟。

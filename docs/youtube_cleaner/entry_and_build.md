@@ -17,7 +17,7 @@
 
 - 上游：所有 `src/` 模組（core、data、features、ui）
 - 下游：`youtube-homepage-cleaner.user.js`（Rollup 打包輸出，不可手動編輯）
-- 外部：Node.js、Rollup、TypeScript、ESLint、Playwright
+- 外部：Node.js、Rollup、TypeScript、ESLint
 
 ## 關鍵流程
 
@@ -49,8 +49,7 @@ npm run verify
   ├── npm run lint          （eslint src）
   ├── npm run test:unit     （8 個測試檔案）
   ├── npm run build         （rollup -c）
-  ├── npm run check:release （版本一致性）
-  └── npm run test:e2e      （Playwright E2E）
+  └── npm run check:release （版本一致性）
 ```
 
 ## 變更入口點

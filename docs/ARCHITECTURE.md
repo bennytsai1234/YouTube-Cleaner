@@ -238,6 +238,5 @@ YouTube 是 SPA，內容動態載入、頁面跳轉不重新載入。三層解�
 | `rollup-plugin-string` | CSS 以字串內嵌打包 |
 | `tsx` | 單元測試執行器（免編譯） |
 | `jsdom` | 單元測試 DOM 環境 |
-| Playwright | E2E 瀏覽器自動化 |
 | ESLint + `eslint-plugin-userscripts` | 代碼風格與 UserScript 規範 |
 | OpenCC-JS（CDN） | 繁簡中文互通過濾引擎 |

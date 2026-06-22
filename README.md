@@ -152,7 +152,7 @@ npm run verify       # 完整驗證
 
 ### 技術棧
 
-TypeScript（strict）· Rollup · Tampermonkey APIs · Playwright · ESLint · OpenCC-JS
+TypeScript（strict）· Rollup · Tampermonkey APIs · ESLint · OpenCC-JS
 
 ---
 
