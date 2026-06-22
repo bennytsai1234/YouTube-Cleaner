@@ -10,15 +10,15 @@
 - 配合 YouTube DOM 結構變更，持續修正 selector 與判斷邏輯
 - 優化 MutationObserver、批次處理與 DOM 查詢效能
 - 降低誤判與過度過濾
-- 補強單元與 E2E 測試覆蓋
+- 補強單元測試與文件覆蓋
 - 改善文件，讓設定、除錯、發布流程更清楚
 - 維持腳本輕量，避免不必要的外部依賴或複雜 UI
 
 ## 維護基線
 
-- `npm run verify` 為主要驗證入口，涵蓋 typecheck、lint、單元測試、build、版本一致性檢查、E2E
+- `npm run verify` 為主要驗證入口，涵蓋 typecheck、lint、單元測試、build、版本一致性檢查
 - `npm run check:release` 驗證 `package.json`、`package-lock.json`、`src/meta.json`、README badge 與 userscript 的版本/URL 一致
-- Selector 風險分兩層：單元測試檢查語法與來源；Playwright `test:e2e:selectors` 檢查真實 YouTube DOM
+- Selector 風險以單元測試檢查語法與來源；真實 YouTube DOM 需人工抽查或另行建立專門流程
 - 設定匯出/匯入需避免 runtime cache 汙染，並拒絕明顯錯誤的設定型別
 
 ## 優先順序

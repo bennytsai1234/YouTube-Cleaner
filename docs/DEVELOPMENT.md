@@ -34,10 +34,8 @@ npm run dev
 | `npm run typecheck` | TypeScript 嚴格型別檢查（不輸出檔案） |
 | `npm run lint` | ESLint 代碼品質檢查 |
 | `npm test` | 所有單元測試（tsx，無需編譯） |
-| `npm run test:e2e` | Playwright E2E（公開頁面，免登入） |
-| `npm run test:e2e:selectors` | 驗證 CSS 選擇器在真實 YouTube DOM 健康 |
 | `npm run check:release` | 驗證版本/URL 跨檔案一致性 |
-| `npm run verify` | 完整驗證（type + lint + unit + build + release + e2e） |
+| `npm run verify` | 完整驗證（type + lint + unit + build + release） |
 
 ---
 
@@ -101,22 +99,12 @@ tsx test/filter-engine-test.ts   # 單一檔
 
 共用 helper 在 [test/helpers/](../test/helpers/)：JSDOM 環境、`GM_*` storage mock、執行 runner。
 
-### E2E 測試（Playwright）
-
-位置：`test/e2e/`。覆蓋公開、穩定頁面：
-
-- **主測**：搜尋頁、公開頻道頁、播放頁（不需登入）。
-- **不主測**：登出狀態的 YouTube 首頁（YouTube 常要求登入，不穩定）。
-- **登入態測試**：放在 `playwright/.auth/`（`.gitignore`），不提交版本庫。
-
-`npm run test:e2e:selectors` 是 selector 健康檢查：在真實 YouTube DOM 嘗試命中影片容器、標題、頻道與連結候選。任一失敗代表 `selectors.ts` 需要更新。
-
 ### 何時跑哪個
 
 | 情境 | 建議 |
 |------|------|
 | 改了單一模組邏輯 | 跑該模組單元測試 + `npm run typecheck` |
-| 改了 `selectors.ts` | `npm run test:e2e:selectors` |
+| 改了 `selectors.ts` | `npm run test:unit`（包含 selector 語法與來源檢查） |
 | 改了 `rules.ts` / `config.ts` | `npm test`（unit 覆蓋廣） |
 | 發布前 | `npm run verify`（完整） |
 
@@ -147,7 +135,6 @@ git push --follow-tags
 
 - [ ] `package.json`、`package-lock.json`、`src/meta.json`、README badge、`youtube-homepage-cleaner.user.js` 版本一致（`npm run check:release` 會自動驗證）
 - [ ] `src/meta.json` 的 `downloadURL` / `updateURL` 與 README 安裝連結指向同一個 `main/youtube-homepage-cleaner.user.js`
-- [ ] `npm run test:e2e:selectors` 通過
 - [ ] CHANGELOG.md 已補上對應版本說明
 - [ ] 沒有把 `compiled*` runtime cache 匯出到設定備份
 

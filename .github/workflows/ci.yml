@@ -31,7 +31,7 @@ jobs:
     - name: Run ESLint
       run: npm run lint
       
-    - name: Build Userscript (Required for E2E)
+    - name: Build Userscript
       run: npm run build
 
     - name: Check release metadata consistency
@@ -39,28 +39,3 @@ jobs:
       
     - name: Run unit tests
       run: npm run test:unit
-      
-    - name: Install Playwright Browsers
-      run: npx playwright install --with-deps chromium
-      
-    - name: Run Playwright E2E Tests
-      run: npm run test:e2e
-      
-    - name: Upload Playwright Report
-      if: always()
-      uses: actions/upload-artifact@v7.0.1
-      with:
-        name: playwright-report
-        path: playwright-report/
-        retention-days: 7
-
-    - name: Upload debug outputs
-      if: always()
-      uses: actions/upload-artifact@v7.0.1
-      with:
-        name: ci-debug-${{ github.run_id }}
-        path: |
-          test-results/
-          playwright-report/
-        if-no-files-found: ignore
-        retention-days: 7

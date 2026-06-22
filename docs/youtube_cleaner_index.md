@@ -45,9 +45,9 @@
 - 禁止手動編輯 `youtube-homepage-cleaner.user.js`（Rollup 建置產出）
 
 ### 測試
-- `npm run verify` 為主要驗證入口（typecheck + lint + unit + build + release check + E2E）
+- `npm run verify` 為主要驗證入口（typecheck + lint + unit + build + release check）
 - 新增規則需補測試（filter-test 或 filter-engine-test）
-- Selector 變更需要 `npm run test:e2e:selectors` 驗證真實 DOM
+- Selector 變更需要 `npm run test:unit` 驗證 selector 語法與來源檢查
 - 設定相關變更需補 settings-io-test 或 config-manager-test
 
 ### 發布
