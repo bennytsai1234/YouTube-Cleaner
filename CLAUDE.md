@@ -1,3 +1,1 @@
-## At The Start Of Every Conversation
-
-Before any operation, run the `/youtube-cleaner-atlas` skill.
+專案導覽地圖位於 `docs/youtube_cleaner_index.md`。
