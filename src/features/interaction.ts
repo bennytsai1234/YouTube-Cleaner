@@ -48,9 +48,6 @@ export class InteractionEnhancer {
             if (!this.config.get('OPEN_IN_NEW_TAB')) return;
             if (e.button !== 0 || e.ctrlKey || e.metaKey || e.shiftKey || e.altKey) return;
 
-            // 播放頁右側 secondary 欄位保留 YouTube 原生行為，避免整區互動被誤攔截。
-            if (target.closest('#secondary')) return;
-
             // 使用集中管理的排除清單
             if (target.closest(SELECTORS.INTERACTION_EXCLUDE)) return;
 
