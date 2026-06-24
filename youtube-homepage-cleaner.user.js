@@ -1985,8 +1985,6 @@ URL: ${item.url}`);
                     return;
                 if (e.button !== 0 || e.ctrlKey || e.metaKey || e.shiftKey || e.altKey)
                     return;
-                if (target.closest('#secondary'))
-                    return;
                 if (target.closest(SELECTORS.INTERACTION_EXCLUDE))
                     return;
                 let targetLink;

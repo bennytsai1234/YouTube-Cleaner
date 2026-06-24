@@ -198,24 +198,45 @@ TestRunner.suite('InteractionEnhancer - ytp videowall 回歸測試', () => {
     TestRunner.assert('videowall 也應使用 _blank', opened[0]?.target === '_blank');
 });
 
-TestRunner.suite('InteractionEnhancer - watch page secondary 不應強制新分頁', () => {
+TestRunner.suite('InteractionEnhancer - watch page secondary 推薦卡片應開新分頁', () => {
     const { window, document, opened } = createEnv(`
         <div id="secondary">
-            <ytd-compact-video-renderer id="item">
-                <a id="thumbnail" href="https://www.youtube.com/watch?v=secondary1">
-                    <span id="secondary-inner">Secondary</span>
-                </a>
-            </ytd-compact-video-renderer>
+            <yt-lockup-view-model class="ytd-item-section-renderer lockup ytLockupViewModelWrapper">
+                <div class="ytLockupViewModelHost">
+                    <a href="https://www.youtube.com/watch?v=secondary1" class="ytLockupViewModelContentImage">
+                        <span>thumb</span>
+                    </a>
+                    <div class="ytLockupViewModelMetadata">
+                        <yt-lockup-metadata-view-model>
+                            <div class="ytLockupMetadataViewModelTextContainer" id="secondary-text">
+                                <h3>
+                                    <a href="https://www.youtube.com/watch?v=secondary1" class="ytLockupMetadataViewModelTitle">
+                                        <span>Secondary recommendation</span>
+                                    </a>
+                                </h3>
+                            </div>
+                            <button aria-label="其他動作" id="secondary-menu">Menu</button>
+                        </yt-lockup-metadata-view-model>
+                    </div>
+                </div>
+            </yt-lockup-view-model>
         </div>
     `);
 
     const enhancer = new InteractionEnhancer(new MockConfig() as any);
     enhancer.init();
 
-    const inner = document.getElementById('secondary-inner')!;
-    click(window as any, inner);
+    const textContainer = document.getElementById('secondary-text')!;
+    const notCanceled = click(window as any, textContainer);
 
-    TestRunner.assert('播放頁 secondary 區域不應被腳本強制新分頁', opened.length === 0);
+    TestRunner.assert('播放頁 secondary 推薦卡片應開新分頁', opened.length === 1);
+    TestRunner.assert('secondary 推薦卡片 URL 應正確', opened[0]?.url === 'https://www.youtube.com/watch?v=secondary1');
+    TestRunner.assert('secondary 推薦卡片點擊事件應被攔截', notCanceled === false);
+
+    const menu = document.getElementById('secondary-menu')!;
+    click(window as any, menu);
+
+    TestRunner.assert('secondary 推薦卡片按鈕仍不應開新分頁', opened.length === 1);
 });
 
 TestRunner.suite('InteractionEnhancer - 播放清單完整頁連結應優先尊重實際點擊目標', () => {
