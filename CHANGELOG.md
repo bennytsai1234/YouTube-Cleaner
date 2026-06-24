@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.1.15] - 2026-06-24
+### Fixed
+- Fixed watch-page recommendations opening in the current tab when clicking the lockup text area, even with new-tab opening enabled.
+
 ## [2.1.14] - 2026-05-23
 ### Refactored
 - Resolved remaining `detect-object-injection` warnings in `video-data.ts` and `custom-rules.ts`.
