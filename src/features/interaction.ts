@@ -21,6 +21,22 @@ export class InteractionEnhancer {
         return container.querySelector<HTMLAnchorElement>('a[href*="/watch?"], a[href*="/shorts/"], a[href*="/playlist?"]');
     }
 
+    private isSameVideoTimestampSeek(link: HTMLAnchorElement): boolean {
+        try {
+            const targetUrl = new URL(link.href, location.origin);
+            const currentUrl = new URL(location.href);
+            const targetVideoId = targetUrl.searchParams.get('v');
+            const currentVideoId = currentUrl.searchParams.get('v');
+
+            return targetUrl.pathname === '/watch'
+                && targetUrl.searchParams.has('t')
+                && !!targetVideoId
+                && targetVideoId === currentVideoId;
+        } catch {
+            return false;
+        }
+    }
+
     public init(): void {
         document.addEventListener('click', (e: MouseEvent) => {
             const target = e.target as HTMLElement;
@@ -75,6 +91,7 @@ export class InteractionEnhancer {
             }
 
             if (!targetLink) return;
+            if (this.isSameVideoTimestampSeek(targetLink)) return;
 
             try {
                 const hostname = new URL(targetLink.href, location.origin).hostname;

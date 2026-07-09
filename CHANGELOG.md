@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.1.16] - 2026-07-09
+### Fixed
+- **Interaction Enhancer**: Prevent timestamp seek links of the currently playing video in the comment section from opening in a new tab, respecting native seek behavior.
+
 ## [2.1.15] - 2026-06-24
 ### Fixed
 - Fixed watch-page recommendations opening in the current tab when clicking the lockup text area, even with new-tab opening enabled.

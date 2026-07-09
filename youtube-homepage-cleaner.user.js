@@ -2,7 +2,7 @@
 // @name        YouTube Cleaner - Remove Garbage & Suggestions
 // @description Clean YouTube interface by hiding garbage Shorts, suggestions, and clutter elements. Say goodbye to clickbait.
 // @namespace   http://tampermonkey.net/
-// @version     2.1.15
+// @version     2.1.16
 // @author      Benny & AI Collaborators
 // @match       https://www.youtube.com/*
 // @exclude     https://www.youtube.com/embed/*
@@ -1964,6 +1964,21 @@ URL: ${item.url}`);
             }
             return container.querySelector('a[href*="/watch?"], a[href*="/shorts/"], a[href*="/playlist?"]');
         }
+        isSameVideoTimestampSeek(link) {
+            try {
+                const targetUrl = new URL(link.href, location.origin);
+                const currentUrl = new URL(location.href);
+                const targetVideoId = targetUrl.searchParams.get('v');
+                const currentVideoId = currentUrl.searchParams.get('v');
+                return targetUrl.pathname === '/watch'
+                    && targetUrl.searchParams.has('t')
+                    && !!targetVideoId
+                    && targetVideoId === currentVideoId;
+            }
+            catch {
+                return false;
+            }
+        }
         init() {
             document.addEventListener('click', (e) => {
                 const target = e.target;
@@ -2010,6 +2025,8 @@ URL: ${item.url}`);
                     }
                 }
                 if (!targetLink)
+                    return;
+                if (this.isSameVideoTimestampSeek(targetLink))
                     return;
                 try {
                     const hostname = new URL(targetLink.href, location.origin).hostname;

@@ -31,9 +31,9 @@ class MockConfig {
     }
 }
 
-function createEnv(html: string) {
+function createEnv(html: string, url = 'https://www.youtube.com/') {
     const dom = new JSDOM('<!doctype html><html><body>' + html + '</body></html>', {
-        url: 'https://www.youtube.com/'
+        url
     });
 
     (global as any).window = dom.window;
@@ -237,6 +237,41 @@ TestRunner.suite('InteractionEnhancer - watch page secondary 推薦卡片應開�
     click(window as any, menu);
 
     TestRunner.assert('secondary 推薦卡片按鈕仍不應開新分頁', opened.length === 1);
+});
+
+TestRunner.suite('InteractionEnhancer - 留言同影片時間軸跳轉不應開新分頁', () => {
+    const { window, document, opened } = createEnv(`
+        <ytd-comment-thread-renderer>
+            <a id="comment-timestamp" href="https://www.youtube.com/watch?v=currentVideo&t=123s">2:03</a>
+        </ytd-comment-thread-renderer>
+    `, 'https://www.youtube.com/watch?v=currentVideo');
+
+    const enhancer = new InteractionEnhancer(new MockConfig() as any);
+    enhancer.init();
+
+    const timestamp = document.getElementById('comment-timestamp')!;
+    const notCanceled = click(window as any, timestamp);
+
+    TestRunner.assert('同影片時間軸連結不應開新分頁', opened.length === 0);
+    TestRunner.assert('同影片時間軸連結不應被 preventDefault 攔截', notCanceled === true);
+});
+
+TestRunner.suite('InteractionEnhancer - 留言其他影片連結仍應開新分頁', () => {
+    const { window, document, opened } = createEnv(`
+        <ytd-comment-thread-renderer>
+            <a id="comment-other-video" href="https://www.youtube.com/watch?v=otherVideo&t=123s">其他影片 2:03</a>
+        </ytd-comment-thread-renderer>
+    `, 'https://www.youtube.com/watch?v=currentVideo');
+
+    const enhancer = new InteractionEnhancer(new MockConfig() as any);
+    enhancer.init();
+
+    const link = document.getElementById('comment-other-video')!;
+    const notCanceled = click(window as any, link);
+
+    TestRunner.assert('其他影片時間軸連結仍應開新分頁', opened.length === 1);
+    TestRunner.assert('其他影片時間軸 URL 應正確', opened[0]?.url === 'https://www.youtube.com/watch?v=otherVideo&t=123s');
+    TestRunner.assert('其他影片時間軸點擊事件應被攔截', notCanceled === false);
 });
 
 TestRunner.suite('InteractionEnhancer - 播放清單完整頁連結應優先尊重實際點擊目標', () => {
