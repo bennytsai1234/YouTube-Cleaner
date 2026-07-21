@@ -2,7 +2,7 @@
 // @name        YouTube Cleaner - Remove Garbage & Suggestions
 // @description Clean YouTube interface by hiding garbage Shorts, suggestions, and clutter elements. Say goodbye to clickbait.
 // @namespace   http://tampermonkey.net/
-// @version     2.1.16
+// @version     2.1.17
 // @author      Benny & AI Collaborators
 // @match       https://www.youtube.com/*
 // @exclude     https://www.youtube.com/embed/*
@@ -932,7 +932,7 @@
             SHORTS: 'a[href*="/shorts/"]',
             MIX: 'a[aria-label*="合輯"], a[aria-label*="Mix"]'
         },
-        INTERACTION_EXCLUDE: 'button, yt-icon-button, #menu, ytd-menu-renderer, ytd-toggle-button-renderer, yt-chip-cloud-chip-renderer, .yt-spec-button-shape-next, .yt-core-attributed-string__link, #subscribe-button, .ytp-progress-bar, .ytp-chrome-bottom',
+        INTERACTION_EXCLUDE: 'button, yt-icon-button, #menu, ytd-menu-renderer, ytd-menu-popup-renderer, ytd-toggle-button-renderer, yt-chip-cloud-chip-renderer, .yt-spec-button-shape-next, .yt-core-attributed-string__link, #subscribe-button, .ytp-progress-bar, .ytp-chrome-bottom',
         CLICKABLE: [
             'ytd-rich-item-renderer', 'ytd-video-renderer', 'ytd-compact-video-renderer',
             'yt-lockup-view-model', 'ytd-playlist-renderer', 'ytd-compact-playlist-renderer',

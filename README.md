@@ -8,7 +8,7 @@
 
 封鎖 Shorts、過濾低品質推薦、自動處理 Adblock 彈窗，把 YouTube 還原成它本來應有的樣子。
 
-[![Version](https://img.shields.io/badge/version-v2.1.16-orange?style=flat-square)](https://github.com/bennytsai1234/YouTube-Cleaner/releases)
+[![Version](https://img.shields.io/badge/version-v2.1.17-orange?style=flat-square)](https://github.com/bennytsai1234/YouTube-Cleaner/releases)
 [![License](https://img.shields.io/github/license/bennytsai1234/YouTube-Cleaner?style=flat-square&color=green)](LICENSE)
 [![GitHub Stars](https://img.shields.io/github/stars/bennytsai1234/YouTube-Cleaner?style=flat-square&logo=github)](https://github.com/bennytsai1234/YouTube-Cleaner/stargazers)
 [![TypeScript](https://img.shields.io/badge/TypeScript-strict-blue?style=flat-square&logo=typescript)](https://www.typescriptlang.org/)
