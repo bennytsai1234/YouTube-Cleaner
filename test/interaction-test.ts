@@ -302,6 +302,27 @@ TestRunner.suite('InteractionEnhancer - 播放清單完整頁連結應優先尊�
     TestRunner.assert('playlist 點擊事件應被攔截', notCanceled === false);
 });
 
+TestRunner.suite('InteractionEnhancer - 彈出選單內連結應交由 YouTube 原生處理', () => {
+    const { window, document, opened } = createEnv(`
+        <ytd-menu-popup-renderer>
+            <ytd-menu-navigation-item-renderer>
+                <a class="yt-simple-endpoint" href="/playlist?list=WL">
+                    <yt-formatted-string>顯示無法播放的影片</yt-formatted-string>
+                </a>
+            </ytd-menu-navigation-item-renderer>
+        </ytd-menu-popup-renderer>
+    `);
+
+    const enhancer = new InteractionEnhancer(new MockConfig() as any);
+    enhancer.init();
+
+    const text = document.querySelector('yt-formatted-string')!;
+    const notCanceled = click(window as any, text);
+
+    TestRunner.assert('彈出選單連結不應觸發 window.open', opened.length === 0);
+    TestRunner.assert('彈出選單點擊事件不應被 preventDefault', notCanceled === true);
+});
+
 if (!TestRunner.summary()) {
     process.exit(1);
 }
