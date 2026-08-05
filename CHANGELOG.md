@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.1.19] - 2026-08-05
+### Fixed
+- **Membership Upsell Section**: 隱藏首頁動態載入的會員招募／推薦頻道區塊，改用結構 selector 避免文字載入時序造成過濾遺漏。
+- **Selector Safety**: 僅針對包含 `ytd-brand-video-shelf-renderer[has-sponsorships-channel-upsell-view-model]` 的外層 section 套用隱藏，不影響一般 `YouTube 精選` 區塊。
+
+### Tests
+- 新增會員招募區塊 selector 回歸測試，確認命中範圍與正常 shelf 隔離。
+
 ## [2.1.16] - 2026-07-09
 ### Fixed
 - **Interaction Enhancer**: Prevent timestamp seek links of the currently playing video in the comment section from opening in a new tab, respecting native seek behavior.
