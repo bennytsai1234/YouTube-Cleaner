@@ -39,6 +39,7 @@ export class StyleManager {
                 'ad-badge-view-model'
             ],
             premium_banner: ['ytd-statement-banner-renderer', 'ytd-rich-section-renderer:has(ytd-statement-banner-renderer)'],
+            members_only: [SELECTORS.MEMBERSHIP_UPSELL_SECTION],
             clarify_box: ['ytd-info-panel-container-renderer'],
             inline_survey: ['ytd-rich-section-renderer:has(ytd-inline-survey-renderer)'],
             playables_block: ['ytd-rich-section-renderer:has(ytd-rich-shelf-renderer[is-playables])', 'ytd-game-card-renderer'],

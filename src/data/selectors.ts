@@ -40,6 +40,7 @@ export interface SelectorsType {
     SECTION_CONTAINERS: string[];
     METADATA: SelectorsMetadata;
     SHELF_TITLE: string[];
+    MEMBERSHIP_UPSELL_SECTION: string;
     BADGES: SelectorsBadges;
     INTERACTION_EXCLUDE: string;
     CLICKABLE: string[];
@@ -95,6 +96,9 @@ export const SELECTORS: SelectorsType = {
         'h2#title',                            // 通用
         '.ytd-shelf-renderer #title'
     ],
+
+    // 首頁會員招募區塊（YouTube 動態載入的推薦頻道 upsell）
+    MEMBERSHIP_UPSELL_SECTION: 'ytd-rich-section-renderer:has(ytd-brand-video-shelf-renderer[has-sponsorships-channel-upsell-view-model])',
 
     // 會員/廣告標記
     BADGES: {

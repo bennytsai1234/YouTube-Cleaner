@@ -927,6 +927,7 @@
             'h2#title',
             '.ytd-shelf-renderer #title'
         ],
+        MEMBERSHIP_UPSELL_SECTION: 'ytd-rich-section-renderer:has(ytd-brand-video-shelf-renderer[has-sponsorships-channel-upsell-view-model])',
         BADGES: {
             MEMBERS: '.badge-style-type-members-only, .yt-badge-shape--commerce, .yt-badge-shape--promoted, [aria-label*="會員專屬"], [aria-label*="Members only"], [aria-label*="會員優先"], [aria-label*="YouTube 精選"]',
             SHORTS: 'a[href*="/shorts/"]',
@@ -982,6 +983,7 @@
                     'ad-badge-view-model'
                 ],
                 premium_banner: ['ytd-statement-banner-renderer', 'ytd-rich-section-renderer:has(ytd-statement-banner-renderer)'],
+                members_only: [SELECTORS.MEMBERSHIP_UPSELL_SECTION],
                 clarify_box: ['ytd-info-panel-container-renderer'],
                 inline_survey: ['ytd-rich-section-renderer:has(ytd-inline-survey-renderer)'],
                 playables_block: ['ytd-rich-section-renderer:has(ytd-rich-shelf-renderer[is-playables])', 'ytd-game-card-renderer'],

@@ -23,6 +23,7 @@ collectSelectors('METADATA.DURATION', SELECTORS.METADATA.DURATION);
 collectSelectors('METADATA.CHANNEL', SELECTORS.METADATA.CHANNEL);
 collectSelectors('METADATA.TITLE', SELECTORS.METADATA.TITLE);
 collectSelectors('SHELF_TITLE', SELECTORS.SHELF_TITLE);
+collectSelectors('MEMBERSHIP_UPSELL_SECTION', SELECTORS.MEMBERSHIP_UPSELL_SECTION);
 collectSelectors('BADGES.MEMBERS', SELECTORS.BADGES.MEMBERS);
 collectSelectors('BADGES.AD', SELECTORS.BADGES.AD);
 collectSelectors('BADGES.SHORTS', SELECTORS.BADGES.SHORTS);
@@ -49,6 +50,25 @@ runner.suite('SELECTORS - 組合 selector 與來源陣列一致', () => {
     runner.assertEqual('videoContainersStr 應由影片容器組成', SELECTORS.videoContainersStr, SELECTORS.VIDEO_CONTAINERS.join(', '));
     runner.assert('LINK_CANDIDATES 應保留多個備援 selector', SELECTORS.LINK_CANDIDATES.length > 5);
     runner.assert('METADATA.TITLE_LINKS 應保留 aria-label fallback', SELECTORS.METADATA.TITLE_LINKS.some(selector => selector.includes('aria-label')));
+});
+
+runner.suite('SELECTORS - 會員招募區塊應精準命中外層 section', () => {
+    document.body.innerHTML = `
+        <ytd-rich-section-renderer id="membership-upsell">
+            <ytd-brand-video-shelf-renderer has-sponsorships-channel-upsell-view-model>
+                <yt-sponsorships-channel-upsell-view-model></yt-sponsorships-channel-upsell-view-model>
+            </ytd-brand-video-shelf-renderer>
+        </ytd-rich-section-renderer>
+        <ytd-rich-section-renderer id="featured-shelf">
+            <ytd-rich-shelf-renderer>
+                <h2 id="title">YouTube 精選</h2>
+            </ytd-rich-shelf-renderer>
+        </ytd-rich-section-renderer>
+    `;
+
+    const matches = document.querySelectorAll(SELECTORS.MEMBERSHIP_UPSELL_SECTION);
+    runner.assertEqual('應只命中 1 個會員招募區塊', matches.length, 1);
+    runner.assertEqual('應命中最外層 rich section', (matches[0] as HTMLElement)?.id, 'membership-upsell');
 });
 
 exitWithSummary(runner);
