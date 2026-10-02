@@ -15,6 +15,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Tests
 - 新增會員招募區塊 selector 回歸測試，確認命中範圍與正常 shelf 隔離。
 
+## [2.1.18] - 2026-07-25
+### Tests
+- **Interaction Enhancer**: 補上 `ytd-menu-popup-renderer` 排除的原始碼與回歸測試（2.1.17 打包檔已含此修正，原始碼於此版同步）。
+
+## [2.1.17] - 2026-07-21
+### Fixed
+- **Interaction Enhancer**: 彈出選單（`ytd-menu-popup-renderer`）內的連結交由 YouTube 原生處理，不再被攔截成新分頁開啟。
+
+### Changed
+- 更新開發依賴（`package-lock.json`）。
+
 ## [2.1.16] - 2026-07-09
 ### Fixed
 - **Interaction Enhancer**: Prevent timestamp seek links of the currently playing video in the comment section from opening in a new tab, respecting native seek behavior.

@@ -2,7 +2,7 @@
 
 感謝你對 YouTube Cleaner 有興趣！本文件說明參與貢獻的流程與規範。
 
-> 在你開始之前，請先閱讀 [docs/DEVELOPMENT.md](docs/DEVELOPMENT.md)（開發環境與測試）與 [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)（系統架構）。
+> 程式碼規則、已知風險與發布流程集中在 [AGENTS.md](AGENTS.md)，人與 AI agent 共用。
 
 ---
 
@@ -25,7 +25,7 @@
 
 ### 提出新功能
 
-請先開 issue 討論。本專案目前是 **維護導向**（見 [docs/ROADMAP.md](docs/ROADMAP.md)），新功能須符合：
+請先開 issue 討論。本專案目前是 **維護導向**，新功能須符合：
 
 - 明確改善現有使用體驗
 - 不顯著增加維護成本
@@ -36,8 +36,8 @@
 
 1. **Fork & Clone**：fork 本 repo，clone 到本機。
 2. **建立分支**：`git checkout -b fix/short-description` 或 `feat/short-description`。
-3. **開發**：依照 [docs/DEVELOPMENT.md](docs/DEVELOPMENT.md)。
-4. **驗證**：執行 `npm run verify`（完整驗證，含 typecheck、lint、unit、build、release check、E2E）。小範圍變更可先跑目標測試，PR 前建議跑完整驗證。
+3. **開發**：遵守下方程式碼風格與 [AGENTS.md](AGENTS.md) 的程式碼規則。
+4. **驗證**：執行 `npm run verify`（完整驗證，含 typecheck、lint、unit、build、release check）。小範圍變更可先跑目標測試，PR 前建議跑完整驗證。
 5. **Commit**：使用 [Conventional Commits](https://www.conventionalcommits.org/)，訊息英文。
 6. **Push & PR**：推到你的 fork，開 PR 到 `main`。
 
@@ -55,9 +55,8 @@
 | `perf:` | 效能改善 |
 | `docs:` | 文件 |
 | `test:` | 測試 |
-| `chore:` | 雜項（依賴升級、tooling） |
+| `chore:` | 雜項（依賴升級、tooling、版本號 `chore: bump to vX.Y.Z`） |
 | `ci:` | CI/CD |
-| `release:` | 版本發布 |
 
 範例：
 
@@ -73,7 +72,7 @@ refactor: resolve detect-object-injection warnings by using Reflect API
 
 - **TypeScript strict**：所有新代碼必須通過 `npm run typecheck`。
 - **ESLint**：遵守 `eslint.config.js` 規範，PR 前跑 `npm run lint`。
-- **CSS-First**：能用 CSS 隱藏的元素，先用 CSS（見 [docs/ARCHITECTURE.md#關鍵設計決策](docs/ARCHITECTURE.md#關鍵設計決策)）。
+- **CSS-First**：能用 CSS 隱藏的元素，先用 CSS（`src/features/style-manager.ts`），再考慮 JS 解析。
 - **CSS 選擇器集中**：一律寫在 [src/data/selectors.ts](src/data/selectors.ts)，不要散落到業務模組。
 - **規則同步**：新增規則時，[src/data/rules.ts](src/data/rules.ts)、[src/core/config.ts](src/core/config.ts) 的 `RuleEnables`、[src/data/rule-names.ts](src/data/rule-names.ts) 三者必須同步。
 - **不要直接修改 `youtube-homepage-cleaner.user.js`**：這是 Rollup 打包輸出，源碼修改一律從 `src/` 開始。
@@ -85,11 +84,11 @@ refactor: resolve detect-object-injection warnings by using Reflect API
 PR 必須包含對應測試。指引：
 
 - **新增規則** → `test/filter-test.ts` 或 `test/filter-engine-test.ts` 補測試。
-- **改 selectors.ts** → 跑 `npm run test:e2e:selectors`，驗證真實 YouTube DOM 可命中。
+- **改 selectors.ts** → 補單元測試，並在真實 YouTube 上確認受影響頁面的元素有被命中（目前沒有自動化 E2E）。
 - **改 settings / config** → `test/settings-io-test.ts` 或 `test/config-manager-test.ts` 補測試。
 - **改 interaction.ts** → `test/interaction-test.ts` 補測試。
 
-完整測試指令請看 [docs/DEVELOPMENT.md](docs/DEVELOPMENT.md#常用指令)。
+完整測試指令見 `package.json` 的 `scripts`；新增測試檔要加進 `test:unit` 才會被執行。
 
 ---
 
@@ -101,7 +100,7 @@ PR 必須包含對應測試。指引：
 - [ ] Commit 訊息符合 Conventional Commits
 - [ ] 對應測試已新增/更新
 - [ ] 若改了使用者可見行為，CHANGELOG.md 已記錄
-- [ ] 若改了 selectors.ts，已跑過 `npm run test:e2e:selectors`
+- [ ] 若改了 selectors.ts，已在真實 YouTube 上確認命中
 - [ ] 若新增規則，`rules.ts` / `config.ts` / `rule-names.ts` 三處已同步
 - [ ] 沒有直接修改 `youtube-homepage-cleaner.user.js`
 
@@ -109,7 +108,7 @@ PR 必須包含對應測試。指引：
 
 ## 發布（僅維護者）
 
-發布流程在 [docs/DEVELOPMENT.md#發布流程](docs/DEVELOPMENT.md#發布流程)。
+發布流程見 [AGENTS.md](AGENTS.md#發布)。
 
 ---
 

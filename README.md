@@ -13,7 +13,7 @@
 [![GitHub Stars](https://img.shields.io/github/stars/bennytsai1234/YouTube-Cleaner?style=flat-square&logo=github)](https://github.com/bennytsai1234/YouTube-Cleaner/stargazers)
 [![TypeScript](https://img.shields.io/badge/TypeScript-strict-blue?style=flat-square&logo=typescript)](https://www.typescriptlang.org/)
 
-[安裝](#安裝) · [功能](#功能) · [使用](#使用) · [文件](docs/README.md) · [貢獻](CONTRIBUTING.md) · [更新紀錄](CHANGELOG.md)
+[安裝](#安裝) · [功能](#功能) · [使用](#使用) · [貢獻](CONTRIBUTING.md) · [更新紀錄](CHANGELOG.md)
 
 </div>
 
@@ -132,8 +132,6 @@ YouTube Cleaner 使用 **強/弱規則** 與 **分層白名單** 的設計：
 3. 會員白名單  （會員影片唯一豁免）
 ```
 
-完整流程與規則對照請看 [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)。
-
 ---
 
 ## 開發
@@ -146,9 +144,7 @@ npm run dev          # Rollup watch
 npm run verify       # 完整驗證
 ```
 
-詳細的環境需求、測試策略、新增規則、發布流程，請看 [docs/DEVELOPMENT.md](docs/DEVELOPMENT.md)。
-
-架構說明（資料夾、模組、流程、設計決策），請看 [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)。
+程式碼規則、測試與發布流程請看 [CONTRIBUTING.md](CONTRIBUTING.md) 與 [AGENTS.md](AGENTS.md)。
 
 ### 技術棧
 
