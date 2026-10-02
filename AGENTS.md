@@ -19,6 +19,7 @@ Tampermonkey 使用者腳本。TypeScript 原始碼在 `src/`，Rollup 打包成
 - 不要直接編輯 `youtube-homepage-cleaner.user.js`。改 `src/` 後執行 `npm run build`，打包檔和原始碼放在同一個 commit。
 - YouTube DOM selector 一律放在 `src/data/selectors.ts`；selector 不寫死特定語系的文字，語系相關的比對放 `src/data/i18n-filter-patterns.ts`。
 - 新增規則要三處同步：`src/data/rules.ts`（`RULE_DEFINITIONS`）、`src/core/config.ts`（`RuleEnables` 介面）、`src/data/rule-names.ts`（四語系顯示名稱）。`RuleEnables` 與 `RULE_DEFINITIONS` 的一致性沒有編譯期檢查（預設值以 `as unknown as RuleEnables` 轉型）。
+- CSS 與 JS 的分界看白名單：CSS（`src/features/style-manager.ts`）只放白名單不豁免、而且只靠結構 selector 就能判斷的規則（廣告、固定區塊）；要讀標題／頻道／觀看數，或要讓白名單豁免的規則（含 Shorts、合輯、會員限定），放 JS（`src/features/filter-engine.ts`）。CSS 的 `display:none !important` 白名單救不回來，`a265467` 就是把這三類從 CSS 搬回 JS 才修好。在分界內優先用 CSS，因為 JS 過濾要等 MutationObserver 加上 `requestIdleCallback`，元素會先出現一下。
 - 不要刪除或改名既有規則 id：使用者已儲存的設定以 id 為鍵，改了就會遺失。
 - 設定讀寫只透過 `ConfigManager`，feature 不直接呼叫 `GM_getValue`／`GM_setValue`。`compiled*` 鍵是 `ConfigManager` 自動維護的 regex 快取：不要把 RegExp 存進 ConfigState，設定匯出也會略過這些鍵（`src/ui/settings-io.ts`）。
 - 隱藏與還原元素走 `src/features/dom-visibility.ts`（`hideElement`／`clearFilterState`），不要直接改 `display`／`visibility`，否則無法還原。
@@ -33,7 +34,6 @@ Tampermonkey 使用者腳本。TypeScript 原始碼在 `src/`，Rollup 打包成
 ## 關鍵決策
 
 - [verified] 發布用的打包檔必須從已 commit 的原始碼 build。v2.1.17（`b6c8ef8`）的打包檔帶到工作區裡尚未 commit 的 `INTERACTION_EXCLUDE` 改動，原始碼和測試到 `caf6c5a`（v2.1.18）才補上；`check:release` 只比對版本與 URL，抓不到這種落差。
-- [unverified] 能用 CSS 隱藏的元素先用 CSS（`src/features/style-manager.ts`），再考慮 JS 解析。依據是推論：CSS 在渲染前就生效、不會閃爍；效能差距沒有量測過。
 
 ## 發布
 

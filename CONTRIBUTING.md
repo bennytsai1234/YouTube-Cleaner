@@ -72,7 +72,7 @@ refactor: resolve detect-object-injection warnings by using Reflect API
 
 - **TypeScript strict**：所有新代碼必須通過 `npm run typecheck`。
 - **ESLint**：遵守 `eslint.config.js` 規範，PR 前跑 `npm run lint`。
-- **CSS-First**：能用 CSS 隱藏的元素，先用 CSS（`src/features/style-manager.ts`），再考慮 JS 解析。
+- **CSS 與 JS 分界**：白名單不豁免、只靠結構 selector 就能判斷的規則用 CSS（`src/features/style-manager.ts`）；要讓白名單豁免的規則（含 Shorts、合輯、會員限定）放 JS（`src/features/filter-engine.ts`），因為 CSS 隱藏不受白名單影響。
 - **CSS 選擇器集中**：一律寫在 [src/data/selectors.ts](src/data/selectors.ts)，不要散落到業務模組。
 - **規則同步**：新增規則時，[src/data/rules.ts](src/data/rules.ts)、[src/core/config.ts](src/core/config.ts) 的 `RuleEnables`、[src/data/rule-names.ts](src/data/rule-names.ts) 三者必須同步。
 - **不要直接修改 `youtube-homepage-cleaner.user.js`**：這是 Rollup 打包輸出，源碼修改一律從 `src/` 開始。
