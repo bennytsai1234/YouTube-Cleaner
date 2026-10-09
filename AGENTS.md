@@ -4,7 +4,7 @@ Tampermonkey 使用者腳本。TypeScript 原始碼在 `src/`，Rollup 打包成
 
 ## 語言與方向
 
-- 回報與程式碼註解用繁體中文（台灣用語）；commit 訊息用英文 Conventional Commits。
+- 程式碼註解用繁體中文（台灣用語）；commit 訊息用英文 Conventional Commits。
 - 專案以維護為主，優先穩定與低維護成本。新功能要明確改善現有體驗、不顯著增加維護成本、不依賴不穩定的 YouTube 內部 API，並預設關閉或能被使用者清楚控制。
 
 ## 指令
@@ -31,10 +31,6 @@ Tampermonkey 使用者腳本。TypeScript 原始碼在 `src/`，Rollup 打包成
 - 反 Adblock 依賴 YouTube 內部 config 路徑（`adblock-guard.ts` 的 `patchConfig`：`openPopupConfig`、`EXPERIMENT_FLAGS`）；改 `src/core/types.ts` 的 `YtConfig` 時一併檢查。
 - 繁簡互通依賴 `src/meta.json` 以 `@require` 載入的 opencc-js；沒載入時轉換會靜默失效。
 
-## 關鍵決策
-
-- [verified] 發布用的打包檔必須從已 commit 的原始碼 build。v2.1.17（`b6c8ef8`）的打包檔帶到工作區裡尚未 commit 的 `INTERACTION_EXCLUDE` 改動，原始碼和測試到 `caf6c5a`（v2.1.18）才補上；`check:release` 只比對版本與 URL，抓不到這種落差。
-
 ## 發布
 
 1. `CHANGELOG.md` 把 `[Unreleased]` 的內容改成新版本段落，和其他改動一起 commit，讓工作區保持乾淨（`npm version` 要求乾淨的工作區）。
@@ -47,18 +43,5 @@ Tampermonkey 使用者腳本。TypeScript 原始碼在 `src/`，Rollup 打包成
 ## 保持 repo 整潔
 
 - 根目錄只放：`AGENTS.md`、`README.md`、`CHANGELOG.md`、`CONTRIBUTING.md`、`LICENSE`、`package.json`、`package-lock.json`、`tsconfig.json`、`eslint.config.js`、`rollup.config.mjs`、`youtube-homepage-cleaner.user.js`（發布物，安裝 URL 指向它）、`.gitattributes`、`.editorconfig`、`.gitignore`，以及 `src/`、`test/`、`scripts/`、`assets/`、`.github/`。新檔案放進既有目錄。
-- 取代某樣東西時，同一個變更內移除舊的檔案、腳本、設定，以及指向它們的引用。
-- 不建 `docs/`、計畫檔或完成紀錄：規則寫在這裡，行為規格寫成測試，工作歷史寫在 commit 訊息，使用者可見的變更寫進 `CHANGELOG.md`。
-- 暫存檔、下載物、handoff 留在 repo 外或被忽略的路徑，任務結束就刪掉。
+- 使用者可見的變更寫進 `CHANGELOG.md` 的 `[Unreleased]`。
 - 文字檔用 LF（`.gitattributes`、`.editorconfig` 強制）；在 Windows 上用程式寫檔要明確指定 LF。
-- 回報完成前檢查 `git status` 和根目錄，確認沒有新增雜物。
-
-## 交付流程（給 GPT／Codex；所有 agent 都遵守）
-
-1. 原始碼就是 commit：發布物（main 上的打包檔、GitHub Release）一律從乾淨、已 commit 的狀態 build，不從帶有未 commit 改動的工作區打包。
-2. 版本只從一個地方推進：用 `npm version` 同步所有版本欄位，不手動逐檔改版號，也不另外建版本副本。
-3. 驗收：`npm run verify` 通過；改到 selector 或互動行為時，在真實 YouTube 上確認一次受影響的頁面。
-4. 歷史放在 git：不做 `.bak`、複本或完成紀錄文件；操作中需要的臨時複本，在同一步驟內刪掉。
-5. 一個工作一支腳本：擴充 `scripts/` 裡既有的腳本，不複製出新版本。
-6. 紀錄：commit 訊息寫改了什麼、怎麼驗證；長期規則寫進本檔；使用者可見的變更寫進 `CHANGELOG.md`。
-7. 回報分三段：改了什麼、驗證了什麼、還有什麼待處理。不重述範圍，不逐步敘述過程。
