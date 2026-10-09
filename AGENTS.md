@@ -42,6 +42,4 @@ Tampermonkey 使用者腳本。TypeScript 原始碼在 `src/`，Rollup 打包成
 
 ## 保持 repo 整潔
 
-- 根目錄只放：`AGENTS.md`、`README.md`、`CHANGELOG.md`、`CONTRIBUTING.md`、`LICENSE`、`package.json`、`package-lock.json`、`tsconfig.json`、`eslint.config.js`、`rollup.config.mjs`、`youtube-homepage-cleaner.user.js`（發布物，安裝 URL 指向它）、`.gitattributes`、`.editorconfig`、`.gitignore`，以及 `src/`、`test/`、`scripts/`、`assets/`、`.github/`。新檔案放進既有目錄。
 - 使用者可見的變更寫進 `CHANGELOG.md` 的 `[Unreleased]`。
-- 文字檔用 LF（`.gitattributes`、`.editorconfig` 強制）；在 Windows 上用程式寫檔要明確指定 LF。
