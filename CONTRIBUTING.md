@@ -2,7 +2,7 @@
 
 感謝你對 YouTube Cleaner 有興趣！本文件說明參與貢獻的流程與規範。
 
-> 程式碼規則、已知風險與發布流程集中在 [AGENTS.md](AGENTS.md)，人與 AI agent 共用。
+> 寫碼規範在 [CODING_STANDARDS.md](CODING_STANDARDS.md)，已知風險與發布流程在 [AGENTS.md](AGENTS.md)，人與 AI agent 共用。
 
 ---
 
@@ -36,7 +36,7 @@
 
 1. **Fork & Clone**：fork 本 repo，clone 到本機。
 2. **建立分支**：`git checkout -b fix/short-description` 或 `feat/short-description`。
-3. **開發**：遵守下方程式碼風格與 [AGENTS.md](AGENTS.md) 的程式碼規則。
+3. **開發**：遵守 [CODING_STANDARDS.md](CODING_STANDARDS.md)。
 4. **驗證**：執行 `npm run verify`（完整驗證，含 typecheck、lint、unit、build、release check）。小範圍變更可先跑目標測試，PR 前建議跑完整驗證。
 5. **Commit**：使用 [Conventional Commits](https://www.conventionalcommits.org/)，訊息英文。
 6. **Push & PR**：推到你的 fork，開 PR 到 `main`。
@@ -70,12 +70,7 @@ refactor: resolve detect-object-injection warnings by using Reflect API
 
 ## 程式碼風格
 
-- **TypeScript strict**：所有新代碼必須通過 `npm run typecheck`。
-- **ESLint**：遵守 `eslint.config.js` 規範，PR 前跑 `npm run lint`。
-- **CSS 與 JS 分界**：白名單不豁免、只靠結構 selector 就能判斷的規則用 CSS（`src/features/style-manager.ts`）；要讓白名單豁免的規則（含 Shorts、合輯、會員限定）放 JS（`src/features/filter-engine.ts`），因為 CSS 隱藏不受白名單影響。
-- **CSS 選擇器集中**：一律寫在 [src/data/selectors.ts](src/data/selectors.ts)，不要散落到業務模組。
-- **規則同步**：新增規則時，[src/data/rules.ts](src/data/rules.ts)、[src/core/config.ts](src/core/config.ts) 的 `RuleEnables`、[src/data/rule-names.ts](src/data/rule-names.ts) 三者必須同步。
-- **不要直接修改 `youtube-homepage-cleaner.user.js`**：這是 Rollup 打包輸出，源碼修改一律從 `src/` 開始。
+見 [CODING_STANDARDS.md](CODING_STANDARDS.md)。型別檢查、ESLint、規則與四語系的一致性由 `npm run verify` 與 pre-commit 檢查；`youtube-homepage-cleaner.user.js` 是 Rollup 打包輸出，改 `src/` 後 build，CI 會檢查兩者一致。
 
 ---
 
@@ -88,7 +83,7 @@ PR 必須包含對應測試。指引：
 - **改 settings / config** → `test/settings-io-test.ts` 或 `test/config-manager-test.ts` 補測試。
 - **改 interaction.ts** → `test/interaction-test.ts` 補測試。
 
-完整測試指令見 `package.json` 的 `scripts`；新增測試檔要加進 `test:unit` 才會被執行。
+完整測試指令見 `package.json` 的 `scripts`；`test/` 下的 `*-test.ts` 會自動被執行。
 
 ---
 
