@@ -13,12 +13,28 @@ const tampermonkeyGlobals = {
   trustedTypes: "readonly",
 };
 
+const GM_STORAGE_CALL = {
+  selector: "CallExpression[callee.name=/^GM_(getValue|setValue|deleteValue|listValues)$/]",
+  message: "設定讀寫只透過 ConfigManager（src/core/config.ts）。",
+};
+
+// 直接改 display／visibility 會讓 clearFilterState 還原不了。
+const STYLE_VISIBILITY_CHANGE = [
+  {
+    selector: "AssignmentExpression[left.object.property.name='style'][left.property.name=/^(display|visibility)$/]",
+    message: "隱藏與還原元素走 src/features/dom-visibility.ts（hideElement／clearFilterState）。",
+  },
+  {
+    selector:
+      "CallExpression[callee.object.property.name='style'][callee.property.name=/^(setProperty|removeProperty)$/][arguments.0.value=/^(display|visibility)$/]",
+    message: "隱藏與還原元素走 src/features/dom-visibility.ts（hideElement／clearFilterState）。",
+  },
+];
+
 export default [
   {
     ignores: [
       "node_modules/**",
-      "playwright-report/**",
-      "test-results/**",
       "youtube-homepage-cleaner.user.js",
     ],
   },
@@ -54,5 +70,18 @@ export default [
       "no-undef": "off",
       "no-empty": "warn",
     },
+  },
+  {
+    files: ["src/**/*.ts"],
+    rules: { "no-restricted-syntax": ["error", GM_STORAGE_CALL, ...STYLE_VISIBILITY_CHANGE] },
+  },
+  // ConfigManager 本身，和自己存介面語言的 I18N（例外的理由見 CODING_STANDARDS.md）。
+  {
+    files: ["src/core/config.ts", "src/ui/i18n.ts"],
+    rules: { "no-restricted-syntax": ["error", ...STYLE_VISIBILITY_CHANGE] },
+  },
+  {
+    files: ["src/features/dom-visibility.ts"],
+    rules: { "no-restricted-syntax": ["error", GM_STORAGE_CALL] },
   },
 ];
