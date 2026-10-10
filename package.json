@@ -14,7 +14,8 @@
     "test:all": "npm run typecheck && npm run lint && npm run test:unit && npm run build && npm run check:release",
     "verify": "npm run test:all",
     "release:check": "npm run verify",
-    "version": "node scripts/update-readme.js && npm run build && git add README.md src/meta.json youtube-homepage-cleaner.user.js"
+    "version": "node scripts/update-readme.js && npm run build && git add README.md src/meta.json youtube-homepage-cleaner.user.js",
+    "prepare": "husky"
   },
   "repository": {
     "type": "git",
@@ -35,7 +36,9 @@
     "eslint-plugin-security": "^4.0.0",
     "eslint-plugin-userscripts": "^0.5.0",
     "globals": "^17.5.0",
+    "husky": "^9.1.7",
     "jsdom": "^29.1.1",
+    "lint-staged": "^17.6.0",
     "rollup": "^4.60.2",
     "rollup-plugin-cleanup": "^3.2.1",
     "rollup-plugin-string": "^3.0.0",
