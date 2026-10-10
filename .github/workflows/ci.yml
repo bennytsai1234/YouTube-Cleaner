@@ -34,6 +34,9 @@ jobs:
     - name: Build Userscript
       run: npm run build
 
+    - name: Check the committed userscript matches src
+      run: git diff --exit-code -- youtube-homepage-cleaner.user.js
+
     - name: Check release metadata consistency
       run: npm run check:release
       
