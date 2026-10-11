@@ -23,11 +23,12 @@ collectSelectors('METADATA.DURATION', SELECTORS.METADATA.DURATION);
 collectSelectors('METADATA.CHANNEL', SELECTORS.METADATA.CHANNEL);
 collectSelectors('METADATA.TITLE', SELECTORS.METADATA.TITLE);
 collectSelectors('SHELF_TITLE', SELECTORS.SHELF_TITLE);
+collectSelectors('SHELF_HEADER_TEXT', SELECTORS.SHELF_HEADER_TEXT);
 collectSelectors('MEMBERSHIP_UPSELL_SECTION', SELECTORS.MEMBERSHIP_UPSELL_SECTION);
 collectSelectors('BADGES.MEMBERS', SELECTORS.BADGES.MEMBERS);
 collectSelectors('BADGES.AD', SELECTORS.BADGES.AD);
 collectSelectors('BADGES.SHORTS', SELECTORS.BADGES.SHORTS);
-collectSelectors('BADGES.MIX', SELECTORS.BADGES.MIX);
+collectSelectors('BADGES.TEXT', SELECTORS.BADGES.TEXT);
 collectSelectors('INTERACTION_EXCLUDE', SELECTORS.INTERACTION_EXCLUDE);
 collectSelectors('CLICKABLE', SELECTORS.CLICKABLE);
 collectSelectors('PREVIEW_PLAYER', SELECTORS.PREVIEW_PLAYER);
@@ -69,6 +70,30 @@ runner.suite('SELECTORS - 會員招募區塊應精準命中外層 section', () =
     const matches = document.querySelectorAll(SELECTORS.MEMBERSHIP_UPSELL_SECTION);
     runner.assertEqual('應只命中 1 個會員招募區塊', matches.length, 1);
     runner.assertEqual('應命中最外層 rich section', (matches[0] as HTMLElement)?.id, 'membership-upsell');
+});
+
+runner.suite('SELECTORS - aria-label 標記不比對影片標題與頻道頭像', () => {
+    document.body.innerHTML = `
+        <yt-lockup-view-model id="normal">
+            <yt-avatar-shape><div role="button" aria-label="前往頻道：廣告人 Sponsor 會員專屬"></div></yt-avatar-shape>
+            <h3 aria-label="這支廣告太好笑了 How I got a Sponsor 會員專屬 Members only">
+                <a href="/watch?v=a" aria-label="這支廣告太好笑了 How I got a Sponsor 會員專屬 Members only">title</a>
+            </h3>
+            <span id="video-title" aria-label="這支廣告太好笑了 來自 Sponsor">title</span>
+        </yt-lockup-view-model>
+        <yt-lockup-view-model id="ad">
+            <button aria-label="我的廣告中心"></button>
+        </yt-lockup-view-model>
+        <yt-lockup-view-model id="members">
+            <div class="badge" aria-label="頻道會員專屬"></div>
+        </yt-lockup-view-model>
+    `;
+
+    const normal = document.getElementById('normal')!;
+    runner.assertEqual('標題含廣告字樣的一般影片不應命中 BADGES.AD', normal.querySelector(SELECTORS.BADGES.AD), null);
+    runner.assertEqual('標題含會員字樣的一般影片不應命中 BADGES.MEMBERS', normal.querySelector(SELECTORS.BADGES.MEMBERS), null);
+    runner.assert('廣告卡片的「我的廣告中心」按鈕應命中 BADGES.AD', document.getElementById('ad')!.querySelector(SELECTORS.BADGES.AD) !== null);
+    runner.assert('會員 badge 的 aria-label 應命中 BADGES.MEMBERS', document.getElementById('members')!.querySelector(SELECTORS.BADGES.MEMBERS) !== null);
 });
 
 exitWithSummary(runner);

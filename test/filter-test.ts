@@ -136,17 +136,20 @@ TestRunner.suite('CustomRuleManager', () => {
     const manager = new CustomRuleManager(config as any);
 
     // 測試文字匹配
-    const newsMatch = manager.check({} as Element, 'Breaking News Today');
+    const newsMatch = manager.check('shelf_header', ['Breaking News Today']);
     TestRunner.assert('匹配新聞關鍵字', newsMatch && newsMatch.key === 'news_block');
 
-    const shortsMatch = manager.check({} as Element, 'Shorts');
+    const shortsMatch = manager.check('shelf_header', ['Shorts']);
     TestRunner.assert('匹配 Shorts 關鍵字', shortsMatch && shortsMatch.key === 'shorts_block');
 
+    // 只比對規則指定的範圍
+    TestRunner.assertEqual('區塊規則不比對影片標題', manager.check('video_title', ['Breaking News Today']), null);
+
     // 測試停用的規則
-    TestRunner.assertEqual('忽略停用的規則', manager.check({} as Element, 'Fundraiser Event'), null);
+    TestRunner.assertEqual('忽略停用的規則', manager.check('shelf_header', ['Fundraiser Event']), null);
 
     // 測試無匹配
-    TestRunner.assertEqual('無匹配返回 null', manager.check({} as Element, 'Regular Video Title'), null);
+    TestRunner.assertEqual('無匹配返回 null', manager.check('shelf_header', ['Regular Video Title']), null);
 });
 
 // ==================== LazyVideoData 測試 (DOM Mock) ====================

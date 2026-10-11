@@ -230,7 +230,7 @@
             live: /正在觀看|觀眾/i,
             views: /view|觀看|次/i,
             ago: /ago|前/i,
-            playlist: /合輯|Mix/i,
+            playlist: /^(合輯|Mix)[\s\-–]/i,
             movies: /電影|Movies/i,
             fundraiser: /募款/i
         },
@@ -240,7 +240,7 @@
             live: /正在观看|观众/i,
             views: /view|观看|次/i,
             ago: /ago|前/i,
-            playlist: /合辑|Mix/i,
+            playlist: /^(合辑|Mix)[\s\-–]/i,
             movies: /电影|Movies/i,
             fundraiser: /募款/i
         },
@@ -250,7 +250,7 @@
             live: /watching|viewers/i,
             views: /view/i,
             ago: /ago/i,
-            playlist: /Mix/i,
+            playlist: /^Mix[\s\-–]/i,
             movies: /Movies/i,
             fundraiser: /Fundraiser/i
         },
@@ -260,7 +260,7 @@
             live: /視聴中|視聴者/i,
             views: /視聴|回/i,
             ago: /前/i,
-            playlist: /ミックス/i,
+            playlist: /^ミックス[\s\-–]/i,
             movies: /映画|Movies/i,
             fundraiser: /募金/i
         }
@@ -680,32 +680,35 @@
         }
     };
 
+    const shelf = (pattern) => ({ target: 'shelf_header', pattern });
+    const badge = (pattern) => ({ target: 'video_badge', pattern });
+    const title = (pattern) => ({ target: 'video_title', pattern });
     const RULE_DEFINITIONS = [
         { id: 'ad_block_popup', defaultEnabled: true },
         { id: 'ad_sponsor', defaultEnabled: true, defaultPriority: 'strong', whitelistScope: 'none' },
-        { id: 'members_only', defaultEnabled: true, defaultPriority: 'strong', whitelistScope: 'members', textRules: [/頻道會員專屬|Members only/i] },
+        { id: 'members_only', defaultEnabled: true, defaultPriority: 'strong', whitelistScope: 'members', textRules: [badge(/頻道會員專屬|Members only/i)] },
         { id: 'shorts_item', defaultEnabled: true, defaultPriority: 'strong', whitelistScope: 'none' },
-        { id: 'mix_only', defaultEnabled: true, defaultPriority: 'strong', whitelistScope: 'none', textRules: [/(^|\s)(合輯|Mix)([\s\-–]|$)/i] },
+        { id: 'mix_only', defaultEnabled: true, defaultPriority: 'strong', whitelistScope: 'none', textRules: [badge(/(^|\s)(合輯|Mix)(\s|$)/i), title(/^(合輯|Mix)[\s\-–]/i)] },
         { id: 'premium_banner', defaultEnabled: true, defaultPriority: 'strong', whitelistScope: 'none' },
-        { id: 'news_block', defaultEnabled: true, textRules: [/新聞快報|Breaking News|ニュース/i] },
-        { id: 'shorts_block', defaultEnabled: true, textRules: [/^Shorts$/i] },
-        { id: 'posts_block', defaultEnabled: true, textRules: [/貼文|Posts|投稿|Publicaciones|最新 YouTube 貼文/i] },
-        { id: 'playables_block', defaultEnabled: true, textRules: [/Playables|遊戲角落/i] },
-        { id: 'fundraiser_block', defaultEnabled: true, textRules: [/Fundraiser|募款/i] },
-        { id: 'shorts_grid_shelf', defaultEnabled: true, textRules: [/^Shorts$/i] },
-        { id: 'movies_shelf', defaultEnabled: true, textRules: [/為你推薦的特選電影|featured movies|YouTube 精選/i] },
-        { id: 'youtube_featured_shelf', defaultEnabled: true, textRules: [/YouTube 精選/i] },
-        { id: 'popular_gaming_shelf', defaultEnabled: true, textRules: [/熱門遊戲直播/i] },
-        { id: 'more_from_game_shelf', defaultEnabled: true, textRules: [/^更多此遊戲相關內容$/i] },
-        { id: 'trending_playlist', defaultEnabled: true, textRules: [/發燒影片|Trending/i] },
+        { id: 'news_block', defaultEnabled: true, textRules: [shelf(/新聞快報|Breaking News|ニュース/i)] },
+        { id: 'shorts_block', defaultEnabled: true, textRules: [shelf(/^Shorts$/i)] },
+        { id: 'posts_block', defaultEnabled: true, textRules: [shelf(/貼文|Posts|投稿|Publicaciones|最新 YouTube 貼文/i)] },
+        { id: 'playables_block', defaultEnabled: true, textRules: [shelf(/Playables|遊戲角落/i)] },
+        { id: 'fundraiser_block', defaultEnabled: true, textRules: [shelf(/Fundraiser|募款/i)] },
+        { id: 'shorts_grid_shelf', defaultEnabled: true, textRules: [{ target: 'grid_shelf_header', pattern: /^Shorts$/i }] },
+        { id: 'movies_shelf', defaultEnabled: true, textRules: [shelf(/為你推薦的特選電影|featured movies|YouTube 精選/i)] },
+        { id: 'youtube_featured_shelf', defaultEnabled: true, textRules: [shelf(/YouTube 精選/i)] },
+        { id: 'popular_gaming_shelf', defaultEnabled: true, textRules: [shelf(/熱門遊戲直播/i)] },
+        { id: 'more_from_game_shelf', defaultEnabled: true, textRules: [shelf(/^更多此遊戲相關內容$/i)] },
+        { id: 'trending_playlist', defaultEnabled: true, textRules: [title(/發燒影片|Trending/i)] },
         { id: 'inline_survey', defaultEnabled: true },
         { id: 'clarify_box', defaultEnabled: true },
-        { id: 'explore_topics', defaultEnabled: true, textRules: [/探索更多主題|Explore more topics/i] },
+        { id: 'explore_topics', defaultEnabled: true, textRules: [shelf(/探索更多主題|Explore more topics/i)] },
         { id: 'recommended_playlists', defaultEnabled: true, defaultPriority: 'strong', whitelistScope: 'none' },
         {
             id: 'members_early_access',
             defaultEnabled: true,
-            textRules: [/會員優先|會員優先觀看|會員搶先看|Members Early Access|Early access for members|Members first|Available to members/i]
+            textRules: [badge(/會員優先|會員優先觀看|會員搶先看|Members Early Access|Early access for members|Members first|Available to members/i)]
         }
     ];
     const buildDefaultRuleEnables = () => RULE_DEFINITIONS.reduce((acc, rule) => {
@@ -890,7 +893,9 @@
         'ytd-reel-shelf-renderer',
         'grid-shelf-view-model'
     ];
+    const ariaLabelMarker = (text) => `[aria-label*="${text}"]:not(a):not(h3):not(#video-title):not(yt-avatar-shape *)`;
     const ALL_CONTAINERS_STR = [...VIDEO_CONTAINERS, ...SECTION_CONTAINERS].join(', ');
+    const VIDEO_CONTAINERS_STR = VIDEO_CONTAINERS.join(', ');
     const SELECTORS = {
         VIDEO_CONTAINERS,
         METADATA: {
@@ -927,11 +932,14 @@
             'h2#title',
             '.ytd-shelf-renderer #title'
         ],
+        SHELF_HEADER_TEXT: '#title, #subtitle, #featured-badge, h2, .yt-shelf-header-layout__title, .yt-shelf-header-layout__sublabel',
         MEMBERSHIP_UPSELL_SECTION: 'ytd-rich-section-renderer:has(ytd-brand-video-shelf-renderer[has-sponsorships-channel-upsell-view-model])',
         BADGES: {
-            MEMBERS: '.badge-style-type-members-only, .yt-badge-shape--commerce, .yt-badge-shape--promoted, .ytBadgeShapeCommerce, .ytBadgeShapePromoted, [aria-label*="會員專屬"], [aria-label*="Members only"], [aria-label*="會員優先"], [aria-label*="YouTube 精選"]',
+            MEMBERS: ['.badge-style-type-members-only', '.yt-badge-shape--commerce', '.yt-badge-shape--promoted', '.ytBadgeShapeCommerce', '.ytBadgeShapePromoted',
+                ...['會員專屬', 'Members only', '會員優先', 'YouTube 精選'].map(ariaLabelMarker)].join(', '),
+            AD: [...['廣告', 'Sponsor'].map(ariaLabelMarker), 'ad-badge-view-model', 'feed-ad-metadata-view-model'].join(', '),
             SHORTS: 'a[href*="/shorts/"]',
-            MIX: 'a[aria-label*="合輯"], a[aria-label*="Mix"]'
+            TEXT: 'badge-shape, ytd-badge-supported-renderer .badge, ytd-thumbnail-overlay-side-panel-renderer'
         },
         INTERACTION_EXCLUDE: 'button, yt-icon-button, #menu, ytd-menu-renderer, ytd-menu-popup-renderer, ytd-toggle-button-renderer, yt-chip-cloud-chip-renderer, .yt-spec-button-shape-next, .yt-core-attributed-string__link, .ytAttributedStringLink, #subscribe-button, .ytp-progress-bar, .ytp-chrome-bottom',
         CLICKABLE: [
@@ -955,7 +963,9 @@
             'a.ytLockupViewModelContentImage[href*="/shorts/"]',
             'a.yt-lockup-view-model-wiz__title'
         ],
-        allContainers: ALL_CONTAINERS_STR};
+        allContainers: ALL_CONTAINERS_STR,
+        videoContainersStr: VIDEO_CONTAINERS_STR
+    };
 
     var baseStyles = "/* --- YouTube Cleaner Static Global CSS --- */\n\n/* 1. Anti-Adblock popup and scroll unlocking */\ntp-yt-paper-dialog:has(ytd-enforcement-message-view-model),\nytd-enforcement-message-view-model,\ntp-yt-iron-overlay-backdrop:has(~ tp-yt-paper-dialog ytd-enforcement-message-view-model),\nyt-playability-error-supported-renderers:has(ytd-enforcement-message-view-model) {\n    display: none !important;\n}\n\nytd-app:has(ytd-enforcement-message-view-model), \nbody:has(ytd-enforcement-message-view-model), \nhtml:has(ytd-enforcement-message-view-model) {\n    overflow: auto !important; \n    overflow-y: auto !important; \n    position: static !important;\n    pointer-events: auto !important; \n    height: auto !important; \n    top: 0 !important;\n    margin-right: 0 !important; \n    overscroll-behavior: auto !important;\n}\n\nytd-app[aria-hidden=\"true\"]:has(ytd-enforcement-message-view-model) {\n    display: block !important;\n}\n\nytd-app:has(ytd-enforcement-message-view-model) {\n    --ytd-app-scroll-offset: 0 !important;\n}\n";
 
@@ -1002,7 +1012,7 @@
                 }
             }
             const hasRules = [
-                { key: 'ad_sponsor', selector: '[aria-label*="廣告"], [aria-label*="Sponsor"], [aria-label="贊助商廣告"], ad-badge-view-model, feed-ad-metadata-view-model' }
+                { key: 'ad_sponsor', selector: SELECTORS.BADGES.AD }
             ];
             hasRules.forEach(({ key, selector }) => {
                 if (Reflect.get(enables, key)) {
@@ -1176,19 +1186,19 @@
                 rules: rule.textRules || []
             }));
         }
-        check(element, textContent) {
+        check(target, texts) {
+            if (texts.length === 0)
+                return null;
             const enables = this.config.get('RULE_ENABLES');
             for (const def of this.definitions) {
-                if (Reflect.get(enables, def.key)) {
-                    for (const rule of def.rules) {
-                        if (rule instanceof RegExp) {
-                            if (rule.test(textContent))
-                                return { key: def.key, trigger: rule.toString() };
-                        }
-                        else if (textContent.includes(rule)) {
-                            return { key: def.key, trigger: rule };
-                        }
-                    }
+                if (!Reflect.get(enables, def.key))
+                    continue;
+                for (const rule of def.rules) {
+                    if (rule.target !== target)
+                        continue;
+                    const text = texts.find(t => rule.pattern.test(t));
+                    if (text !== undefined)
+                        return { key: def.key, trigger: `${rule.pattern} "${text}"` };
                 }
             }
             return null;
@@ -1306,6 +1316,7 @@
         _isMembers = undefined;
         _isUserPlaylist = undefined;
         _isPlaylist = undefined;
+        _badgeTexts = undefined;
         raw = { views: '', time: '', duration: '', viewers: '' };
         constructor(element) {
             this.el = element;
@@ -1445,10 +1456,16 @@
         get isLive() {
             return this.liveViewers !== null;
         }
+        get badgeTexts() {
+            if (this._badgeTexts === undefined) {
+                this._badgeTexts = Array.from(this.el.querySelectorAll(SELECTORS.BADGES.TEXT), b => b.textContent?.trim() || '').filter(Boolean);
+            }
+            return this._badgeTexts;
+        }
         get isMembers() {
             if (this._isMembers === undefined) {
                 const pattern = Reflect.get(I18N.filterPatterns, I18N.lang)?.members_only || /Members only/i;
-                this._isMembers = !!this.el.querySelector(SELECTORS.BADGES.MEMBERS) || pattern.test(this.el.innerText);
+                this._isMembers = !!this.el.querySelector(SELECTORS.BADGES.MEMBERS) || this.badgeTexts.some(t => pattern.test(t));
             }
             return this._isMembers;
         }
@@ -1469,18 +1486,22 @@
         get isPlaylist() {
             if (this._isPlaylist === undefined) {
                 const link = this.el.querySelector('a[href^="/playlist?list="], [content-id^="PL"]');
-                if (link || this.el.querySelector(SELECTORS.BADGES.MIX)) {
+                if (link) {
                     this._isPlaylist = true;
                     return true;
                 }
                 const title = this.title;
-                const pattern = Reflect.get(I18N.filterPatterns, I18N.lang)?.playlist || /Mix/i;
+                const pattern = Reflect.get(I18N.filterPatterns, I18N.lang)?.playlist || /^Mix[\s\-–]/i;
                 this._isPlaylist = !!(title && pattern.test(title));
             }
             return this._isPlaylist;
         }
     }
 
+    const getShelfHeaderTexts = (section) => Array.from(section.querySelectorAll(SELECTORS.SHELF_HEADER_TEXT))
+        .filter(el => !el.closest(SELECTORS.videoContainersStr))
+        .map(el => el.textContent?.trim() || '')
+        .filter(Boolean);
     class FilterEngine {
         config;
         customRules;
@@ -1493,16 +1514,25 @@
         findFilterDetail(element, allowPageContent) {
             if (allowPageContent)
                 return null;
-            const textMatch = this.customRules.check(element, element.textContent || '');
+            const headerTarget = element.tagName === 'GRID-SHELF-VIEW-MODEL' ? 'grid_shelf_header'
+                : /RICH-SECTION|REEL-SHELF|SHELF-RENDERER/.test(element.tagName) ? 'shelf_header'
+                    : null;
+            if (headerTarget) {
+                const headerMatch = this.customRules.check(headerTarget, getShelfHeaderTexts(element));
+                if (headerMatch)
+                    return { reason: headerMatch.key, trigger: headerMatch.trigger };
+                return this.checkSectionFilter(element);
+            }
+            if (!element.matches(SELECTORS.videoContainersStr))
+                return null;
+            const item = new LazyVideoData(element);
+            const textMatch = this.customRules.check('video_badge', item.badgeTexts) ||
+                this.customRules.check('video_title', item.title ? [item.title] : []);
             if (textMatch)
                 return { reason: textMatch.key, trigger: textMatch.trigger };
-            const sectionMatch = this.checkSectionFilter(element);
-            if (sectionMatch)
-                return sectionMatch;
             const isVideoElement = /VIDEO|LOCKUP|RICH-ITEM|PLAYLIST-PANEL-VIDEO/.test(element.tagName);
             if (!isVideoElement)
                 return null;
-            const item = new LazyVideoData(element);
             return this.getFilterKeyword(item) ||
                 this.getFilterChannel(item) ||
                 this.getStrongRuleMatch(item) ||

@@ -17,7 +17,12 @@ const SECTION_CONTAINERS = [
     'grid-shelf-view-model'
 ];
 
-const ALL_CONTAINERS_STR = [...VIDEO_CONTAINERS, ...SECTION_CONTAINERS].join(', ');
+// 以 aria-label 辨識標記；影片標題（h3、標題連結、#video-title）與頻道頭像的 aria-label
+// 是標題或頻道名稱本身，排除掉，避免標題含關鍵字的一般影片被當成標記
+const ariaLabelMarker = (text: string): string =>
+    `[aria-label*="${text}"]:not(a):not(h3):not(#video-title):not(yt-avatar-shape *)`;
+
+const ALL_CONTAINERS_STR =[...VIDEO_CONTAINERS, ...SECTION_CONTAINERS].join(', ');
 const VIDEO_CONTAINERS_STR = VIDEO_CONTAINERS.join(', ');
 
 export interface SelectorsMetadata {
@@ -32,7 +37,7 @@ export interface SelectorsBadges {
     MEMBERS: string;
     AD: string;
     SHORTS: string;
-    MIX: string;
+    TEXT: string;
 }
 
 export interface SelectorsType {
@@ -40,6 +45,7 @@ export interface SelectorsType {
     SECTION_CONTAINERS: string[];
     METADATA: SelectorsMetadata;
     SHELF_TITLE: string[];
+    SHELF_HEADER_TEXT: string;
     MEMBERSHIP_UPSELL_SECTION: string;
     BADGES: SelectorsBadges;
     INTERACTION_EXCLUDE: string;
@@ -97,15 +103,20 @@ export const SELECTORS: SelectorsType = {
         '.ytd-shelf-renderer #title'
     ],
 
+    // 區塊標題列的文字元素（區塊文字規則逐一比對）：標題、副標題，以及標題旁的「YouTube 精選」標記
+    SHELF_HEADER_TEXT: '#title, #subtitle, #featured-badge, h2, .yt-shelf-header-layout__title, .yt-shelf-header-layout__sublabel',
+
     // 首頁會員招募區塊（YouTube 動態載入的推薦頻道 upsell）
     MEMBERSHIP_UPSELL_SECTION: 'ytd-rich-section-renderer:has(ytd-brand-video-shelf-renderer[has-sponsorships-channel-upsell-view-model])',
 
     // 會員/廣告標記
     BADGES: {
-        MEMBERS: '.badge-style-type-members-only, .yt-badge-shape--commerce, .yt-badge-shape--promoted, .ytBadgeShapeCommerce, .ytBadgeShapePromoted, [aria-label*="會員專屬"], [aria-label*="Members only"], [aria-label*="會員優先"], [aria-label*="YouTube 精選"]',
-        AD: '[aria-label*="廣告"], [aria-label*="Sponsor"], ad-badge-view-model, feed-ad-metadata-view-model',
+        MEMBERS: ['.badge-style-type-members-only', '.yt-badge-shape--commerce', '.yt-badge-shape--promoted', '.ytBadgeShapeCommerce', '.ytBadgeShapePromoted',
+            ...['會員專屬', 'Members only', '會員優先', 'YouTube 精選'].map(ariaLabelMarker)].join(', '),
+        AD: [...['廣告', 'Sponsor'].map(ariaLabelMarker), 'ad-badge-view-model', 'feed-ad-metadata-view-model'].join(', '),
         SHORTS: 'a[href*="/shorts/"]',
-        MIX: 'a[aria-label*="合輯"], a[aria-label*="Mix"]'
+        // badge 文字（文字規則逐一比對）：新舊版 badge 與舊版合輯縮圖側欄
+        TEXT: 'badge-shape, ytd-badge-supported-renderer .badge, ytd-thumbnail-overlay-side-panel-renderer'
     },
 
     // 互動排除

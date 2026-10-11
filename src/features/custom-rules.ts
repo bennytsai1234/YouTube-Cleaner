@@ -1,10 +1,9 @@
 import { ConfigManager, RuleEnables } from '../core/config';
-import { getTextRuleDefinitions } from '../data/rules';
+import { getTextRuleDefinitions, TextRule, TextRuleTarget } from '../data/rules';
 
 export interface RuleDefinition {
     key: keyof RuleEnables;
-    rules: (RegExp | string)[];
-    type?: 'text';
+    rules: TextRule[];
 }
 
 export interface RuleCheckResult {
@@ -14,8 +13,8 @@ export interface RuleCheckResult {
 
 // --- 4. Module: Custom Rule Manager (Extensibility) ---
 /**
- * Designed to make adding new simple text-based rules easy.
- * Add new entries to the `definitions` array here.
+ * 依 `RULE_DEFINITIONS` 的 textRules 比對文字；呼叫端依元素類型取出對應範圍的文字
+ * （區塊標題列、badge、標題）再交給 `check`。
  */
 export class CustomRuleManager {
     private config: ConfigManager;
@@ -29,17 +28,16 @@ export class CustomRuleManager {
         }));
     }
 
-    public check(element: Element, textContent: string): RuleCheckResult | null {
+    public check(target: TextRuleTarget, texts: string[]): RuleCheckResult | null {
+        if (texts.length === 0) return null;
+
         const enables = this.config.get('RULE_ENABLES');
         for (const def of this.definitions) {
-            if (Reflect.get(enables, def.key)) { // Only check if enabled in config
-                for (const rule of def.rules) {
-                    if (rule instanceof RegExp) {
-                        if (rule.test(textContent)) return { key: def.key, trigger: rule.toString() };
-                    } else if (textContent.includes(rule as string)) {
-                        return { key: def.key, trigger: rule as string };
-                    }
-                }
+            if (!Reflect.get(enables, def.key)) continue;
+            for (const rule of def.rules) {
+                if (rule.target !== target) continue;
+                const text = texts.find(t => rule.pattern.test(t));
+                if (text !== undefined) return { key: def.key, trigger: `${rule.pattern} "${text}"` };
             }
         }
         return null;

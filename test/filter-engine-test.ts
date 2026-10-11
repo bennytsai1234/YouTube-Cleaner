@@ -38,7 +38,15 @@ class MockConfig {
                 shorts_item: true,
                 members_only: true,
                 members_early_access: true,
+                mix_only: true,
+                news_block: true,
+                shorts_block: true,
                 posts_block: true,
+                fundraiser_block: true,
+                shorts_grid_shelf: true,
+                movies_shelf: true,
+                youtube_featured_shelf: true,
+                trending_playlist: true,
                 recommended_playlists: true
             },
             RULE_PRIORITIES: {
@@ -255,7 +263,7 @@ TestRunner.suite('FilterEngine - 會員優先觀看可被一般白名單豁免',
     const config = new MockConfig() as any;
     const engine = new FilterEngine(config);
 
-    const dom = new JSDOM('<ytd-rich-item-renderer><div>會員優先觀看</div><a href="/watch?v=abc">Video</a></ytd-rich-item-renderer>');
+    const dom = new JSDOM('<ytd-rich-item-renderer><badge-shape>會員優先觀看</badge-shape><a href="/watch?v=abc">Video</a></ytd-rich-item-renderer>');
     const el = dom.window.document.querySelector('ytd-rich-item-renderer') as any;
 
     const detail = engine.findFilterDetail(el, false);
@@ -305,6 +313,99 @@ TestRunner.suite('FilterEngine - getFilterPlaylist 關閉時', () => {
     const playlistVideo = createMockVideoData({ isPlaylist: true, isUserPlaylist: false });
     const result = engine.getFilterPlaylist(playlistVideo as any);
     TestRunner.assert('關閉 recommended_playlists 後不應過濾', result === null);
+});
+
+// 新版 lockup 卡片：標題同時放在 h3 與標題連結的 aria-label
+const lockupCard = (title: string, badges: Array<{ text: string; cls?: string }> = [], href = '/watch?v=abc'): string => `
+    <ytd-rich-item-renderer>
+        <yt-lockup-view-model>
+            <yt-avatar-shape><div role="button" aria-label="前往頻道：Some Channel"></div></yt-avatar-shape>
+            <h3 aria-label="${title}"><a class="ytLockupMetadataViewModelTitle" href="${href}" aria-label="${title}">${title}</a></h3>
+            ${badges.map(b => `<badge-shape class="${b.cls || ''}"><div class="ytBadgeShapeText">${b.text}</div></badge-shape>`).join('')}
+        </yt-lockup-view-model>
+    </ytd-rich-item-renderer>`;
+
+const richShelfSection = (title: string, featuredBadge = '', items = ''): string => `
+    <ytd-rich-section-renderer>
+        <div id="content">
+            <ytd-rich-shelf-renderer>
+                <div id="rich-shelf-header">
+                    <h2><div id="title-container"><div id="title-text">
+                        <span id="title">${title}</span>
+                        <ytd-badge-supported-renderer id="featured-badge">${featuredBadge}</ytd-badge-supported-renderer>
+                    </div></div></h2>
+                </div>
+                <div id="contents">${items}</div>
+            </ytd-rich-shelf-renderer>
+        </div>
+    </ytd-rich-section-renderer>`;
+
+const detailFor = (html: string, selector: string) => {
+    const engine = new FilterEngine(new MockConfig() as any);
+    const el = new JSDOM(html).window.document.querySelector(selector) as any;
+    return engine.findFilterDetail(el, false);
+};
+
+TestRunner.suite('FilterEngine - 文字規則不比對影片標題（區塊與 badge 規則）', () => {
+    const titles = [
+        '我的投稿作品分享',
+        '日本ニュース解說',
+        '募款活動紀錄',
+        'YouTube 精選 年度回顧',
+        '頻道會員專屬福利介紹',
+        'Members only perks explained',
+        '會員優先觀看的影片怎麼看',
+        'Mixed Martial Arts highlights'
+    ];
+    for (const title of titles) {
+        const detail = detailFor(lockupCard(title), 'ytd-rich-item-renderer');
+        TestRunner.assert(`標題「${title}」不應被過濾（實際：${detail?.reason ?? 'null'}）`, detail === null);
+    }
+});
+
+TestRunner.suite('FilterEngine - badge 規則只看 badge 文字', () => {
+    const members = detailFor(lockupCard('Some Video', [{ text: '頻道會員專屬' }]), 'ytd-rich-item-renderer');
+    TestRunner.assert('頻道會員專屬 badge 應命中 members_only', members?.reason === 'members_only');
+
+    const early = detailFor(lockupCard('Some Video', [{ text: '會員優先', cls: 'ytBadgeShapeHost ytBadgeShapeCommerce' }]), 'ytd-rich-item-renderer');
+    TestRunner.assert('會員優先 badge 應命中 members_early_access', early?.reason === 'members_early_access');
+
+    const promoted = detailFor(lockupCard('NBA 新賽季分析', [{ text: 'YouTube 精選', cls: 'ytBadgeShapeHost ytBadgeShapePromoted' }]), 'ytd-rich-item-renderer');
+    TestRunner.assert(`YouTube 精選 badge 應由會員規則處理，不是電影區塊（實際：${promoted?.reason ?? 'null'}）`, promoted?.reason === 'members_only_js');
+});
+
+TestRunner.suite('FilterEngine - 合輯與 Trending 比對標題開頭與 badge', () => {
+    const liveMix = detailFor(
+        lockupCard('合輯 - Sigma Music Phonk Mix', [{ text: '合輯', cls: 'ytBadgeShapeHost ytBadgeShapeThumbnailBadge' }], '/watch?v=Q3PtUW_Ilp8&list=RDQ3PtUW_Ilp8&start_radio=1'),
+        'ytd-rich-item-renderer'
+    );
+    TestRunner.assert(`新版合輯卡片應命中 mix_only（實際：${liveMix?.reason ?? 'null'}）`, liveMix?.reason === 'mix_only');
+
+    const titleMix = detailFor(lockupCard('Mix - Daft Punk'), 'ytd-rich-item-renderer');
+    TestRunner.assert(`標題以 Mix - 開頭應命中 mix_only（實際：${titleMix?.reason ?? 'null'}）`, titleMix?.reason === 'mix_only');
+
+    const trending = detailFor(lockupCard('發燒影片 - 音樂'), 'ytd-rich-item-renderer');
+    TestRunner.assert('標題含發燒影片應命中 trending_playlist', trending?.reason === 'trending_playlist');
+});
+
+TestRunner.suite('FilterEngine - 區塊規則只比對區塊標題列', () => {
+    const posts = detailFor(richShelfSection('最新 YouTube 貼文'), 'ytd-rich-section-renderer');
+    TestRunner.assert('貼文區塊標題應命中 posts_block', posts?.reason === 'posts_block');
+
+    const shorts = detailFor(richShelfSection('Shorts'), 'ytd-rich-section-renderer');
+    TestRunner.assert(`標題剛好是 Shorts 應命中 shorts_block（實際：${shorts?.reason ?? 'null'}）`, shorts?.reason === 'shorts_block');
+
+    const movies = detailFor(richShelfSection('為你推薦', 'YouTube 精選'), 'ytd-rich-section-renderer');
+    TestRunner.assert('標題列的 YouTube 精選標記應命中 movies_shelf', movies?.reason === 'movies_shelf');
+
+    const innocent = detailFor(richShelfSection('為你推薦', '', lockupCard('Breaking News today') + lockupCard('募款活動紀錄')), 'ytd-rich-section-renderer');
+    TestRunner.assert(`區塊內影片標題不應讓整個區塊被過濾（實際：${innocent?.reason ?? 'null'}）`, innocent === null);
+
+    const banner = detailFor('<ytd-rich-section-renderer><ytd-statement-banner-renderer>享有零廣告體驗及眾多福利 YouTube 精選 訂閱 Premium</ytd-statement-banner-renderer></ytd-rich-section-renderer>', 'ytd-rich-section-renderer');
+    TestRunner.assert(`沒有標題列的 Premium 橫幅不應被當成電影區塊（實際：${banner?.reason ?? 'null'}）`, banner === null);
+
+    const grid = detailFor('<grid-shelf-view-model><h2>Shorts</h2></grid-shelf-view-model>', 'grid-shelf-view-model');
+    TestRunner.assert(`搜尋頁 Shorts 格狀區塊應命中 shorts_grid_shelf（實際：${grid?.reason ?? 'null'}）`, grid?.reason === 'shorts_grid_shelf');
 });
 
 if (!TestRunner.summary()) {

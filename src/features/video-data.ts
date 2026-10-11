@@ -15,6 +15,7 @@ export class LazyVideoData {
     private _isMembers: boolean | undefined = undefined;
     private _isUserPlaylist: boolean | undefined = undefined;
     private _isPlaylist: boolean | undefined = undefined;
+    private _badgeTexts: string[] | undefined = undefined;
     public raw = { views: '', time: '', duration: '', viewers: '' };
 
     constructor(element: HTMLElement) {
@@ -179,10 +180,18 @@ export class LazyVideoData {
         return this.liveViewers !== null;
     }
 
+    get badgeTexts(): string[] {
+        if (this._badgeTexts === undefined) {
+            this._badgeTexts = Array.from(this.el.querySelectorAll(SELECTORS.BADGES.TEXT), b => b.textContent?.trim() || '').filter(Boolean);
+        }
+
+        return this._badgeTexts;
+    }
+
     get isMembers(): boolean {
         if (this._isMembers === undefined) {
             const pattern = Reflect.get(I18N.filterPatterns, I18N.lang)?.members_only || /Members only/i;
-            this._isMembers = !!this.el.querySelector(SELECTORS.BADGES.MEMBERS) || pattern.test(this.el.innerText);
+            this._isMembers = !!this.el.querySelector(SELECTORS.BADGES.MEMBERS) || this.badgeTexts.some(t => pattern.test(t));
         }
 
         return this._isMembers;
@@ -206,13 +215,13 @@ export class LazyVideoData {
     get isPlaylist(): boolean {
         if (this._isPlaylist === undefined) {
             const link = this.el.querySelector('a[href^="/playlist?list="], [content-id^="PL"]');
-            if (link || this.el.querySelector(SELECTORS.BADGES.MIX)) {
+            if (link) {
                 this._isPlaylist = true;
                 return true;
             }
 
             const title = this.title;
-            const pattern = Reflect.get(I18N.filterPatterns, I18N.lang)?.playlist || /Mix/i;
+            const pattern = Reflect.get(I18N.filterPatterns, I18N.lang)?.playlist || /^Mix[\s\-–]/i;
             this._isPlaylist = !!(title && pattern.test(title));
         }
 

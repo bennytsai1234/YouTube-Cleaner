@@ -62,7 +62,7 @@ export class StyleManager {
         // 5.4 Advanced :has() Rules
         // ★ 僅保留純廣告類，內容類 (Shorts/Mix/Members) 移至 JS 處理以支援白名單
         const hasRules: { key: keyof typeof enables; selector: string }[] = [
-            { key: 'ad_sponsor', selector: '[aria-label*="廣告"], [aria-label*="Sponsor"], [aria-label="贊助商廣告"], ad-badge-view-model, feed-ad-metadata-view-model' }
+            { key: 'ad_sponsor', selector: SELECTORS.BADGES.AD }
         ];
 
         hasRules.forEach(({ key, selector }) => {

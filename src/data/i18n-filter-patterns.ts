@@ -7,7 +7,7 @@ export const FILTER_PATTERNS: Record<SupportedLang, Record<string, RegExp>> = {
         live: /正在觀看|觀眾/i,
         views: /view|觀看|次/i,
         ago: /ago|前/i,
-        playlist: /合輯|Mix/i,
+        playlist: /^(合輯|Mix)[\s\-–]/i,
         movies: /電影|Movies/i,
         fundraiser: /募款/i
     },
@@ -17,7 +17,7 @@ export const FILTER_PATTERNS: Record<SupportedLang, Record<string, RegExp>> = {
         live: /正在观看|观众/i,
         views: /view|观看|次/i,
         ago: /ago|前/i,
-        playlist: /合辑|Mix/i,
+        playlist: /^(合辑|Mix)[\s\-–]/i,
         movies: /电影|Movies/i,
         fundraiser: /募款/i
     },
@@ -27,7 +27,7 @@ export const FILTER_PATTERNS: Record<SupportedLang, Record<string, RegExp>> = {
         live: /watching|viewers/i,
         views: /view/i,
         ago: /ago/i,
-        playlist: /Mix/i,
+        playlist: /^Mix[\s\-–]/i,
         movies: /Movies/i,
         fundraiser: /Fundraiser/i
     },
@@ -37,7 +37,7 @@ export const FILTER_PATTERNS: Record<SupportedLang, Record<string, RegExp>> = {
         live: /視聴中|視聴者/i,
         views: /視聴|回/i,
         ago: /前/i,
-        playlist: /ミックス/i,
+        playlist: /^ミックス[\s\-–]/i,
         movies: /映画|Movies/i,
         fundraiser: /募金/i
     }

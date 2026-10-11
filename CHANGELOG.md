@@ -6,6 +6,15 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+### Fixed
+- **Text Rules Scope**: 文字規則不再比對整張卡片的文字，改回各自的範圍（v1.5.2 重寫時遺失）：區塊規則（新聞、貼文、募款、電影、YouTube 精選等）只比對區塊標題列，會員專屬／會員優先只比對 badge，合輯比對 badge 與標題開頭，Trending 比對標題。標題剛好含「投稿」「ニュース」「募款」「YouTube 精選」「頻道會員專屬」等字樣的一般影片不再被誤藏，區塊內的影片標題也不會讓整個區塊被隱藏。
+- **Paid Channel Badge**: 帶「YouTube 精選」標記的付費頻道影片改由「會員專屬」規則處理（可用會員白名單豁免），不再被誤記成「電影推薦」；首頁 Premium 橫幅也不再被記成「電影推薦」。
+- **Mix Detection**: 新版合輯卡片的文字黏在一起（「合輯合輯 - …」），原本的「合輯」規則抓不到，改由縮圖上的「合輯」badge 判斷。推薦播放清單的判斷改成只比對標題開頭，標題含「Mix」「Remix」「ミックス」的一般影片不再被當成播放清單。
+- **Ad / Members aria-label**: 以 `aria-label` 辨識廣告與會員標記時，排除影片標題（`h3`、標題連結、`#video-title`）與頻道頭像，標題含「廣告」「Sponsor」「會員專屬」的影片或名稱含這些字的頻道不再被誤藏。
+- **Shorts Shelf Titles**: 「Shorts 區塊」「Shorts 區塊（搜尋頁格狀）」等以標題全文比對的規則恢復作用（比對整張卡片時永遠不會成立）。
+
+### Tests
+- 新增誤刪標題、區塊標題範圍、badge 範圍、新版合輯卡片與 aria-label 排除的回歸測試。
 
 ## [2.1.20] - 2026-10-11
 ### Fixed

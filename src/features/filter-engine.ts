@@ -7,6 +7,13 @@ import { SubscriptionManager } from './subscription-manager';
 import { FilterDetail, WhitelistReason } from './filter-types';
 import { LazyVideoData } from './video-data';
 
+// 區塊標題列的文字；排除區塊內影片卡片裡的元素，影片標題不算區塊標題
+const getShelfHeaderTexts = (section: HTMLElement): string[] =>
+    Array.from(section.querySelectorAll<HTMLElement>(SELECTORS.SHELF_HEADER_TEXT))
+        .filter(el => !el.closest(SELECTORS.videoContainersStr))
+        .map(el => el.textContent?.trim() || '')
+        .filter(Boolean);
+
 export class FilterEngine {
     private config: ConfigManager;
     private customRules: CustomRuleManager;
@@ -21,16 +28,24 @@ export class FilterEngine {
     public findFilterDetail(element: HTMLElement, allowPageContent: boolean): FilterDetail | null {
         if (allowPageContent) return null;
 
-        const textMatch = this.customRules.check(element, element.textContent || '');
-        if (textMatch) return { reason: textMatch.key, trigger: textMatch.trigger };
+        const headerTarget = element.tagName === 'GRID-SHELF-VIEW-MODEL' ? 'grid_shelf_header'
+            : /RICH-SECTION|REEL-SHELF|SHELF-RENDERER/.test(element.tagName) ? 'shelf_header'
+                : null;
+        if (headerTarget) {
+            const headerMatch = this.customRules.check(headerTarget, getShelfHeaderTexts(element));
+            if (headerMatch) return { reason: headerMatch.key, trigger: headerMatch.trigger };
+            return this.checkSectionFilter(element);
+        }
 
-        const sectionMatch = this.checkSectionFilter(element);
-        if (sectionMatch) return sectionMatch;
+        if (!element.matches(SELECTORS.videoContainersStr)) return null;
+
+        const item = new LazyVideoData(element);
+        const textMatch = this.customRules.check('video_badge', item.badgeTexts) ||
+            this.customRules.check('video_title', item.title ? [item.title] : []);
+        if (textMatch) return { reason: textMatch.key, trigger: textMatch.trigger };
 
         const isVideoElement = /VIDEO|LOCKUP|RICH-ITEM|PLAYLIST-PANEL-VIDEO/.test(element.tagName);
         if (!isVideoElement) return null;
-
-        const item = new LazyVideoData(element);
 
         return this.getFilterKeyword(item) ||
             this.getFilterChannel(item) ||
