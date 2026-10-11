@@ -2,14 +2,6 @@ import { ConfigManager } from '../core/config';
 import { Logger } from '../core/logger';
 import { Utils } from '../core/utils';
 
-declare global {
-    interface Window {
-        ytInitialData?: {
-            entries?: unknown[];
-        };
-    }
-}
-
 export class SubscriptionManager {
     private config: ConfigManager;
     private subscribedSet: Set<string> = new Set();
@@ -32,7 +24,6 @@ export class SubscriptionManager {
      * 啟動監聽機制
      */
     public init(): void {
-        this.tryStaticScan();
         this.setupObserver();
         this.scan(); // 初始嘗試掃描
     }
@@ -40,17 +31,6 @@ export class SubscriptionManager {
     public destroy(): void {
         this.observer?.disconnect();
         this.observer = null;
-    }
-
-    /**
-     * 嘗試從 YouTube 初始數據中提取
-     */
-    private tryStaticScan(): void {
-        try {
-            const data = window.ytInitialData;
-            if (!data?.entries) return;
-            // 遍歷 Guide 數據結構提取頻道 (這部分結構較深且常變動，作為輔助)
-        } catch { /* ignore */ }
     }
 
     /**

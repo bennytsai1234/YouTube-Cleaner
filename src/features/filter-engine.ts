@@ -25,9 +25,11 @@ export class FilterEngine {
         this.subManager = new SubscriptionManager(config);
     }
 
-    public findFilterDetail(element: HTMLElement, allowPageContent: boolean): FilterDetail | null {
+    // item 由呼叫端建立，命中後的白名單判斷與隱藏紀錄沿用同一份快取
+    public findFilterDetail(item: LazyVideoData, allowPageContent: boolean): FilterDetail | null {
         if (allowPageContent) return null;
 
+        const element = item.el;
         const headerTarget = element.tagName === 'GRID-SHELF-VIEW-MODEL' ? 'grid_shelf_header'
             : /RICH-SECTION|REEL-SHELF|SHELF-RENDERER/.test(element.tagName) ? 'shelf_header'
                 : null;
@@ -39,7 +41,6 @@ export class FilterEngine {
 
         if (!element.matches(SELECTORS.videoContainersStr)) return null;
 
-        const item = new LazyVideoData(element);
         const textMatch = this.customRules.check('video_badge', item.badgeTexts) ||
             this.customRules.check('video_title', item.title ? [item.title] : []);
         if (textMatch) return { reason: textMatch.key, trigger: textMatch.trigger };

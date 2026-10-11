@@ -231,7 +231,7 @@ TestRunner.suite('FilterEngine - getStrongRuleMatch Shorts (透過 findFilterDet
     const dom = new JSDOM('<ytd-rich-item-renderer><a href="/shorts/123">Shorts Video</a></ytd-rich-item-renderer>');
     const el = dom.window.document.querySelector('ytd-rich-item-renderer') as any;
 
-    const result = engine.findFilterDetail(el, false);
+    const result = engine.findFilterDetail(new LazyVideoData(el), false);
     TestRunner.assert('Shorts 應被識別為強規則 (透過 findFilterDetail)', result !== null && result.reason === 'shorts_item_js');
 });
 
@@ -243,7 +243,7 @@ TestRunner.suite('FilterEngine - findFilterDetail 基本流程', () => {
     const dom = new JSDOM('<div>Not a video element</div>');
     const el = dom.window.document.querySelector('div') as any;
 
-    const result = engine.findFilterDetail(el, false);
+    const result = engine.findFilterDetail(new LazyVideoData(el), false);
     // 非影片元素應返回 null
     TestRunner.assert('非影片元素 findFilterDetail 應返回 null', result === null);
 });
@@ -255,7 +255,7 @@ TestRunner.suite('FilterEngine - 頻道頁豁免優先於文字與區塊規則',
     const dom = new JSDOM('<ytd-rich-section-renderer><h2 id="title">Posts</h2></ytd-rich-section-renderer>');
     const el = dom.window.document.querySelector('ytd-rich-section-renderer') as any;
 
-    const result = engine.findFilterDetail(el, true);
+    const result = engine.findFilterDetail(new LazyVideoData(el), true);
     TestRunner.assert('allowPageContent=true 時應完全跳過內容過濾', result === null);
 });
 
@@ -266,7 +266,7 @@ TestRunner.suite('FilterEngine - 會員優先觀看可被一般白名單豁免',
     const dom = new JSDOM('<ytd-rich-item-renderer><badge-shape>會員優先觀看</badge-shape><a href="/watch?v=abc">Video</a></ytd-rich-item-renderer>');
     const el = dom.window.document.querySelector('ytd-rich-item-renderer') as any;
 
-    const detail = engine.findFilterDetail(el, false);
+    const detail = engine.findFilterDetail(new LazyVideoData(el), false);
     TestRunner.assert('會員優先觀看應被識別', detail !== null && detail.reason === 'members_early_access');
 
     const whitelistDecision = engine.applyWhitelistDecision(
@@ -343,7 +343,7 @@ const richShelfSection = (title: string, featuredBadge = '', items = ''): string
 const detailFor = (html: string, selector: string) => {
     const engine = new FilterEngine(new MockConfig() as any);
     const el = new JSDOM(html).window.document.querySelector(selector) as any;
-    return engine.findFilterDetail(el, false);
+    return engine.findFilterDetail(new LazyVideoData(el), false);
 };
 
 TestRunner.suite('FilterEngine - 文字規則不比對影片標題（區塊與 badge 規則）', () => {

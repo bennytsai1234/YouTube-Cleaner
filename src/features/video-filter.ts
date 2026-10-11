@@ -2,7 +2,6 @@ import { Logger } from '../core/logger';
 import { ConfigManager } from '../core/config';
 import { SELECTORS } from '../data/selectors';
 import { FilterEngine } from './filter-engine';
-import { FilterDetail, WhitelistReason } from './filter-types';
 import { clearFilterState, getFilterContainer, hideElement, markChecked, resetHiddenState } from './dom-visibility';
 import { LazyVideoData } from './video-data';
 
@@ -114,13 +113,13 @@ export class VideoFilter {
             return;
         }
 
-        const detail = this.engine.findFilterDetail(element, this.isPageAllowingContent);
+        const item = new LazyVideoData(element);
+        const detail = this.engine.findFilterDetail(item, this.isPageAllowingContent);
         if (!detail) {
             markChecked(container, element);
             return;
         }
 
-        const item = new LazyVideoData(element);
         const whitelistReason = this.engine.applyWhitelistDecision(item, detail);
         if (whitelistReason) {
             markChecked(container, element);
@@ -141,34 +140,6 @@ export class VideoFilter {
 
     public async scanSubscriptions(): Promise<void> {
         await this.engine.subManager.scan();
-    }
-
-    private _checkSectionFilter(element: HTMLElement): FilterDetail | null {
-        return this.engine.checkSectionFilter(element);
-    }
-
-    private _checkWhitelist(item: LazyVideoData): WhitelistReason | null {
-        return this.engine.checkWhitelist(item);
-    }
-
-    private _getFilterKeyword(item: LazyVideoData): FilterDetail | null {
-        return this.engine.getFilterKeyword(item);
-    }
-
-    private _getFilterChannel(item: LazyVideoData): FilterDetail | null {
-        return this.engine.getFilterChannel(item);
-    }
-
-    private _getFilterView(item: LazyVideoData): FilterDetail | null {
-        return this.engine.getFilterView(item);
-    }
-
-    private _getFilterDuration(item: LazyVideoData): FilterDetail | null {
-        return this.engine.getFilterDuration(item);
-    }
-
-    private _getFilterPlaylist(item: LazyVideoData): FilterDetail | null {
-        return this.engine.getFilterPlaylist(item);
     }
 
     private validateSelectors(elements: HTMLElement[]): void {
