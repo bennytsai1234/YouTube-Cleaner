@@ -68,7 +68,7 @@ export const SELECTORS: SelectorsType = {
             'a[href*="/watch?"][aria-label]'
         ],
         // 時長
-        DURATION: 'ytd-thumbnail-overlay-time-status-renderer, span.ytd-thumbnail-overlay-time-status-renderer, badge-shape .yt-badge-shape__text, yt-thumbnail-badge-view-model .yt-badge-shape__text',
+        DURATION: 'ytd-thumbnail-overlay-time-status-renderer, span.ytd-thumbnail-overlay-time-status-renderer, badge-shape .yt-badge-shape__text, yt-thumbnail-badge-view-model .yt-badge-shape__text, yt-thumbnail-badge-view-model .ytBadgeShapeText',
         // 頻道名稱
         CHANNEL: [
             'ytd-channel-name a',
@@ -102,14 +102,14 @@ export const SELECTORS: SelectorsType = {
 
     // 會員/廣告標記
     BADGES: {
-        MEMBERS: '.badge-style-type-members-only, .yt-badge-shape--commerce, .yt-badge-shape--promoted, [aria-label*="會員專屬"], [aria-label*="Members only"], [aria-label*="會員優先"], [aria-label*="YouTube 精選"]',
+        MEMBERS: '.badge-style-type-members-only, .yt-badge-shape--commerce, .yt-badge-shape--promoted, .ytBadgeShapeCommerce, .ytBadgeShapePromoted, [aria-label*="會員專屬"], [aria-label*="Members only"], [aria-label*="會員優先"], [aria-label*="YouTube 精選"]',
         AD: '[aria-label*="廣告"], [aria-label*="Sponsor"], ad-badge-view-model, feed-ad-metadata-view-model',
         SHORTS: 'a[href*="/shorts/"]',
         MIX: 'a[aria-label*="合輯"], a[aria-label*="Mix"]'
     },
 
     // 互動排除
-    INTERACTION_EXCLUDE: 'button, yt-icon-button, #menu, ytd-menu-renderer, ytd-menu-popup-renderer, ytd-toggle-button-renderer, yt-chip-cloud-chip-renderer, .yt-spec-button-shape-next, .yt-core-attributed-string__link, #subscribe-button, .ytp-progress-bar, .ytp-chrome-bottom',
+    INTERACTION_EXCLUDE: 'button, yt-icon-button, #menu, ytd-menu-renderer, ytd-menu-popup-renderer, ytd-toggle-button-renderer, yt-chip-cloud-chip-renderer, .yt-spec-button-shape-next, .yt-core-attributed-string__link, .ytAttributedStringLink, #subscribe-button, .ytp-progress-bar, .ytp-chrome-bottom',
 
     // 可點擊容器
     CLICKABLE: [

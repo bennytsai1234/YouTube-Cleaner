@@ -259,6 +259,56 @@ TestRunner.suite('LazyVideoData - 新版 yt-lockup 卡片', () => {
     (global as any).document = oldDocument;
 });
 
+TestRunner.suite('LazyVideoData - camelCase class 的付費頻道卡片', () => {
+    // YouTube 2026 改版：badge-shape 的 class 從 BEM（yt-badge-shape--promoted）改成 camelCase（ytBadgeShapePromoted）
+    const suiteDom = new JSDOM(`
+        <ytd-rich-item-renderer id="video-root">
+            <yt-lockup-view-model class="ytLockupViewModelWrapper">
+                <a href="/watch?v=FkdHR2qx28A" class="ytLockupViewModelContentImage" aria-hidden="true">
+                    <yt-thumbnail-view-model>
+                        <yt-thumbnail-badge-view-model>
+                            <badge-shape class="ytBadgeShapeHost ytBadgeShapeThumbnailDefault" aria-label="34 分鐘 8 秒"><div class="ytBadgeShapeText">34:08</div></badge-shape>
+                        </yt-thumbnail-badge-view-model>
+                    </yt-thumbnail-view-model>
+                </a>
+                <yt-lockup-metadata-view-model>
+                    <h3 class="ytLockupMetadataViewModelHeadingReset" title="【ASMR Misa】还没睡吗？">
+                        <a href="/watch?v=FkdHR2qx28A" class="ytLockupMetadataViewModelTitle">【ASMR Misa】还没睡吗？</a>
+                    </h3>
+                    <yt-content-metadata-view-model>
+                        <div class="ytContentMetadataViewModelMetadataRow">
+                            <span class="ytContentMetadataViewModelMetadataText"><a class="ytAttributedStringLink" href="/@Misacat33">ASMR misa</a></span>
+                            <span class="ytContentMetadataViewModelMetadataText">3 個月前</span>
+                        </div>
+                        <div class="ytContentMetadataViewModelMetadataRow">
+                            <yt-badge-view-model><badge-shape class="ytBadgeShapeHost ytBadgeShapePromoted"><div class="ytBadgeShapeText">YouTube 精選</div></badge-shape></yt-badge-view-model>
+                            <yt-badge-view-model><badge-shape class="ytBadgeShapeHost ytBadgeShapeCommerce"><div class="ytBadgeShapeText">$0 元試用</div></badge-shape></yt-badge-view-model>
+                        </div>
+                    </yt-content-metadata-view-model>
+                </yt-lockup-metadata-view-model>
+            </yt-lockup-view-model>
+        </ytd-rich-item-renderer>
+    `, { url: 'https://www.youtube.com/' });
+
+    const oldWindow = (global as any).window;
+    const oldDocument = (global as any).document;
+
+    (global as any).window = suiteDom.window;
+    (global as any).document = suiteDom.window.document;
+    (global as any).HTMLElement = suiteDom.window.HTMLElement;
+    (global as any).Element = suiteDom.window.Element;
+    (global as any).Node = suiteDom.window.Node;
+
+    const el = document.getElementById('video-root') as HTMLElement;
+    const video = new LazyVideoData(el);
+
+    TestRunner.assert('camelCase 的 promoted／commerce 標記視為會員專屬', video.isMembers);
+    TestRunner.assertEqual('camelCase 的縮圖標記提取時長 (秒)', video.duration, 2048);
+
+    (global as any).window = oldWindow;
+    (global as any).document = oldDocument;
+});
+
 TestRunner.suite('LazyVideoData - 跨語系時間回退', () => {
     const previousLang = I18N._lang;
     I18N._lang = 'en';

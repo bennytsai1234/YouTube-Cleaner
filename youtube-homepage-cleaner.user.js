@@ -903,7 +903,7 @@
                 'a.yt-lockup-view-model__content-image[aria-label]',
                 'a[href*="/watch?"][aria-label]'
             ],
-            DURATION: 'ytd-thumbnail-overlay-time-status-renderer, span.ytd-thumbnail-overlay-time-status-renderer, badge-shape .yt-badge-shape__text, yt-thumbnail-badge-view-model .yt-badge-shape__text',
+            DURATION: 'ytd-thumbnail-overlay-time-status-renderer, span.ytd-thumbnail-overlay-time-status-renderer, badge-shape .yt-badge-shape__text, yt-thumbnail-badge-view-model .yt-badge-shape__text, yt-thumbnail-badge-view-model .ytBadgeShapeText',
             CHANNEL: [
                 'ytd-channel-name a',
                 '.ytd-channel-name a',
@@ -929,11 +929,11 @@
         ],
         MEMBERSHIP_UPSELL_SECTION: 'ytd-rich-section-renderer:has(ytd-brand-video-shelf-renderer[has-sponsorships-channel-upsell-view-model])',
         BADGES: {
-            MEMBERS: '.badge-style-type-members-only, .yt-badge-shape--commerce, .yt-badge-shape--promoted, [aria-label*="會員專屬"], [aria-label*="Members only"], [aria-label*="會員優先"], [aria-label*="YouTube 精選"]',
+            MEMBERS: '.badge-style-type-members-only, .yt-badge-shape--commerce, .yt-badge-shape--promoted, .ytBadgeShapeCommerce, .ytBadgeShapePromoted, [aria-label*="會員專屬"], [aria-label*="Members only"], [aria-label*="會員優先"], [aria-label*="YouTube 精選"]',
             SHORTS: 'a[href*="/shorts/"]',
             MIX: 'a[aria-label*="合輯"], a[aria-label*="Mix"]'
         },
-        INTERACTION_EXCLUDE: 'button, yt-icon-button, #menu, ytd-menu-renderer, ytd-menu-popup-renderer, ytd-toggle-button-renderer, yt-chip-cloud-chip-renderer, .yt-spec-button-shape-next, .yt-core-attributed-string__link, #subscribe-button, .ytp-progress-bar, .ytp-chrome-bottom',
+        INTERACTION_EXCLUDE: 'button, yt-icon-button, #menu, ytd-menu-renderer, ytd-menu-popup-renderer, ytd-toggle-button-renderer, yt-chip-cloud-chip-renderer, .yt-spec-button-shape-next, .yt-core-attributed-string__link, .ytAttributedStringLink, #subscribe-button, .ytp-progress-bar, .ytp-chrome-bottom',
         CLICKABLE: [
             'ytd-rich-item-renderer', 'ytd-video-renderer', 'ytd-compact-video-renderer',
             'yt-lockup-view-model', 'ytd-playlist-renderer', 'ytd-compact-playlist-renderer',

@@ -6,6 +6,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+### Fixed
+- **Badge Selectors**: YouTube 把 badge 的 class 改成 camelCase（`ytBadgeShapePromoted`／`ytBadgeShapeCommerce`／`ytBadgeShapeText`），補上對應 selector：首頁帶「YouTube 精選」「$0 元試用」標記的付費頻道影片重新由「會員專屬」規則隱藏，新版卡片的時長篩選也恢復作用。
+- **Interaction Enhancer**: 新版卡片的頻道名稱連結（`ytAttributedStringLink`）恢復交由 YouTube 原生處理，和改版前一致。
+
+### Tests
+- 新增 camelCase class 卡片的回歸測試。
 
 ## [2.1.19] - 2026-08-05
 ### Fixed
