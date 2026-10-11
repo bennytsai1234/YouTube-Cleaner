@@ -6,6 +6,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+
+## [2.1.21] - 2026-10-11
 ### Fixed
 - **Text Rules Scope**: 文字規則不再比對整張卡片的文字，改回各自的範圍（v1.5.2 重寫時遺失）：區塊規則（新聞、貼文、募款、電影、YouTube 精選等）只比對區塊標題列，會員專屬／會員優先只比對 badge，合輯比對 badge 與標題開頭，Trending 比對標題。標題剛好含「投稿」「ニュース」「募款」「YouTube 精選」「頻道會員專屬」等字樣的一般影片不再被誤藏，區塊內的影片標題也不會讓整個區塊被隱藏。
 - **Paid Channel Badge**: 帶「YouTube 精選」標記的付費頻道影片改由「會員專屬」規則處理（可用會員白名單豁免），不再被誤記成「電影推薦」；首頁 Premium 橫幅也不再被記成「電影推薦」。
