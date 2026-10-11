@@ -27,7 +27,7 @@ Tampermonkey 使用者腳本。TypeScript 原始碼在 `src/`，Rollup 打包成
 - 單元測試沒有框架：`node --test` 用 `tsx` 執行 `test/*-test.ts`，jsdom 加 `test/helpers/browser-env.ts` mock GM API。
 - pre-commit（husky，`npm install` 時自動裝上）：lint-staged 跑 ESLint、typecheck、單元測試。
 - 改 `src/` 後執行 `npm run build`，打包檔和原始碼放在同一個 commit。
-- 沒有 E2E。改 selector 或互動行為時，除了單元測試，還要在真實 YouTube 上確認受影響的頁面。
+- 沒有 E2E。改 selector、過濾規則或互動行為時，除了單元測試，push 前照 `.claude/skills/live-verify/SKILL.md` 在真實 YouTube 上確認受影響的頁面。
 
 ## 已知風險
 
