@@ -104,7 +104,7 @@ export const SELECTORS: SelectorsType = {
     ],
 
     // 區塊標題列的文字元素（區塊文字規則逐一比對）：標題、副標題，以及標題旁的「YouTube 精選」標記
-    SHELF_HEADER_TEXT: '#title, #subtitle, #featured-badge, h2, .yt-shelf-header-layout__title, .yt-shelf-header-layout__sublabel',
+    SHELF_HEADER_TEXT: '#title, #subtitle, #featured-badge, h2, .yt-shelf-header-layout__title, .yt-shelf-header-layout__sublabel, .ytShelfHeaderLayoutTitle, .ytShelfHeaderLayoutSublabel',
 
     // 首頁會員招募區塊（YouTube 動態載入的推薦頻道 upsell）
     MEMBERSHIP_UPSELL_SECTION: 'ytd-rich-section-renderer:has(ytd-brand-video-shelf-renderer[has-sponsorships-channel-upsell-view-model])',

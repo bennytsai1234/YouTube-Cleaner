@@ -6,6 +6,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+### Fixed
+- **Shelf Header Selectors**: YouTube 把區塊標題列（`yt-shelf-header-layout`）的 class 改成 camelCase（`ytShelfHeaderLayoutTitle`／`ytShelfHeaderLayoutSublabel`），補上對應 selector：首頁副標題帶「YouTube 精選」標記的區塊（例如「享受更多會員福利」會員招募區塊）重新被隱藏。
+
+### Tests
+- 新增 camelCase 標題列區塊的回歸測試。
 
 ## [2.1.21] - 2026-10-11
 ### Fixed

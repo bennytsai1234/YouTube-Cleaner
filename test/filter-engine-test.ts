@@ -398,6 +398,20 @@ TestRunner.suite('FilterEngine - 區塊規則只比對區塊標題列', () => {
     const movies = detailFor(richShelfSection('為你推薦', 'YouTube 精選'), 'ytd-rich-section-renderer');
     TestRunner.assert('標題列的 YouTube 精選標記應命中 movies_shelf', movies?.reason === 'movies_shelf');
 
+    // 新版標題列（yt-shelf-header-layout）的 class 是 camelCase；「YouTube 精選」標記在副標題列
+    const brandShelf = detailFor(`
+        <ytd-rich-section-renderer>
+            <ytd-brand-video-shelf-renderer has-section-header>
+                <yt-section-header-view-model><yt-shelf-header-layout class="ytShelfHeaderLayoutHost">
+                    <div class="ytShelfHeaderLayoutTitleRow"><h2 class="ytShelfHeaderLayoutTitle"><span>享受更多會員福利</span></h2></div>
+                    <div class="ytShelfHeaderLayoutSublabel"><span><yt-badge-view-model>
+                        <badge-shape class="ytBadgeShapeHost ytBadgeShapePromoted"><div class="ytBadgeShapeText">YouTube 精選</div></badge-shape>
+                    </yt-badge-view-model></span></div>
+                </yt-shelf-header-layout></yt-section-header-view-model>
+            </ytd-brand-video-shelf-renderer>
+        </ytd-rich-section-renderer>`, 'ytd-rich-section-renderer');
+    TestRunner.assert(`camelCase 標題列副標題的 YouTube 精選標記應讓區塊被過濾（實際：${brandShelf?.reason ?? 'null'}）`, brandShelf !== null);
+
     const innocent = detailFor(richShelfSection('為你推薦', '', lockupCard('Breaking News today') + lockupCard('募款活動紀錄')), 'ytd-rich-section-renderer');
     TestRunner.assert(`區塊內影片標題不應讓整個區塊被過濾（實際：${innocent?.reason ?? 'null'}）`, innocent === null);
 
