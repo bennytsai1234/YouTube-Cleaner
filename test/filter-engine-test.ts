@@ -422,14 +422,19 @@ TestRunner.suite('FilterEngine - 區塊規則只比對區塊標題列', () => {
     const shorts = detailFor(richShelfSection('Shorts'), 'ytd-rich-section-renderer');
     TestRunner.assert(`標題剛好是 Shorts 應命中 shorts_block（實際：${shorts?.reason ?? 'null'}）`, shorts?.reason === 'shorts_block');
 
-    const movies = detailFor(richShelfSection('為你推薦', 'YouTube 精選'), 'ytd-rich-section-renderer');
-    TestRunner.assert('標題列的 YouTube 精選標記應命中 movies_shelf', movies?.reason === 'movies_shelf');
+    const featured = detailFor(richShelfSection('為你推薦', 'YouTube 精選'), 'ytd-rich-section-renderer');
+    TestRunner.assert(`標題列的 YouTube 精選標記應命中 youtube_featured_shelf（實際：${featured?.reason ?? 'null'}）`, featured?.reason === 'youtube_featured_shelf');
+
+    const movies = detailFor(richShelfSection('為你推薦的特選電影', 'YouTube 精選'), 'ytd-rich-section-renderer');
+    TestRunner.assert(`電影區塊標題應命中 movies_shelf（實際：${movies?.reason ?? 'null'}）`, movies?.reason === 'movies_shelf');
 
     const brandShelf = detailFor(brandShelfSection('享受更多會員福利', 'YouTube 精選'), 'ytd-rich-section-renderer');
-    TestRunner.assert(`camelCase 標題列副標題的 YouTube 精選標記應讓區塊被過濾（實際：${brandShelf?.trigger ?? 'null'}）`, !!brandShelf?.trigger?.includes('"YouTube 精選"'));
+    TestRunner.assert(`camelCase 標題列副標題的 YouTube 精選標記應命中 youtube_featured_shelf（實際：${brandShelf?.reason ?? 'null'} ${brandShelf?.trigger ?? ''}）`,
+        brandShelf?.reason === 'youtube_featured_shelf' && !!brandShelf.trigger?.includes('"YouTube 精選"'));
 
     const brandSingleton = detailFor(brandSingletonSection('探索會員專屬內容', 'YouTube 精選', '某頻道的會員影片'), 'ytd-rich-section-renderer');
-    TestRunner.assert(`單支影片推廣卡的 YouTube 精選標記應讓區塊被過濾（實際：${brandSingleton?.trigger ?? 'null'}）`, !!brandSingleton?.trigger?.includes('"YouTube 精選"'));
+    TestRunner.assert(`單支影片推廣卡的 YouTube 精選標記應命中 youtube_featured_shelf（實際：${brandSingleton?.reason ?? 'null'} ${brandSingleton?.trigger ?? ''}）`,
+        brandSingleton?.reason === 'youtube_featured_shelf' && !!brandSingleton.trigger?.includes('"YouTube 精選"'));
 
     // 推廣卡裡的影片（ytd-rich-grid-media）標題含關鍵字，不應讓區塊被過濾
     const singletonVideo = detailFor(brandSingletonSection('探索會員專屬內容', '', 'YouTube 精選 募款 Breaking News'), 'ytd-rich-section-renderer');
@@ -443,6 +448,15 @@ TestRunner.suite('FilterEngine - 區塊規則只比對區塊標題列', () => {
 
     const grid = detailFor('<grid-shelf-view-model><h2>Shorts</h2></grid-shelf-view-model>', 'grid-shelf-view-model');
     TestRunner.assert(`搜尋頁 Shorts 格狀區塊應命中 shorts_grid_shelf（實際：${grid?.reason ?? 'null'}）`, grid?.reason === 'shorts_grid_shelf');
+});
+
+TestRunner.suite('FilterEngine - 關閉 YouTube 精選規則後，電影規則不會接手', () => {
+    const config = new MockConfig() as any;
+    config.state.RULE_ENABLES = { ...config.state.RULE_ENABLES, youtube_featured_shelf: false };
+    const engine = new FilterEngine(config);
+    const section = new JSDOM(brandShelfSection('享受更多會員福利', 'YouTube 精選')).window.document.querySelector('ytd-rich-section-renderer') as any;
+    const detail = engine.findFilterDetail(new LazyVideoData(section), false);
+    TestRunner.assert(`關閉 youtube_featured_shelf 時區塊不應被過濾（實際：${detail?.reason ?? 'null'}）`, detail === null);
 });
 
 TestRunner.suite('FilterEngine - 欄位標題黑名單讀得到新版區塊標題', () => {

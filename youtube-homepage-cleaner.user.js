@@ -696,7 +696,7 @@
         { id: 'playables_block', defaultEnabled: true, textRules: [shelf(/Playables|遊戲角落/i)] },
         { id: 'fundraiser_block', defaultEnabled: true, textRules: [shelf(/Fundraiser|募款/i)] },
         { id: 'shorts_grid_shelf', defaultEnabled: true, textRules: [{ target: 'grid_shelf_header', pattern: /^Shorts$/i }] },
-        { id: 'movies_shelf', defaultEnabled: true, textRules: [shelf(/為你推薦的特選電影|featured movies|YouTube 精選/i)] },
+        { id: 'movies_shelf', defaultEnabled: true, textRules: [shelf(/為你推薦的特選電影|featured movies/i)] },
         { id: 'youtube_featured_shelf', defaultEnabled: true, textRules: [shelf(/YouTube 精選/i)] },
         { id: 'popular_gaming_shelf', defaultEnabled: true, textRules: [shelf(/熱門遊戲直播/i)] },
         { id: 'more_from_game_shelf', defaultEnabled: true, textRules: [shelf(/^更多此遊戲相關內容$/i)] },

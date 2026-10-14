@@ -11,6 +11,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Featured Singleton Card**: 首頁「探索會員專屬內容」這類單支影片推廣卡，「YouTube 精選」標記放在 `#featured-badge-container`，v2.1.21 把文字規則改成只看標題列後就漏掉了，現在重新被隱藏。
 - **Section Title Blacklist**: 欄位標題黑名單讀得到新版標題列（`ytShelfHeaderLayoutTitle`）與單支影片推廣卡的標題，把「享受更多會員福利」「探索會員專屬內容」這類標題加進黑名單會生效。
 
+### Changed
+- **YouTube 精選 / 電影推薦**: 「電影推薦」規則不再比對「YouTube 精選」，帶這個標記的區塊只由「YouTube 精選」規則處理，統計也記在這條規則下；關掉「YouTube 精選」規則後這類區塊會照常顯示。電影區塊仍以「為你推薦的特選電影」等標題判斷。
+
 ### Tests
 - 新增 camelCase 標題列區塊、單支影片推廣卡與欄位標題黑名單的回歸測試，並確認推廣卡內的影片標題不會被當成區塊標題。
 
