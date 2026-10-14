@@ -930,7 +930,10 @@
             '#rich-shelf-header #title',
             'ytd-reel-shelf-renderer #title',
             'h2#title',
-            '.ytd-shelf-renderer #title'
+            '.ytd-shelf-renderer #title',
+            '.yt-shelf-header-layout__title',
+            '.ytShelfHeaderLayoutTitle',
+            'ytd-brand-video-singleton-renderer #metadata-text-container #title'
         ],
         SHELF_HEADER_TEXT: '#title, #subtitle, #featured-badge, #featured-badge-container, h2,.yt-shelf-header-layout__title, .yt-shelf-header-layout__sublabel, .ytShelfHeaderLayoutTitle, .ytShelfHeaderLayoutSublabel',
         MEMBERSHIP_UPSELL_SECTION: 'ytd-rich-section-renderer:has(ytd-brand-video-shelf-renderer[has-sponsorships-channel-upsell-view-model])',

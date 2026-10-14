@@ -340,6 +340,33 @@ const richShelfSection = (title: string, featuredBadge = '', items = ''): string
         </div>
     </ytd-rich-section-renderer>`;
 
+// 新版標題列（yt-shelf-header-layout）的 class 是 camelCase；「YouTube 精選」標記在副標題列
+const brandShelfSection = (title: string, featuredBadge = ''): string => `
+    <ytd-rich-section-renderer>
+        <ytd-brand-video-shelf-renderer has-section-header>
+            <yt-section-header-view-model><yt-shelf-header-layout class="ytShelfHeaderLayoutHost">
+                <div class="ytShelfHeaderLayoutTitleRow"><h2 class="ytShelfHeaderLayoutTitle"><span>${title}</span></h2></div>
+                <div class="ytShelfHeaderLayoutSublabel"><span><yt-badge-view-model>
+                    <badge-shape class="ytBadgeShapeHost ytBadgeShapePromoted"><div class="ytBadgeShapeText">${featuredBadge}</div></badge-shape>
+                </yt-badge-view-model></span></div>
+            </yt-shelf-header-layout></yt-section-header-view-model>
+        </ytd-brand-video-shelf-renderer>
+    </ytd-rich-section-renderer>`;
+
+// 首頁單支影片推廣卡：標題在 metadata 區，「YouTube 精選」標記在 #featured-badge-container
+const brandSingletonSection = (title: string, featuredBadge = '', videoTitle = ''): string => `
+    <ytd-rich-section-renderer>
+        <ytd-brand-video-singleton-renderer>
+            <div id="content-wrapper">
+                <div id="thumbnail-container"><ytd-rich-grid-media><h3><a id="video-title">${videoTitle}</a></h3></ytd-rich-grid-media></div>
+                <div id="metadata-container"><div id="metadata-text-container">
+                    <div id="title-container"><yt-formatted-string id="title">${title}</yt-formatted-string></div>
+                    <div id="featured-badge-container"><yt-formatted-string>${featuredBadge}</yt-formatted-string></div>
+                </div></div>
+            </div>
+        </ytd-brand-video-singleton-renderer>
+    </ytd-rich-section-renderer>`;
+
 const detailFor = (html: string, selector: string) => {
     const engine = new FilterEngine(new MockConfig() as any);
     const el = new JSDOM(html).window.document.querySelector(selector) as any;
@@ -398,34 +425,15 @@ TestRunner.suite('FilterEngine - 區塊規則只比對區塊標題列', () => {
     const movies = detailFor(richShelfSection('為你推薦', 'YouTube 精選'), 'ytd-rich-section-renderer');
     TestRunner.assert('標題列的 YouTube 精選標記應命中 movies_shelf', movies?.reason === 'movies_shelf');
 
-    // 新版標題列（yt-shelf-header-layout）的 class 是 camelCase；「YouTube 精選」標記在副標題列
-    const brandShelf = detailFor(`
-        <ytd-rich-section-renderer>
-            <ytd-brand-video-shelf-renderer has-section-header>
-                <yt-section-header-view-model><yt-shelf-header-layout class="ytShelfHeaderLayoutHost">
-                    <div class="ytShelfHeaderLayoutTitleRow"><h2 class="ytShelfHeaderLayoutTitle"><span>享受更多會員福利</span></h2></div>
-                    <div class="ytShelfHeaderLayoutSublabel"><span><yt-badge-view-model>
-                        <badge-shape class="ytBadgeShapeHost ytBadgeShapePromoted"><div class="ytBadgeShapeText">YouTube 精選</div></badge-shape>
-                    </yt-badge-view-model></span></div>
-                </yt-shelf-header-layout></yt-section-header-view-model>
-            </ytd-brand-video-shelf-renderer>
-        </ytd-rich-section-renderer>`, 'ytd-rich-section-renderer');
-    TestRunner.assert(`camelCase 標題列副標題的 YouTube 精選標記應讓區塊被過濾（實際：${brandShelf?.reason ?? 'null'}）`, brandShelf !== null);
+    const brandShelf = detailFor(brandShelfSection('享受更多會員福利', 'YouTube 精選'), 'ytd-rich-section-renderer');
+    TestRunner.assert(`camelCase 標題列副標題的 YouTube 精選標記應讓區塊被過濾（實際：${brandShelf?.trigger ?? 'null'}）`, !!brandShelf?.trigger?.includes('"YouTube 精選"'));
 
-    // 單支影片推廣卡：標記在 #featured-badge-container，不在標題列
-    const brandSingleton = detailFor(`
-        <ytd-rich-section-renderer>
-            <ytd-brand-video-singleton-renderer>
-                <div id="content-wrapper">
-                    <div id="thumbnail-container"><ytd-rich-grid-media><h3><a id="video-title">某頻道的會員影片</a></h3></ytd-rich-grid-media></div>
-                    <div id="metadata-container"><div id="metadata-text-container">
-                        <div id="title-container"><yt-formatted-string id="title">探索會員專屬內容</yt-formatted-string></div>
-                        <div id="featured-badge-container"><yt-formatted-string>YouTube 精選</yt-formatted-string></div>
-                    </div></div>
-                </div>
-            </ytd-brand-video-singleton-renderer>
-        </ytd-rich-section-renderer>`, 'ytd-rich-section-renderer');
-    TestRunner.assert(`單支影片推廣卡的 YouTube 精選標記應讓區塊被過濾（實際：${brandSingleton?.reason ?? 'null'}）`, brandSingleton !== null);
+    const brandSingleton = detailFor(brandSingletonSection('探索會員專屬內容', 'YouTube 精選', '某頻道的會員影片'), 'ytd-rich-section-renderer');
+    TestRunner.assert(`單支影片推廣卡的 YouTube 精選標記應讓區塊被過濾（實際：${brandSingleton?.trigger ?? 'null'}）`, !!brandSingleton?.trigger?.includes('"YouTube 精選"'));
+
+    // 推廣卡裡的影片（ytd-rich-grid-media）標題含關鍵字，不應讓區塊被過濾
+    const singletonVideo = detailFor(brandSingletonSection('探索會員專屬內容', '', 'YouTube 精選 募款 Breaking News'), 'ytd-rich-section-renderer');
+    TestRunner.assert(`推廣卡內影片標題不應讓區塊被過濾（實際：${singletonVideo?.reason ?? 'null'}）`, singletonVideo === null);
 
     const innocent = detailFor(richShelfSection('為你推薦', '', lockupCard('Breaking News today') + lockupCard('募款活動紀錄')), 'ytd-rich-section-renderer');
     TestRunner.assert(`區塊內影片標題不應讓整個區塊被過濾（實際：${innocent?.reason ?? 'null'}）`, innocent === null);
@@ -435,6 +443,22 @@ TestRunner.suite('FilterEngine - 區塊規則只比對區塊標題列', () => {
 
     const grid = detailFor('<grid-shelf-view-model><h2>Shorts</h2></grid-shelf-view-model>', 'grid-shelf-view-model');
     TestRunner.assert(`搜尋頁 Shorts 格狀區塊應命中 shorts_grid_shelf（實際：${grid?.reason ?? 'null'}）`, grid?.reason === 'shorts_grid_shelf');
+});
+
+TestRunner.suite('FilterEngine - 欄位標題黑名單讀得到新版區塊標題', () => {
+    const config = new MockConfig() as any;
+    config.state.compiledSectionBlacklist = [/會員/];
+    const engine = new FilterEngine(config);
+    const sectionOf = (html: string) => new JSDOM(html).window.document.querySelector('ytd-rich-section-renderer') as any;
+
+    const shelf = engine.checkSectionFilter(sectionOf(brandShelfSection('享受更多會員福利')));
+    TestRunner.assert(`camelCase 標題列的標題應被欄位黑名單比對（實際：${shelf?.trigger ?? 'null'}）`, shelf?.trigger === 'Title: "享受更多會員福利"');
+
+    const singleton = engine.checkSectionFilter(sectionOf(brandSingletonSection('探索會員專屬內容', '', '會員抽獎影片')));
+    TestRunner.assert(`推廣卡的標題應被欄位黑名單比對（實際：${singleton?.trigger ?? 'null'}）`, singleton?.trigger === 'Title: "探索會員專屬內容"');
+
+    const videoOnly = engine.checkSectionFilter(sectionOf(brandSingletonSection('探索精選內容', '', '會員抽獎影片')));
+    TestRunner.assert(`推廣卡內影片標題不應被當成區塊標題（實際：${videoOnly?.trigger ?? 'null'}）`, videoOnly === null);
 });
 
 if (!TestRunner.summary()) {

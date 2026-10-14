@@ -100,7 +100,10 @@ export const SELECTORS: SelectorsType = {
         '#rich-shelf-header #title',           // 標準首頁 Shelf
         'ytd-reel-shelf-renderer #title',      // Shorts Shelf
         'h2#title',                            // 通用
-        '.ytd-shelf-renderer #title'
+        '.ytd-shelf-renderer #title',
+        '.yt-shelf-header-layout__title',      // 新版標題列
+        '.ytShelfHeaderLayoutTitle',
+        'ytd-brand-video-singleton-renderer #metadata-text-container #title' // 首頁單支影片推廣卡
     ],
 
     // 區塊標題列的文字元素（區塊文字規則逐一比對）：標題、副標題，以及標題旁的「YouTube 精選」標記
