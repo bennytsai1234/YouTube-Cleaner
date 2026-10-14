@@ -6,6 +6,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+
+## [2.1.22] - 2026-10-15
 ### Fixed
 - **Shelf Header Selectors**: YouTube 把區塊標題列（`yt-shelf-header-layout`）的 class 改成 camelCase（`ytShelfHeaderLayoutTitle`／`ytShelfHeaderLayoutSublabel`），補上對應 selector：首頁副標題帶「YouTube 精選」標記的區塊（例如「享受更多會員福利」會員招募區塊）重新被隱藏。
 - **Featured Singleton Card**: 首頁「探索會員專屬內容」這類單支影片推廣卡，「YouTube 精選」標記放在 `#featured-badge-container`，v2.1.21 把文字規則改成只看標題列後就漏掉了，現在重新被隱藏。
