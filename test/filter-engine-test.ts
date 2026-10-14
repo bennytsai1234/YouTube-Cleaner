@@ -412,6 +412,21 @@ TestRunner.suite('FilterEngine - 區塊規則只比對區塊標題列', () => {
         </ytd-rich-section-renderer>`, 'ytd-rich-section-renderer');
     TestRunner.assert(`camelCase 標題列副標題的 YouTube 精選標記應讓區塊被過濾（實際：${brandShelf?.reason ?? 'null'}）`, brandShelf !== null);
 
+    // 單支影片推廣卡：標記在 #featured-badge-container，不在標題列
+    const brandSingleton = detailFor(`
+        <ytd-rich-section-renderer>
+            <ytd-brand-video-singleton-renderer>
+                <div id="content-wrapper">
+                    <div id="thumbnail-container"><ytd-rich-grid-media><h3><a id="video-title">某頻道的會員影片</a></h3></ytd-rich-grid-media></div>
+                    <div id="metadata-container"><div id="metadata-text-container">
+                        <div id="title-container"><yt-formatted-string id="title">探索會員專屬內容</yt-formatted-string></div>
+                        <div id="featured-badge-container"><yt-formatted-string>YouTube 精選</yt-formatted-string></div>
+                    </div></div>
+                </div>
+            </ytd-brand-video-singleton-renderer>
+        </ytd-rich-section-renderer>`, 'ytd-rich-section-renderer');
+    TestRunner.assert(`單支影片推廣卡的 YouTube 精選標記應讓區塊被過濾（實際：${brandSingleton?.reason ?? 'null'}）`, brandSingleton !== null);
+
     const innocent = detailFor(richShelfSection('為你推薦', '', lockupCard('Breaking News today') + lockupCard('募款活動紀錄')), 'ytd-rich-section-renderer');
     TestRunner.assert(`區塊內影片標題不應讓整個區塊被過濾（實際：${innocent?.reason ?? 'null'}）`, innocent === null);
 

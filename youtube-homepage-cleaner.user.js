@@ -932,7 +932,7 @@
             'h2#title',
             '.ytd-shelf-renderer #title'
         ],
-        SHELF_HEADER_TEXT: '#title, #subtitle, #featured-badge, h2, .yt-shelf-header-layout__title, .yt-shelf-header-layout__sublabel, .ytShelfHeaderLayoutTitle, .ytShelfHeaderLayoutSublabel',
+        SHELF_HEADER_TEXT: '#title, #subtitle, #featured-badge, #featured-badge-container, h2,.yt-shelf-header-layout__title, .yt-shelf-header-layout__sublabel, .ytShelfHeaderLayoutTitle, .ytShelfHeaderLayoutSublabel',
         MEMBERSHIP_UPSELL_SECTION: 'ytd-rich-section-renderer:has(ytd-brand-video-shelf-renderer[has-sponsorships-channel-upsell-view-model])',
         BADGES: {
             MEMBERS: ['.badge-style-type-members-only', '.yt-badge-shape--commerce', '.yt-badge-shape--promoted', '.ytBadgeShapeCommerce', '.ytBadgeShapePromoted',
