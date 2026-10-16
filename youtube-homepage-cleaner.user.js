@@ -1305,6 +1305,7 @@
         config;
         customRules;
         subManager;
+        keptLogs = new WeakMap();
         constructor(config) {
             this.config = config;
             this.customRules = new CustomRuleManager(config);
@@ -1472,7 +1473,7 @@
             const isLowViewRule = detail.reason === 'low_view' || detail.reason === 'low_viewer_live';
             if (isLowViewRule && scope !== 'none' && !isStrongRule(detail.reason, priorities)) {
                 if (this.subManager.isSubscribed(item.channel)) {
-                    Logger.info(`✅ Keep [Protected by Subscription]: ${item.channel} | ${item.title}
+                    this.logKeep(item, `✅ Keep [Protected by Subscription]: ${item.channel} | ${item.title}
 (Originally Triggered: ${detail.reason})`);
                     return 'channel_whitelist';
                 }
@@ -1480,7 +1481,7 @@
             if (scope === 'members') {
                 const compiledMembers = this.config.get('compiledMembersWhitelist');
                 if (compiledMembers && compiledMembers.some(rx => rx.test(item.channel))) {
-                    Logger.info(`✅ Keep [Saved by Members Whitelist]: ${item.channel} | ${item.title}`);
+                    this.logKeep(item, `✅ Keep [Saved by Members Whitelist]: ${item.channel} | ${item.title}`);
                     return 'channel_whitelist';
                 }
                 return null;
@@ -1493,9 +1494,15 @@
             const savedBy = whitelistReason === 'channel_whitelist' ? 'Channel' : 'Keyword';
             const trigger = detail.trigger ? ` [${detail.trigger}]` : '';
             const ruleInfo = detail.rule ? ` {Rule: ${detail.rule}}` : '';
-            Logger.info(`✅ Keep [Saved by ${savedBy} Whitelist]: ${item.channel} | ${item.title}
+            this.logKeep(item, `✅ Keep [Saved by ${savedBy} Whitelist]: ${item.channel} | ${item.title}
 (Originally Triggered: ${detail.reason}${trigger}${ruleInfo})`);
             return whitelistReason;
+        }
+        logKeep(item, message) {
+            if (this.keptLogs.get(item.el) === message)
+                return;
+            this.keptLogs.set(item.el, message);
+            Logger.info(message);
         }
         getStrongRuleMatch(item) {
             if (this.config.get('RULE_ENABLES').shorts_item && item.isShorts) {
@@ -1842,10 +1849,7 @@ URL: ${item.url}`);
                 /^\/playlist/.test(path);
         }
         processMutations(mutations) {
-            if (mutations.length > MUTATION_THRESHOLD) {
-                this.processPage();
-                return;
-            }
+            const isLargeBatch = mutations.length > MUTATION_THRESHOLD;
             const candidates = new Set();
             for (const mutation of mutations) {
                 for (const node of Array.from(mutation.addedNodes)) {
@@ -1854,9 +1858,11 @@ URL: ${item.url}`);
                             : null;
                     if (!el)
                         continue;
-                    if (el.matches?.(SELECTORS.allContainers))
-                        candidates.add(el);
-                    el.querySelectorAll?.(SELECTORS.allContainers).forEach(c => candidates.add(c));
+                    if (!isLargeBatch) {
+                        if (el.matches?.(SELECTORS.allContainers))
+                            candidates.add(el);
+                        el.querySelectorAll?.(SELECTORS.allContainers).forEach(c => candidates.add(c));
+                    }
                     const parentContainer = el.closest?.(SELECTORS.allContainers);
                     if (parentContainer) {
                         delete parentContainer.dataset.ypChecked;
@@ -1864,6 +1870,10 @@ URL: ${item.url}`);
                         candidates.add(parentContainer);
                     }
                 }
+            }
+            if (isLargeBatch) {
+                this.processPage();
+                return;
             }
             if (candidates.size > 0)
                 this.processBatch(Array.from(candidates), 0);

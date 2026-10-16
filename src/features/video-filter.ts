@@ -57,11 +57,8 @@ export class VideoFilter {
     }
 
     public processMutations(mutations: MutationRecord[]): void {
-        if (mutations.length > MUTATION_THRESHOLD) {
-            this.processPage();
-            return;
-        }
-
+        // 大批次改走整頁掃描，但整頁掃描只處理沒有檢查標記的容器，內容晚到的容器仍要先清掉標記
+        const isLargeBatch = mutations.length > MUTATION_THRESHOLD;
         const candidates = new Set<HTMLElement>();
         for (const mutation of mutations) {
             for (const node of Array.from(mutation.addedNodes)) {
@@ -72,8 +69,10 @@ export class VideoFilter {
                         : null;
                 if (!el) continue;
 
-                if (el.matches?.(SELECTORS.allContainers)) candidates.add(el);
-                el.querySelectorAll?.(SELECTORS.allContainers).forEach(c => candidates.add(c as HTMLElement));
+                if (!isLargeBatch) {
+                    if (el.matches?.(SELECTORS.allContainers)) candidates.add(el);
+                    el.querySelectorAll?.(SELECTORS.allContainers).forEach(c => candidates.add(c as HTMLElement));
+                }
 
                 const parentContainer = el.closest?.(SELECTORS.allContainers) as HTMLElement;
                 if (parentContainer) {
@@ -84,6 +83,11 @@ export class VideoFilter {
                     candidates.add(parentContainer);
                 }
             }
+        }
+
+        if (isLargeBatch) {
+            this.processPage();
+            return;
         }
 
         if (candidates.size > 0) this.processBatch(Array.from(candidates), 0);

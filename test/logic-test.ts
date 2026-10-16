@@ -337,6 +337,35 @@ TestRunner.suite('VideoFilter - 子節點更新時應重新排程父容器', () 
     TestRunner.assert('父容器應被加入待處理批次', queuedParent === parent);
 });
 
+// 大批次改走整頁掃描，整頁掃描只處理沒有檢查標記的容器，所以內容晚到的容器要先清掉標記
+TestRunner.suite('VideoFilter - 大批次 mutations 也應清除內容更新容器的檢查標記', () => {
+    document.body.innerHTML = `
+        <ytd-rich-item-renderer id="outer" data-yp-checked="true">
+            <yt-lockup-view-model id="inner" data-yp-checked="true"><div id="label"></div></yt-lockup-view-model>
+        </ytd-rich-item-renderer>
+    `;
+
+    const filter = new VideoFilter(new MockConfig() as any);
+    const outer = document.getElementById('outer') as HTMLElement;
+    const inner = document.getElementById('inner') as HTMLElement;
+    let processPageCount = 0;
+    filter.processPage = () => {
+        processPageCount++;
+    };
+
+    const text = document.createTextNode('頻道會員專屬');
+    (document.getElementById('label') as HTMLElement).appendChild(text);
+    const mutations = [
+        ...Array.from({ length: 100 }, () => ({ addedNodes: [] })),
+        { addedNodes: [text] }
+    ] as unknown as MutationRecord[];
+    filter.processMutations(mutations);
+
+    TestRunner.assert('應改走整頁掃描', processPageCount === 1);
+    TestRunner.assert('內層 ypChecked 應被清除', !inner.dataset.ypChecked);
+    TestRunner.assert('外層 ypChecked 應被清除', !outer.dataset.ypChecked);
+});
+
 // 首頁卡片是兩層容器，處理時看的是外層的檢查標記
 TestRunner.suite('VideoFilter - 巢狀卡片內容更新時應清除外層檢查標記', () => {
     document.body.innerHTML = `

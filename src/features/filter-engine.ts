@@ -18,6 +18,8 @@ export class FilterEngine {
     private config: ConfigManager;
     private customRules: CustomRuleManager;
     public subManager: SubscriptionManager;
+    // 內容晚到時同一張卡片會重新判斷很多次，相同的保留訊息只記一次
+    private keptLogs = new WeakMap<HTMLElement, string>();
 
     constructor(config: ConfigManager) {
         this.config = config;
@@ -201,7 +203,7 @@ export class FilterEngine {
         // 訂閱頻道保護只保護低觀看數類規則，避免放行關鍵字、頻道黑名單或會員優先內容。
         if (isLowViewRule && scope !== 'none' && !isStrongRule(detail.reason, priorities)) {
             if (this.subManager.isSubscribed(item.channel)) {
-                Logger.info(`✅ Keep [Protected by Subscription]: ${item.channel} | ${item.title}
+                this.logKeep(item, `✅ Keep [Protected by Subscription]: ${item.channel} | ${item.title}
 (Originally Triggered: ${detail.reason})`);
                 return 'channel_whitelist';
             }
@@ -210,7 +212,7 @@ export class FilterEngine {
         if (scope === 'members') {
             const compiledMembers = this.config.get('compiledMembersWhitelist');
             if (compiledMembers && compiledMembers.some(rx => rx.test(item.channel))) {
-                Logger.info(`✅ Keep [Saved by Members Whitelist]: ${item.channel} | ${item.title}`);
+                this.logKeep(item, `✅ Keep [Saved by Members Whitelist]: ${item.channel} | ${item.title}`);
                 return 'channel_whitelist';
             }
             return null;
@@ -224,10 +226,16 @@ export class FilterEngine {
         const savedBy = whitelistReason === 'channel_whitelist' ? 'Channel' : 'Keyword';
         const trigger = detail.trigger ? ` [${detail.trigger}]` : '';
         const ruleInfo = detail.rule ? ` {Rule: ${detail.rule}}` : '';
-        Logger.info(`✅ Keep [Saved by ${savedBy} Whitelist]: ${item.channel} | ${item.title}
+        this.logKeep(item, `✅ Keep [Saved by ${savedBy} Whitelist]: ${item.channel} | ${item.title}
 (Originally Triggered: ${detail.reason}${trigger}${ruleInfo})`);
 
         return whitelistReason;
+    }
+
+    private logKeep(item: LazyVideoData, message: string): void {
+        if (this.keptLogs.get(item.el) === message) return;
+        this.keptLogs.set(item.el, message);
+        Logger.info(message);
     }
 
     private getStrongRuleMatch(item: LazyVideoData): FilterDetail | null {

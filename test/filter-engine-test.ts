@@ -1,6 +1,7 @@
 import { JSDOM } from 'jsdom';
 import { FilterEngine } from '../src/features/filter-engine';
 import { LazyVideoData } from '../src/features/video-data';
+import { Logger } from '../src/core/logger';
 import { TestRunner as Runner } from './helpers/test-runner';
 
 // Mock GM functions
@@ -93,6 +94,7 @@ function createMockVideoData(overrides: any = {}) {
         isUserPlaylist: false,
         url: 'https://youtube.com/watch?v=123',
         raw: { views: '5K views', time: '1 day ago', duration: '5:00', viewers: '' },
+        el: document.createElement('ytd-rich-item-renderer'),
         ...overrides
     };
 }
@@ -274,6 +276,32 @@ TestRunner.suite('FilterEngine - 會員優先觀看可被一般白名單豁免',
         { reason: 'members_early_access' }
     );
     TestRunner.assert('會員優先觀看應可被一般白名單豁免', whitelistDecision === 'channel_whitelist');
+});
+
+// 內容晚到時同一張卡片會重新判斷很多次，相同的保留訊息只記一次
+TestRunner.suite('FilterEngine - 同一張卡片的相同保留訊息只記一次', () => {
+    const engine = new FilterEngine(new MockConfig() as any);
+    const card = new JSDOM('<ytd-rich-item-renderer></ytd-rich-item-renderer>').window.document.querySelector('ytd-rich-item-renderer');
+    const other = new JSDOM('<ytd-rich-item-renderer></ytd-rich-item-renderer>').window.document.querySelector('ytd-rich-item-renderer');
+
+    const logs: string[] = [];
+    const originalInfo = Logger.info;
+    Logger.info = (msg: string) => { logs.push(msg); };
+    try {
+        const decide = (el: any, title: string) => engine.applyWhitelistDecision(
+            createMockVideoData({ el, channel: 'GoodChannel', title }) as any,
+            { reason: 'members_early_access' }
+        );
+        decide(card, '會員優先觀看');
+        const repeated = decide(card, '會員優先觀看');
+        decide(card, '標題改了');
+        decide(other, '會員優先觀看');
+
+        TestRunner.assert('重複判斷仍應回傳白名單結果', repeated === 'channel_whitelist');
+        TestRunner.assert(`相同卡片相同訊息只應記一次，內容改變或不同卡片才再記（實際 ${logs.length} 次）`, logs.length === 3);
+    } finally {
+        Logger.info = originalInfo;
+    }
 });
 
 TestRunner.suite('FilterEngine - 訂閱保護只保護低觀看數', () => {
