@@ -6,6 +6,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+
+## [2.1.23] - 2026-10-16
 ### Fixed
 - **Late-arriving Text**: YouTube 的 Polymer 區塊會先插入空的文字容器，之後才補上文字節點；腳本原本只在新增元素時重新檢查，首頁「享受更多會員福利」會員招募區塊在「YouTube 精選」標記補上前就被判定為不用隱藏，之後一直留在畫面上。現在補進文字時也會重新檢查所屬區塊或卡片，一次載入大量內容、改走整頁掃描時也一樣。
 - **Nested Card Re-check**: 首頁卡片是兩層容器（`ytd-rich-item-renderer` 包 `yt-lockup-view-model`），內容更新時只清掉內層的檢查標記，外層還在就直接跳過，晚出現的「頻道會員專屬」等 badge 不會讓卡片被隱藏。現在兩層的標記都會清掉。
