@@ -65,15 +65,22 @@ export class VideoFilter {
         const candidates = new Set<HTMLElement>();
         for (const mutation of mutations) {
             for (const node of Array.from(mutation.addedNodes)) {
-                if (node.nodeType !== 1) continue;
-                const el = node as HTMLElement;
+                // Polymer 元件會先插入空的文字容器，之後才另外補上文字節點（例如區塊副標題的「YouTube 精選」），
+                // 從文字節點的父元素找所屬容器重新檢查；只有空白的文字節點略過
+                const el = node.nodeType === 1 ? node as HTMLElement
+                    : node.nodeType === 3 && node.textContent?.trim() ? node.parentElement
+                        : null;
+                if (!el) continue;
 
                 if (el.matches?.(SELECTORS.allContainers)) candidates.add(el);
                 el.querySelectorAll?.(SELECTORS.allContainers).forEach(c => candidates.add(c as HTMLElement));
 
                 const parentContainer = el.closest?.(SELECTORS.allContainers) as HTMLElement;
                 if (parentContainer) {
-                    if (parentContainer.dataset.ypChecked) delete parentContainer.dataset.ypChecked;
+                    // 首頁卡片是兩層容器（ytd-rich-item-renderer 包 yt-lockup-view-model），
+                    // processElement 看的是外層的檢查標記，兩層都要清掉才會重新檢查
+                    delete parentContainer.dataset.ypChecked;
+                    delete getFilterContainer(parentContainer).dataset.ypChecked;
                     candidates.add(parentContainer);
                 }
             }

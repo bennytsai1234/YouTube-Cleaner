@@ -1849,16 +1849,18 @@ URL: ${item.url}`);
             const candidates = new Set();
             for (const mutation of mutations) {
                 for (const node of Array.from(mutation.addedNodes)) {
-                    if (node.nodeType !== 1)
+                    const el = node.nodeType === 1 ? node
+                        : node.nodeType === 3 && node.textContent?.trim() ? node.parentElement
+                            : null;
+                    if (!el)
                         continue;
-                    const el = node;
                     if (el.matches?.(SELECTORS.allContainers))
                         candidates.add(el);
                     el.querySelectorAll?.(SELECTORS.allContainers).forEach(c => candidates.add(c));
                     const parentContainer = el.closest?.(SELECTORS.allContainers);
                     if (parentContainer) {
-                        if (parentContainer.dataset.ypChecked)
-                            delete parentContainer.dataset.ypChecked;
+                        delete parentContainer.dataset.ypChecked;
+                        delete getFilterContainer(parentContainer).dataset.ypChecked;
                         candidates.add(parentContainer);
                     }
                 }

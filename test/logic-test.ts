@@ -337,6 +337,63 @@ TestRunner.suite('VideoFilter - 子節點更新時應重新排程父容器', () 
     TestRunner.assert('父容器應被加入待處理批次', queuedParent === parent);
 });
 
+// 首頁卡片是兩層容器，處理時看的是外層的檢查標記
+TestRunner.suite('VideoFilter - 巢狀卡片內容更新時應清除外層檢查標記', () => {
+    document.body.innerHTML = `
+        <ytd-rich-item-renderer id="outer" data-yp-checked="true">
+            <yt-lockup-view-model id="inner" data-yp-checked="true"><badge-shape id="badge"></badge-shape></yt-lockup-view-model>
+        </ytd-rich-item-renderer>
+    `;
+
+    const filter = new VideoFilter(new MockConfig() as any);
+    const outer = document.getElementById('outer') as HTMLElement;
+    const inner = document.getElementById('inner') as HTMLElement;
+    let queued: HTMLElement[] = [];
+    (filter as any).processBatch = (elements: HTMLElement[]) => {
+        queued = elements;
+    };
+
+    const label = document.createElement('div');
+    (document.getElementById('badge') as HTMLElement).appendChild(label);
+    filter.processMutations([{ addedNodes: [label] } as unknown as MutationRecord]);
+
+    TestRunner.assert('內層 ypChecked 應被清除', !inner.dataset.ypChecked);
+    TestRunner.assert('外層 ypChecked 應被清除', !outer.dataset.ypChecked);
+    TestRunner.assert('內層容器應被加入待處理批次', queued.includes(inner));
+});
+
+// Polymer 區塊先插入空的文字容器，之後才補上文字節點（例如區塊副標題的「YouTube 精選」）
+TestRunner.suite('VideoFilter - 晚到的文字節點應重新排程所屬容器', () => {
+    document.body.innerHTML = `
+        <ytd-rich-section-renderer id="section" data-yp-checked="true">
+            <div class="ytShelfHeaderLayoutSublabel"><div id="label"></div></div>
+        </ytd-rich-section-renderer>
+    `;
+
+    const filter = new VideoFilter(new MockConfig() as any);
+    const section = document.getElementById('section') as HTMLElement;
+    const label = document.getElementById('label') as HTMLElement;
+    let queued: HTMLElement[] = [];
+    (filter as any).processBatch = (elements: HTMLElement[]) => {
+        queued = elements;
+    };
+
+    const text = document.createTextNode('YouTube 精選');
+    label.appendChild(text);
+    filter.processMutations([{ addedNodes: [text] } as unknown as MutationRecord]);
+
+    TestRunner.assert('區塊 ypChecked 應被清除', !section.dataset.ypChecked);
+    TestRunner.assert('區塊應被加入待處理批次', queued.length === 1 && queued[0] === section);
+
+    section.dataset.ypChecked = 'true';
+    queued = [];
+    const whitespace = document.createTextNode('\n    ');
+    label.appendChild(whitespace);
+    filter.processMutations([{ addedNodes: [whitespace] } as unknown as MutationRecord]);
+
+    TestRunner.assert('只有空白的文字節點不應觸發重新檢查', queued.length === 0 && section.dataset.ypChecked === 'true');
+});
+
 TestRunner.suite('VideoFilter - stop 應清理主 observer 與訂閱 observer', () => {
     const config = new MockConfig();
     const filter = new VideoFilter(config as any);
