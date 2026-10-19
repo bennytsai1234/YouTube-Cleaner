@@ -23,7 +23,7 @@ Tampermonkey 使用者腳本。TypeScript 原始碼在 `src/`，Rollup 打包成
 
 ## Git
 
-- 不開分支：改動直接在 main 上提交並推上去。被工具放進自動開的 worktree 分支時，做完也直接併進 main，不留分支。
+- 可以開分支，但做完、驗證過就自動併回 main 並推上去，不問使用者要不要合併。被工具放進自動開的 worktree 分支時也一樣。
 
 ## 指令
 
@@ -32,6 +32,7 @@ Tampermonkey 使用者腳本。TypeScript 原始碼在 `src/`，Rollup 打包成
 - pre-commit（husky，`npm install` 時自動裝上）：lint-staged 跑 ESLint、typecheck、單元測試。
 - 改 `src/` 後執行 `npm run build`，打包檔和原始碼放在同一個 commit。
 - 沒有 E2E。改 selector、過濾規則或互動行為時，除了單元測試，push 前照 `.claude/skills/live-verify/SKILL.md` 在真實 YouTube 上確認受影響的頁面。
+- 使用者回報畫面上某個東西沒藏或藏錯時，先照 `.claude/skills/live-diagnose/SKILL.md` 讀現場，不刷新頁面。
 
 ## 已知風險
 

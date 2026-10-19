@@ -548,6 +548,32 @@ TestRunner.suite('FilterEngine - 會員專屬推廣卡由會員規則處理，�
     TestRunner.assert(`區塊內影片卡片的會員 badge 不應讓整個區塊被過濾（實際：${shelf.detail?.reason ?? 'null'}）`, shelf.detail === null);
 });
 
+// 不變式：任何一種區塊，只要區塊自己帶會員 badge（不在影片卡片裡），就算區塊標題先命中弱規則、
+// 一般白名單又比對得到所有標題和頻道，也只有會員白名單能放行
+TestRunner.suite('FilterEngine - 每種區塊自己的會員 badge 都不被一般白名單救回', () => {
+    const sections: Record<string, string> = {
+        '一般 rich shelf（YouTube 精選）': richShelfSection('為你推薦', 'YouTube 精選', lockupCard('Other Video')),
+        '貼文區塊': richShelfSection('最新 YouTube 貼文'),
+        'camelCase 標題列的推廣區塊': brandShelfSection('享受更多會員福利', 'YouTube 精選'),
+        '單支影片推廣卡': brandSingletonSection('探索會員專屬內容', 'YouTube 精選', '某頻道的會員影片')
+    };
+    const membersBadge = '<badge-shape class="ytBadgeShapeHost ytBadgeShapeMembership"><div class="ytBadgeShapeText">頻道會員專屬</div></badge-shape>';
+
+    for (const [name, html] of Object.entries(sections)) {
+        const config = new MockConfig();
+        config.state.compiledKeywordWhitelist = [/./];
+        config.state.compiledChannelWhitelist = [/./];
+        const engine = new FilterEngine(config as any);
+        const section = new JSDOM(html).window.document.querySelector('ytd-rich-section-renderer') as any;
+        section.insertAdjacentHTML('beforeend', membersBadge);
+        const item = new LazyVideoData(section);
+        const detail = engine.findFilterDetail(item, false);
+        const kept = detail ? engine.applyWhitelistDecision(item, detail) : null;
+        TestRunner.assert(`${name}帶會員 badge 應命中會員規則且不被一般白名單救回（實際：${detail?.reason ?? 'null'}／${kept ?? 'null'}）`,
+            !!detail?.reason.startsWith('members_only') && kept === null);
+    }
+});
+
 TestRunner.suite('FilterEngine - 關閉 YouTube 精選規則後，電影規則不會接手', () => {
     const config = new MockConfig() as any;
     config.state.RULE_ENABLES = { ...config.state.RULE_ENABLES, youtube_featured_shelf: false };
