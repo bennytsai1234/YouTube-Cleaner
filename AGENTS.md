@@ -21,10 +21,6 @@ Tampermonkey 使用者腳本。TypeScript 原始碼在 `src/`，Rollup 打包成
 - `CODING_STANDARDS.md`：CSS／JS 分界、規則 id、設定與文字的規範。改規則、selector、設定或使用者可見文字前先讀。
 - `CONTRIBUTING.md`：專案方向（維護為主，新功能的門檻）與 commit 慣例。
 
-## Git
-
-- 可以開分支，但做完、驗證過就自動併回 main 並推上去，不問使用者要不要合併。被工具放進自動開的 worktree 分支時也一樣。
-
 ## 指令
 
 - `npm run verify`：權威的完整驗證（typecheck → lint → 單元測試 → build → `check:release`）。CI 跑同樣的檢查，另外確認 commit 的打包檔和 `src/` build 出來的一致。
