@@ -2,6 +2,10 @@ import { Utils } from '../core/utils';
 import { SELECTORS } from '../data/selectors';
 import { I18N } from '../ui/i18n';
 
+// 目前語系的會員限定 badge 文字
+export const isMembersBadgeText = (text: string): boolean =>
+    (Reflect.get(I18N.filterPatterns, I18N.lang)?.members_only || /Members only/i).test(text);
+
 export class LazyVideoData {
     public el: HTMLElement;
     private _title: string | null = null;
@@ -52,7 +56,8 @@ export class LazyVideoData {
                     const avatarBtn = el.querySelector<HTMLElement>('[aria-label]');
                     rawName = avatarBtn?.getAttribute('aria-label') || '';
                 } else {
-                    rawName = el.getAttribute('aria-label') || el.textContent?.trim() || '';
+                    // ytd-rich-grid-media 的頭像連結（a#avatar-link）沒有文字，頻道名只在 title 屬性
+                    rawName = el.getAttribute('aria-label') || el.textContent?.trim() || el.getAttribute('title') || '';
                 }
             }
 
@@ -190,8 +195,7 @@ export class LazyVideoData {
 
     get isMembers(): boolean {
         if (this._isMembers === undefined) {
-            const pattern = Reflect.get(I18N.filterPatterns, I18N.lang)?.members_only || /Members only/i;
-            this._isMembers = !!this.el.querySelector(SELECTORS.BADGES.MEMBERS) || this.badgeTexts.some(t => pattern.test(t));
+            this._isMembers = !!this.el.querySelector(SELECTORS.BADGES.MEMBERS) || this.badgeTexts.some(isMembersBadgeText);
         }
 
         return this._isMembers;

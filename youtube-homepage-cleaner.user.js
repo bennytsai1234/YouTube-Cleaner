@@ -1297,7 +1297,206 @@
         }
     }
 
+    const isMembersBadgeText = (text) => (Reflect.get(I18N.filterPatterns, I18N.lang)?.members_only || /Members only/i).test(text);
+    class LazyVideoData {
+        el;
+        _title = null;
+        _channel = null;
+        _url = undefined;
+        _viewCount = undefined;
+        _liveViewers = undefined;
+        _timeAgo = undefined;
+        _duration = undefined;
+        _isShorts = undefined;
+        _isMembers = undefined;
+        _isUserPlaylist = undefined;
+        _isPlaylist = undefined;
+        _badgeTexts = undefined;
+        raw = { views: '', time: '', duration: '', viewers: '' };
+        constructor(element) {
+            this.el = element;
+        }
+        get title() {
+            if (this._title === null) {
+                const el = this.el.querySelector(SELECTORS.METADATA.TITLE);
+                this._title = el?.title?.trim() || el?.textContent?.trim() || '';
+                if (!this._title) {
+                    for (const sel of SELECTORS.METADATA.TITLE_LINKS) {
+                        const link = this.el.querySelector(sel);
+                        const text = link?.getAttribute('title')?.trim() || link?.ariaLabel?.trim() || link?.textContent?.trim() || '';
+                        if (text) {
+                            this._title = text;
+                            break;
+                        }
+                    }
+                }
+            }
+            return this._title;
+        }
+        get channel() {
+            if (this._channel === null) {
+                let rawName = '';
+                const el = this.el.querySelector(SELECTORS.METADATA.CHANNEL);
+                if (el) {
+                    if (el.tagName === 'YT-DECORATED-AVATAR-VIEW-MODEL') {
+                        const avatarBtn = el.querySelector('[aria-label]');
+                        rawName = avatarBtn?.getAttribute('aria-label') || '';
+                    }
+                    else {
+                        rawName = el.getAttribute('aria-label') || el.textContent?.trim() || el.getAttribute('title') || '';
+                    }
+                }
+                this._channel = Utils.cleanChannelName(rawName);
+            }
+            return this._channel;
+        }
+        get url() {
+            if (this._url === undefined) {
+                const anchor = this.el.querySelector(SELECTORS.LINK_CANDIDATES.join(', ')) ||
+                    this.el.querySelector('a[href*="/watch?"], a[href*="/shorts/"]');
+                this._url = anchor ? anchor.href : '';
+            }
+            return this._url;
+        }
+        _parseMetadata() {
+            if (this._viewCount !== undefined)
+                return;
+            const texts = Array.from(this.el.querySelectorAll(SELECTORS.METADATA.TEXT));
+            let aria = '';
+            for (const sel of SELECTORS.METADATA.TITLE_LINKS) {
+                const el = this.el.querySelector(`:scope ${sel}`);
+                if (el?.ariaLabel) {
+                    aria = el.ariaLabel;
+                    break;
+                }
+            }
+            if (texts.length === 0 && aria) {
+                this.raw.views = aria;
+                this._viewCount = Utils.parseNumeric(aria, 'view');
+                this._liveViewers = Utils.parseLiveViewers(aria);
+                this._timeAgo = Utils.parseTimeAgo(aria);
+                return;
+            }
+            this._viewCount = null;
+            this._liveViewers = null;
+            this._timeAgo = null;
+            const patterns = Reflect.get(I18N.filterPatterns, I18N.lang);
+            for (const t of texts) {
+                const text = t.textContent || '';
+                const aria = t.ariaLabel || '';
+                const combined = `${text} ${aria}`;
+                const isLive = patterns.live.test(combined);
+                const isView = patterns.views.test(combined);
+                const isAgo = patterns.ago.test(combined);
+                if (this._liveViewers === null && isLive) {
+                    this.raw.viewers = combined;
+                    this._liveViewers = Utils.parseLiveViewers(combined);
+                }
+                if (this._viewCount === null && isView && !isLive) {
+                    this.raw.views = combined;
+                    this._viewCount = Utils.parseNumeric(combined, 'view');
+                }
+                if (this._timeAgo === null && isAgo) {
+                    this.raw.time = combined;
+                    this._timeAgo = Utils.parseTimeAgo(combined);
+                }
+            }
+            if (this._timeAgo === null) {
+                for (const t of texts) {
+                    const text = t.textContent?.trim() || '';
+                    const parsed = Utils.parseTimeAgo(text);
+                    if (parsed !== null) {
+                        this.raw.time = text;
+                        this._timeAgo = parsed;
+                        break;
+                    }
+                }
+            }
+            if (this._viewCount === null) {
+                for (const t of texts) {
+                    const text = t.textContent?.trim() || '';
+                    if (!text || patterns.ago.test(text) || patterns.live.test(text) || text === this.channel)
+                        continue;
+                    const parsed = Utils.parseNumeric(text, 'view');
+                    if (parsed !== null) {
+                        this.raw.views = text;
+                        this._viewCount = parsed;
+                        break;
+                    }
+                }
+            }
+        }
+        get viewCount() { this._parseMetadata(); return this._viewCount; }
+        get liveViewers() { this._parseMetadata(); return this._liveViewers; }
+        get timeAgo() { this._parseMetadata(); return this._timeAgo; }
+        get duration() {
+            if (this._duration === undefined) {
+                const el = this.el.querySelector(SELECTORS.METADATA.DURATION);
+                if (el) {
+                    this.raw.duration = el.textContent?.trim() || '';
+                    this._duration = Utils.parseDuration(this.raw.duration);
+                }
+                else {
+                    this._duration = null;
+                }
+            }
+            return this._duration;
+        }
+        get isShorts() {
+            if (this._isShorts === undefined) {
+                this._isShorts = !!this.el.querySelector(SELECTORS.BADGES.SHORTS);
+            }
+            return this._isShorts;
+        }
+        get isLive() {
+            return this.liveViewers !== null;
+        }
+        get badgeTexts() {
+            if (this._badgeTexts === undefined) {
+                this._badgeTexts = Array.from(this.el.querySelectorAll(SELECTORS.BADGES.TEXT), b => b.textContent?.trim() || '').filter(Boolean);
+            }
+            return this._badgeTexts;
+        }
+        get isMembers() {
+            if (this._isMembers === undefined) {
+                this._isMembers = !!this.el.querySelector(SELECTORS.BADGES.MEMBERS) || this.badgeTexts.some(isMembersBadgeText);
+            }
+            return this._isMembers;
+        }
+        get isUserPlaylist() {
+            if (this._isUserPlaylist === undefined) {
+                const link = this.el.querySelector('a[href*="list="]');
+                if (link && /list=(LL|WL|FL)/.test(link.href)) {
+                    this._isUserPlaylist = true;
+                }
+                else {
+                    const texts = Array.from(this.el.querySelectorAll(SELECTORS.METADATA.TEXT));
+                    const ownershipKeywords = /Private|Unlisted|Public|私人|不公開|不公开|公開|公开/i;
+                    this._isUserPlaylist = texts.some(t => ownershipKeywords.test(t.textContent || ''));
+                }
+            }
+            return this._isUserPlaylist;
+        }
+        get isPlaylist() {
+            if (this._isPlaylist === undefined) {
+                const link = this.el.querySelector('a[href^="/playlist?list="], [content-id^="PL"]');
+                if (link) {
+                    this._isPlaylist = true;
+                    return true;
+                }
+                const title = this.title;
+                const pattern = Reflect.get(I18N.filterPatterns, I18N.lang)?.playlist || /^Mix[\s\-–]/i;
+                this._isPlaylist = !!(title && pattern.test(title));
+            }
+            return this._isPlaylist;
+        }
+    }
+
     const getShelfHeaderTexts = (section) => Array.from(section.querySelectorAll(SELECTORS.SHELF_HEADER_TEXT))
+        .filter(el => !el.closest(SELECTORS.videoContainersStr))
+        .map(el => el.textContent?.trim() || '')
+        .filter(Boolean);
+    const getSectionOwnBadgeTexts = (section) => Array.from(section.querySelectorAll(SELECTORS.BADGES.TEXT))
         .filter(el => !el.closest(SELECTORS.videoContainersStr))
         .map(el => el.textContent?.trim() || '')
         .filter(Boolean);
@@ -1319,6 +1518,13 @@
                 : /RICH-SECTION|REEL-SHELF|SHELF-RENDERER/.test(element.tagName) ? 'shelf_header'
                     : null;
             if (headerTarget) {
+                const sectionBadges = getSectionOwnBadgeTexts(element);
+                const badgeMatch = this.customRules.check('video_badge', sectionBadges);
+                if (badgeMatch)
+                    return { reason: badgeMatch.key, trigger: badgeMatch.trigger };
+                if (this.config.get('RULE_ENABLES').members_only && sectionBadges.some(isMembersBadgeText)) {
+                    return { reason: 'members_only_js' };
+                }
                 const headerMatch = this.customRules.check(headerTarget, getShelfHeaderTexts(element));
                 if (headerMatch)
                     return { reason: headerMatch.key, trigger: headerMatch.trigger };
@@ -1619,201 +1825,6 @@ URL: ${item.url}`);
         });
         FilterStats.reset();
     };
-
-    class LazyVideoData {
-        el;
-        _title = null;
-        _channel = null;
-        _url = undefined;
-        _viewCount = undefined;
-        _liveViewers = undefined;
-        _timeAgo = undefined;
-        _duration = undefined;
-        _isShorts = undefined;
-        _isMembers = undefined;
-        _isUserPlaylist = undefined;
-        _isPlaylist = undefined;
-        _badgeTexts = undefined;
-        raw = { views: '', time: '', duration: '', viewers: '' };
-        constructor(element) {
-            this.el = element;
-        }
-        get title() {
-            if (this._title === null) {
-                const el = this.el.querySelector(SELECTORS.METADATA.TITLE);
-                this._title = el?.title?.trim() || el?.textContent?.trim() || '';
-                if (!this._title) {
-                    for (const sel of SELECTORS.METADATA.TITLE_LINKS) {
-                        const link = this.el.querySelector(sel);
-                        const text = link?.getAttribute('title')?.trim() || link?.ariaLabel?.trim() || link?.textContent?.trim() || '';
-                        if (text) {
-                            this._title = text;
-                            break;
-                        }
-                    }
-                }
-            }
-            return this._title;
-        }
-        get channel() {
-            if (this._channel === null) {
-                let rawName = '';
-                const el = this.el.querySelector(SELECTORS.METADATA.CHANNEL);
-                if (el) {
-                    if (el.tagName === 'YT-DECORATED-AVATAR-VIEW-MODEL') {
-                        const avatarBtn = el.querySelector('[aria-label]');
-                        rawName = avatarBtn?.getAttribute('aria-label') || '';
-                    }
-                    else {
-                        rawName = el.getAttribute('aria-label') || el.textContent?.trim() || '';
-                    }
-                }
-                this._channel = Utils.cleanChannelName(rawName);
-            }
-            return this._channel;
-        }
-        get url() {
-            if (this._url === undefined) {
-                const anchor = this.el.querySelector(SELECTORS.LINK_CANDIDATES.join(', ')) ||
-                    this.el.querySelector('a[href*="/watch?"], a[href*="/shorts/"]');
-                this._url = anchor ? anchor.href : '';
-            }
-            return this._url;
-        }
-        _parseMetadata() {
-            if (this._viewCount !== undefined)
-                return;
-            const texts = Array.from(this.el.querySelectorAll(SELECTORS.METADATA.TEXT));
-            let aria = '';
-            for (const sel of SELECTORS.METADATA.TITLE_LINKS) {
-                const el = this.el.querySelector(`:scope ${sel}`);
-                if (el?.ariaLabel) {
-                    aria = el.ariaLabel;
-                    break;
-                }
-            }
-            if (texts.length === 0 && aria) {
-                this.raw.views = aria;
-                this._viewCount = Utils.parseNumeric(aria, 'view');
-                this._liveViewers = Utils.parseLiveViewers(aria);
-                this._timeAgo = Utils.parseTimeAgo(aria);
-                return;
-            }
-            this._viewCount = null;
-            this._liveViewers = null;
-            this._timeAgo = null;
-            const patterns = Reflect.get(I18N.filterPatterns, I18N.lang);
-            for (const t of texts) {
-                const text = t.textContent || '';
-                const aria = t.ariaLabel || '';
-                const combined = `${text} ${aria}`;
-                const isLive = patterns.live.test(combined);
-                const isView = patterns.views.test(combined);
-                const isAgo = patterns.ago.test(combined);
-                if (this._liveViewers === null && isLive) {
-                    this.raw.viewers = combined;
-                    this._liveViewers = Utils.parseLiveViewers(combined);
-                }
-                if (this._viewCount === null && isView && !isLive) {
-                    this.raw.views = combined;
-                    this._viewCount = Utils.parseNumeric(combined, 'view');
-                }
-                if (this._timeAgo === null && isAgo) {
-                    this.raw.time = combined;
-                    this._timeAgo = Utils.parseTimeAgo(combined);
-                }
-            }
-            if (this._timeAgo === null) {
-                for (const t of texts) {
-                    const text = t.textContent?.trim() || '';
-                    const parsed = Utils.parseTimeAgo(text);
-                    if (parsed !== null) {
-                        this.raw.time = text;
-                        this._timeAgo = parsed;
-                        break;
-                    }
-                }
-            }
-            if (this._viewCount === null) {
-                for (const t of texts) {
-                    const text = t.textContent?.trim() || '';
-                    if (!text || patterns.ago.test(text) || patterns.live.test(text) || text === this.channel)
-                        continue;
-                    const parsed = Utils.parseNumeric(text, 'view');
-                    if (parsed !== null) {
-                        this.raw.views = text;
-                        this._viewCount = parsed;
-                        break;
-                    }
-                }
-            }
-        }
-        get viewCount() { this._parseMetadata(); return this._viewCount; }
-        get liveViewers() { this._parseMetadata(); return this._liveViewers; }
-        get timeAgo() { this._parseMetadata(); return this._timeAgo; }
-        get duration() {
-            if (this._duration === undefined) {
-                const el = this.el.querySelector(SELECTORS.METADATA.DURATION);
-                if (el) {
-                    this.raw.duration = el.textContent?.trim() || '';
-                    this._duration = Utils.parseDuration(this.raw.duration);
-                }
-                else {
-                    this._duration = null;
-                }
-            }
-            return this._duration;
-        }
-        get isShorts() {
-            if (this._isShorts === undefined) {
-                this._isShorts = !!this.el.querySelector(SELECTORS.BADGES.SHORTS);
-            }
-            return this._isShorts;
-        }
-        get isLive() {
-            return this.liveViewers !== null;
-        }
-        get badgeTexts() {
-            if (this._badgeTexts === undefined) {
-                this._badgeTexts = Array.from(this.el.querySelectorAll(SELECTORS.BADGES.TEXT), b => b.textContent?.trim() || '').filter(Boolean);
-            }
-            return this._badgeTexts;
-        }
-        get isMembers() {
-            if (this._isMembers === undefined) {
-                const pattern = Reflect.get(I18N.filterPatterns, I18N.lang)?.members_only || /Members only/i;
-                this._isMembers = !!this.el.querySelector(SELECTORS.BADGES.MEMBERS) || this.badgeTexts.some(t => pattern.test(t));
-            }
-            return this._isMembers;
-        }
-        get isUserPlaylist() {
-            if (this._isUserPlaylist === undefined) {
-                const link = this.el.querySelector('a[href*="list="]');
-                if (link && /list=(LL|WL|FL)/.test(link.href)) {
-                    this._isUserPlaylist = true;
-                }
-                else {
-                    const texts = Array.from(this.el.querySelectorAll(SELECTORS.METADATA.TEXT));
-                    const ownershipKeywords = /Private|Unlisted|Public|私人|不公開|不公开|公開|公开/i;
-                    this._isUserPlaylist = texts.some(t => ownershipKeywords.test(t.textContent || ''));
-                }
-            }
-            return this._isUserPlaylist;
-        }
-        get isPlaylist() {
-            if (this._isPlaylist === undefined) {
-                const link = this.el.querySelector('a[href^="/playlist?list="], [content-id^="PL"]');
-                if (link) {
-                    this._isPlaylist = true;
-                    return true;
-                }
-                const title = this.title;
-                const pattern = Reflect.get(I18N.filterPatterns, I18N.lang)?.playlist || /^Mix[\s\-–]/i;
-                this._isPlaylist = !!(title && pattern.test(title));
-            }
-            return this._isPlaylist;
-        }
-    }
 
     const BATCH_SIZE = 50;
     const IDLE_TIMEOUT = 500;

@@ -395,6 +395,45 @@ const brandSingletonSection = (title: string, featuredBadge = '', videoTitle = '
         </ytd-brand-video-singleton-renderer>
     </ytd-rich-section-renderer>`;
 
+// 首頁「探索會員專屬內容」推廣卡，照真實頁面（2026-10-19）的結構精簡：推廣的影片包在 ytd-rich-grid-media，
+// 不在任何影片容器裡；頻道名只在頭像連結的 title 屬性，頻道名稱元件排在它後面
+const membersPromoSection = (channel = 'Promo Channel', videoTitle = '放鬆 ASMR 會員影片'): string => `
+    <ytd-rich-section-renderer>
+        <div id="content">
+            <ytd-brand-video-singleton-renderer>
+                <div id="dismissible">
+                    <div id="spatial-heading" class="sr-only"><yt-formatted-string>探索會員專屬內容</yt-formatted-string></div>
+                    <div id="content-wrapper">
+                        <div id="thumbnail-container">
+                            <ytd-rich-grid-media><div id="dismissible">
+                                <div id="thumbnail"><ytd-thumbnail><a id="thumbnail" href="/watch?v=promo">
+                                    <ytd-thumbnail-overlay-time-status-renderer>
+                                        <badge-shape class="ytBadgeShapeHost ytBadgeShapeThumbnailDefault ytBadgeShapeThumbnailBadge" aria-label="35 分鐘 15 秒"><div class="ytBadgeShapeText">35:15</div></badge-shape>
+                                    </ytd-thumbnail-overlay-time-status-renderer>
+                                </a></ytd-thumbnail></div>
+                                <div id="details">
+                                    <div id="avatar-container"><a id="avatar-link" title="${channel}" href="/@promo"></a></div>
+                                    <div id="meta">
+                                        <h3><a id="video-title-link" title="${videoTitle}" href="/watch?v=promo"><yt-formatted-string id="video-title">${videoTitle}</yt-formatted-string></a></h3>
+                                        <ytd-video-meta-block><ytd-channel-name><a href="/@promo">${channel}</a></ytd-channel-name></ytd-video-meta-block>
+                                        <ytd-badge-supported-renderer class="video-badge"><yt-badge-supported-renderer><yt-metadata-badge-renderer>
+                                            <badge-shape class="ytBadgeShapeHost ytBadgeShapeMembership ytBadgeShapeModern" aria-label="頻道會員專屬"><div class="ytBadgeShapeText">頻道會員專屬</div></badge-shape>
+                                        </yt-metadata-badge-renderer></yt-badge-supported-renderer></ytd-badge-supported-renderer>
+                                    </div>
+                                </div>
+                            </div></ytd-rich-grid-media>
+                        </div>
+                        <div id="metadata-container"><div id="metadata-text-container">
+                            <div id="title-container"><yt-formatted-string id="title">探索會員專屬內容</yt-formatted-string></div>
+                            <div id="featured-badge-container"><yt-formatted-string>YouTube 精選</yt-formatted-string></div>
+                            <div id="subtitle-container"><yt-formatted-string id="subtitle"></yt-formatted-string></div>
+                        </div></div>
+                    </div>
+                </div>
+            </ytd-brand-video-singleton-renderer>
+        </div>
+    </ytd-rich-section-renderer>`;
+
 const detailFor = (html: string, selector: string) => {
     const engine = new FilterEngine(new MockConfig() as any);
     const el = new JSDOM(html).window.document.querySelector(selector) as any;
@@ -476,6 +515,37 @@ TestRunner.suite('FilterEngine - 區塊規則只比對區塊標題列', () => {
 
     const grid = detailFor('<grid-shelf-view-model><h2>Shorts</h2></grid-shelf-view-model>', 'grid-shelf-view-model');
     TestRunner.assert(`搜尋頁 Shorts 格狀區塊應命中 shorts_grid_shelf（實際：${grid?.reason ?? 'null'}）`, grid?.reason === 'shorts_grid_shelf');
+});
+
+TestRunner.suite('FilterEngine - 會員專屬推廣卡由會員規則處理，一般白名單豁免不了', () => {
+    const decide = (configure: (config: MockConfig) => void = () => {}, html = membersPromoSection()) => {
+        const config = new MockConfig();
+        configure(config);
+        const engine = new FilterEngine(config as any);
+        const item = new LazyVideoData(new JSDOM(html).window.document.querySelector('ytd-rich-section-renderer') as any);
+        const detail = engine.findFilterDetail(item, false);
+        return { detail, kept: detail ? engine.applyWhitelistDecision(item, detail) : null, channel: item.channel };
+    };
+
+    const plain = decide();
+    TestRunner.assert(`推廣卡的頻道會員專屬 badge 應命中 members_only（實際：${plain.detail?.reason ?? 'null'}）`, plain.detail?.reason === 'members_only');
+    TestRunner.assert(`推廣卡的頻道名應讀頭像連結的 title（實際：「${plain.channel}」）`, plain.channel === 'Promo Channel');
+
+    const general = decide(c => {
+        c.state.compiledKeywordWhitelist = [/ASMR/i];
+        c.state.compiledChannelWhitelist = [/Promo Channel/i];
+    });
+    TestRunner.assert(`頻道與關鍵字白名單都不應救回會員推廣卡（實際：${general.kept ?? 'null'}）`, general.detail?.reason === 'members_only' && general.kept === null);
+
+    const members = decide(c => { c.state.compiledMembersWhitelist = [/Promo Channel/i]; });
+    TestRunner.assert(`會員白名單應救回會員推廣卡（實際：${members.kept ?? 'null'}）`, members.kept === 'channel_whitelist');
+
+    const off = decide(c => { c.state.RULE_ENABLES = { ...c.state.RULE_ENABLES, members_only: false }; });
+    TestRunner.assert(`關閉 members_only 後改由 YouTube 精選區塊規則處理（實際：${off.detail?.reason ?? 'null'}）`, off.detail?.reason === 'youtube_featured_shelf');
+
+    // 區塊裡一般影片卡片的會員 badge 由卡片自己處理，不應讓整排被藏
+    const shelf = decide(() => {}, richShelfSection('為你推薦', '', lockupCard('Some Video', [{ text: '頻道會員專屬' }]) + lockupCard('Other Video')));
+    TestRunner.assert(`區塊內影片卡片的會員 badge 不應讓整個區塊被過濾（實際：${shelf.detail?.reason ?? 'null'}）`, shelf.detail === null);
 });
 
 TestRunner.suite('FilterEngine - 關閉 YouTube 精選規則後，電影規則不會接手', () => {

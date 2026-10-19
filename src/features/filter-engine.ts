@@ -5,11 +5,19 @@ import { getWhitelistScope, isStrongRule } from '../data/rules';
 import { CustomRuleManager } from './custom-rules';
 import { SubscriptionManager } from './subscription-manager';
 import { FilterDetail, WhitelistReason } from './filter-types';
-import { LazyVideoData } from './video-data';
+import { isMembersBadgeText, LazyVideoData } from './video-data';
 
 // 區塊標題列的文字；排除區塊內影片卡片裡的元素，影片標題不算區塊標題
 const getShelfHeaderTexts = (section: HTMLElement): string[] =>
     Array.from(section.querySelectorAll<HTMLElement>(SELECTORS.SHELF_HEADER_TEXT))
+        .filter(el => !el.closest(SELECTORS.videoContainersStr))
+        .map(el => el.textContent?.trim() || '')
+        .filter(Boolean);
+
+// 區塊自己的 badge：首頁推廣卡推的影片包在 ytd-rich-grid-media，不在影片容器裡，不會被當成卡片過濾；
+// 區塊內影片卡片的 badge 由卡片自己處理，排除掉，避免一張會員影片讓整排被藏
+const getSectionOwnBadgeTexts = (section: HTMLElement): string[] =>
+    Array.from(section.querySelectorAll<HTMLElement>(SELECTORS.BADGES.TEXT))
         .filter(el => !el.closest(SELECTORS.videoContainersStr))
         .map(el => el.textContent?.trim() || '')
         .filter(Boolean);
@@ -36,6 +44,15 @@ export class FilterEngine {
             : /RICH-SECTION|REEL-SHELF|SHELF-RENDERER/.test(element.tagName) ? 'shelf_header'
                 : null;
         if (headerTarget) {
+            // 推廣卡的影片照影片 badge 規則判斷，排在區塊標題規則前面：會員專屬是強規則，
+            // 先命中「YouTube 精選」這類弱規則的話，一般白名單比對到推廣影片的標題就會把整個區塊救回來
+            const sectionBadges = getSectionOwnBadgeTexts(element);
+            const badgeMatch = this.customRules.check('video_badge', sectionBadges);
+            if (badgeMatch) return { reason: badgeMatch.key, trigger: badgeMatch.trigger };
+            if (this.config.get('RULE_ENABLES').members_only && sectionBadges.some(isMembersBadgeText)) {
+                return { reason: 'members_only_js' };
+            }
+
             const headerMatch = this.customRules.check(headerTarget, getShelfHeaderTexts(element));
             if (headerMatch) return { reason: headerMatch.key, trigger: headerMatch.trigger };
             return this.checkSectionFilter(element);

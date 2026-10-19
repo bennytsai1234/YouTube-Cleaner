@@ -6,6 +6,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+### Fixed
+- **Members-only Promo Card**: 首頁「探索會員專屬內容」單支影片推廣卡，推的影片不在影片卡片容器裡，「頻道會員專屬」badge 沒交給會員規則判斷，整個區塊只命中「YouTube 精選」這條弱規則；推廣影片的標題命中關鍵字白名單（或頻道命中頻道白名單）時，區塊就被留下來。現在區塊裡不屬於任何影片卡片的 badge 照影片 badge 規則判斷，而且排在區塊標題規則前面：會員專屬內容回到強規則，只有會員白名單能放行。
+- **Promo Card Channel Name**: 推廣卡的頻道名只放在頭像連結的 `title` 屬性，原本讀成空字串，會員白名單比對不到；現在讀得到。
+
+### Tests
+- 新增照真實頁面結構精簡的會員推廣卡回歸測試：一般白名單救不回、會員白名單可放行、關閉會員規則後改由「YouTube 精選」規則處理，以及區塊內一般影片卡片的會員 badge 不會讓整排被藏。
 
 ## [2.1.23] - 2026-10-16
 ### Fixed
