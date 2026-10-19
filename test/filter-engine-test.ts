@@ -557,20 +557,31 @@ TestRunner.suite('FilterEngine - 每種區塊自己的會員 badge 都不被一�
         'camelCase 標題列的推廣區塊': brandShelfSection('享受更多會員福利', 'YouTube 精選'),
         '單支影片推廣卡': brandSingletonSection('探索會員專屬內容', 'YouTube 精選', '某頻道的會員影片')
     };
-    const membersBadge = '<badge-shape class="ytBadgeShapeHost ytBadgeShapeMembership"><div class="ytBadgeShapeText">頻道會員專屬</div></badge-shape>';
+    // 推廣卡的頻道只在頭像連結的 title，跟會員 badge 一起放在影片容器外，讓一般頻道白名單有東西可比對
+    const promoParts = '<a id="avatar-link" title="Promo Channel" href="/@promo"></a>' +
+        '<badge-shape class="ytBadgeShapeHost ytBadgeShapeMembership"><div class="ytBadgeShapeText">頻道會員專屬</div></badge-shape>';
+    const whitelists = {
+        '關鍵字白名單': (c: MockConfig) => { c.state.compiledKeywordWhitelist = [/./]; },
+        '頻道白名單': (c: MockConfig) => { c.state.compiledChannelWhitelist = [/./]; }
+    };
 
     for (const [name, html] of Object.entries(sections)) {
-        const config = new MockConfig();
-        config.state.compiledKeywordWhitelist = [/./];
-        config.state.compiledChannelWhitelist = [/./];
-        const engine = new FilterEngine(config as any);
-        const section = new JSDOM(html).window.document.querySelector('ytd-rich-section-renderer') as any;
-        section.insertAdjacentHTML('beforeend', membersBadge);
-        const item = new LazyVideoData(section);
-        const detail = engine.findFilterDetail(item, false);
-        const kept = detail ? engine.applyWhitelistDecision(item, detail) : null;
-        TestRunner.assert(`${name}帶會員 badge 應命中會員規則且不被一般白名單救回（實際：${detail?.reason ?? 'null'}／${kept ?? 'null'}）`,
-            !!detail?.reason.startsWith('members_only') && kept === null);
+        for (const [listName, configure] of Object.entries(whitelists)) {
+            const config = new MockConfig();
+            configure(config);
+            const engine = new FilterEngine(config as any);
+            const section = new JSDOM(html).window.document.querySelector('ytd-rich-section-renderer') as any;
+            section.insertAdjacentHTML('beforeend', promoParts);
+            const item = new LazyVideoData(section);
+            // camelCase 標題列的區塊沒有可當影片標題的文字，關鍵字白名單本來就比對不到，不算這條路徑
+            if (listName === '關鍵字白名單' && !item.title) continue;
+
+            TestRunner.assert(`${name}的${listName}應比對得到（前提）`, engine.checkWhitelist(item) !== null);
+            const detail = engine.findFilterDetail(item, false);
+            const kept = detail ? engine.applyWhitelistDecision(item, detail) : null;
+            TestRunner.assert(`${name}帶會員 badge 應命中會員規則且不被${listName}救回（實際：${detail?.reason ?? 'null'}／${kept ?? 'null'}）`,
+                !!detail?.reason.startsWith('members_only') && kept === null);
+        }
     }
 });
 

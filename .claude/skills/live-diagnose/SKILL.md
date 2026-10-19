@@ -17,10 +17,10 @@ Playwright MCP 以 `--extension` 模式連到使用者的 Chrome。這個模式�
 
 1. **接上分頁、讀腳本紀錄**：讀 `attach.js`，整段當 function 傳給 `browser_evaluate`。接上時 Chrome 會顯示「正在偵錯此瀏覽器」的提示列，先跟使用者說一聲。
    完成：回傳有 `target`，而且你看過這幾項：
-   - `started`：腳本有啟動，並帶版本號。是空的就表示腳本沒跑，或使用者關了 Debug Mode（設定裡的系統 → Debug Mode），請使用者確認。
-   - `kept`：目標元素如果被白名單或訂閱保護救回，這裡會寫出原本命中的規則和救回它的名單。紀錄只有到這一步，使用者的設定值（白名單內容）讀不到，靠這幾行推回來。
+   - `target` 是使用者說的那個分頁（對照 `tabs`）。回傳 `error` 或接錯時，設 `window.ycTarget = { tabId }` 再跑一次，舊的連線會自動斷開。
+   - `started`：啟動行帶版本號。主控台被清過時會撈不到，所以空的時候先看 `purifierCount` 和 `page.checked`：都是 0 才代表腳本沒跑或使用者關了 Debug Mode（設定裡的系統 → Debug Mode），這時才請使用者確認。
+   - `kept`：目標元素如果被白名單或訂閱保護救回，這裡會寫出原本命中的規則和救回它的名單。使用者的設定值（白名單內容）讀不到，靠這幾行推回來。
    - `errors`：有沒有腳本相關的錯誤。
-   - 回傳的 `tabs` 不只一個 YouTube 分頁時，確認接的是使用者說的那個；不是就設 `window.ycTarget = { tabId }` 再跑一次。
 
 2. **找到目標元素**：用 `browser_evaluate` 執行 `async () => await window.ycEval(\`...\`)`，在分頁裡找使用者說的卡片或區塊，看它的 tag、`data-yp-checked`（腳本判斷過）、`data-yp-hidden`（被藏的原因）和 `getComputedStyle(el).display`。
    完成：知道目標元素的 selector，以及腳本對它的結論（沒判斷過、判斷過但保留、藏了）。
@@ -28,8 +28,8 @@ Playwright MCP 以 `--extension` 模式連到使用者的 Chrome。這個模式�
 3. **存快照**：用 `browser_evaluate` 回傳目標的 `outerHTML`（區塊就存整個區塊），加上 `filename` 參數存到 Playwright MCP 允許的暫存資料夾 `%LOCALAPPDATA%\Temp\playwright-mcp\`，存到其他地方會被拒。
    完成：檔案存在，大小合理（區塊通常幾十 KB）。
 
-4. **離線重播**：在 repo 根目錄執行 `node --import tsx .claude/skills/live-diagnose/replay-snapshot.mts <快照檔>`。worktree 裡沒有 `node_modules` 時先 `npm ci`。用 `--config` 帶入第 1 步推回來的設定（例如 `--config '{"KEYWORD_WHITELIST":["ASMR"]}'`），`--lang` 用第 1 步 `page.lang` 的語系（預設 `zh-TW`）。
-   完成：重播結果和現場一致（`result` 跟第 2 步的結論對得上）。對不上就是設定還沒推對，或差異在時機（內容晚到），回到第 1、2 步。
+4. **離線重播**：在 repo 根目錄執行 `node --import tsx .claude/skills/live-diagnose/replay-snapshot.mts <快照檔> --url <page.url>`。worktree 裡沒有 `node_modules` 時先 `npm ci`。用 `--config` 帶入第 1 步推回來的設定（例如 `--config '{"KEYWORD_WHITELIST":["ASMR"]}'`）；`--lang` 預設 `zh-TW`，使用者的 YouTube 是別的語言時帶 `page.lang`。它走的是腳本在頁面上的處理流程（頁面豁免、兩層容器、原生 hidden 都算進去），印出腳本會印的 `[Purifier]` 紀錄和每個容器的 `state`。
+   完成：重播印出的紀錄和 `state` 跟第 1、2 步的現場對得上。對不上時依序排除：設定還沒推對；繁簡字形不同的黑白名單（重播沒有載入 opencc-js，開頭會印提醒）；內容晚到這類時機問題（重播只看最終 DOM）。
 
 5. **斷開**：`browser_evaluate` 執行 `async () => await window.ycDetach()`。
    完成：回傳沒有錯誤，提示列消失。
